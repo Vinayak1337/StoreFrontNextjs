@@ -1,0 +1,110 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+// GET /api/bills - Get all bills
+export async function GET() {
+	try {
+		const bills = await prisma.bill.findMany({
+			include: {
+				order: {
+					include: {
+						orderItems: {
+							include: {
+								item: true
+							}
+						}
+					}
+				}
+			},
+			orderBy: {
+				createdAt: 'desc'
+			}
+		});
+
+		return NextResponse.json(bills);
+	} catch (error) {
+		console.error('Error fetching bills:', error);
+		return NextResponse.json(
+			{ error: 'Failed to fetch bills' },
+			{ status: 500 }
+		);
+	}
+}
+
+// POST /api/bills - Create a new bill
+export async function POST(request: Request) {
+	try {
+		const body = await request.json();
+
+		const { orderId, totalAmount, taxes, paymentMethod } = body;
+
+		if (!orderId || !totalAmount || !paymentMethod) {
+			return NextResponse.json(
+				{ error: 'Order ID, total amount, and payment method are required' },
+				{ status: 400 }
+			);
+		}
+
+		// Check if the order exists
+		const order = await prisma.order.findUnique({
+			where: { id: orderId }
+		});
+
+		if (!order) {
+			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+		}
+
+		// Check if a bill already exists for this order
+		const existingBill = await prisma.bill.findUnique({
+			where: { orderId }
+		});
+
+		if (existingBill) {
+			return NextResponse.json(
+				{ error: 'A bill already exists for this order' },
+				{ status: 400 }
+			);
+		}
+
+		// Create the bill
+		const bill = await prisma.bill.create({
+			data: {
+				totalAmount,
+				taxes: taxes || 0,
+				paymentMethod,
+				order: {
+					connect: {
+						id: orderId
+					}
+				}
+			},
+			include: {
+				order: {
+					include: {
+						orderItems: {
+							include: {
+								item: true
+							}
+						}
+					}
+				}
+			}
+		});
+
+		// Update the order status to COMPLETED
+		await prisma.order.update({
+			where: { id: orderId },
+			data: {
+				status: 'COMPLETED'
+			}
+		});
+
+		return NextResponse.json(bill, { status: 201 });
+	} catch (error) {
+		console.error('Error creating bill:', error);
+		return NextResponse.json(
+			{ error: 'Failed to create bill' },
+			{ status: 500 }
+		);
+	}
+}

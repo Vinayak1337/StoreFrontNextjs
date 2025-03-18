@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Define the User model
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+// Define the Item model
+model Item {
+  id        String   @id @default(uuid())
+  name      String
+  price     Decimal
+  weight    Decimal?
+  quantity  Int      @default(1)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  orderItems OrderItem[]
+
+  @@map("items")
+}
+
+// Define the Order model
+model Order {
+  id           String      @id @default(uuid())
+  customerName String      @map("customer_name")
+  status       OrderStatus
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  // Relationships
+  orderItems OrderItem[]
+  bill       Bill?
+
+  @@map("orders")
+}
+
+// Define the OrderItem model for many-to-many relationship
+model OrderItem {
+  id       String  @id @default(uuid())
+  quantity Int     @default(1)
+  price    Decimal // Price at the time of order
+
+  // Relationships
+  orderId String @map("order_id")
+  itemId  String @map("item_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+  item    Item   @relation(fields: [itemId], references: [id])
+
+  @@map("order_items")
+}
+
+// Define the Bill model
+model Bill {
+  id            String   @id @default(uuid())
+  totalAmount   Decimal  @map("total_amount")
+  taxes         Decimal
+  paymentMethod String   @map("payment_method")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  orderId String @unique @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  @@map("bills")
+}
+
+// Define the OrderStatus enum
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
