@@ -1,58 +1,68 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './globals.css';
-import { Inter } from 'next/font/google';
+import { Inter as FontSans } from 'next/font/google';
 import { Provider } from 'react-redux';
 import { store } from '@/lib/redux/store';
+import { Sidebar } from '@/components/layout/sidebar';
+import { ThemeProvider } from '@/components/theme-provider';
+import { ReactQueryProvider } from '@/lib/providers/query-provider';
+import { cn } from '@/lib/utils';
+import { ToastProvider } from '@/components/toast-provider';
 
-const inter = Inter({ subsets: ['latin'] });
+const fontSans = FontSans({
+	subsets: ['latin'],
+	variable: '--font-sans'
+});
 
 export default function RootLayout({
 	children
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const [mounted, setMounted] = useState(false);
+
+	// Hydration fix and allows for animation on first load
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
 	return (
-		<html lang='en'>
-			<body className={inter.className}>
-				<Provider store={store}>
-					<div className='flex min-h-screen overflow-hidden'>
-						<aside className='dark h-full hidden w-full max-w-xs flex-col bg-muted p-4 md:flex'>
-							<h2 className='mb-4 text-lg font-semibold tracking-tight'>
-								StoreFront
-							</h2>
-							<nav className='space-y-1'>
-								<a
-									href='/dashboard'
-									className='flex h-10 w-full items-center rounded-md px-4 hover:bg-accent'>
-									Dashboard
-								</a>
-								<a
-									href='/items'
-									className='flex h-10 w-full items-center rounded-md px-4 hover:bg-accent'>
-									Items
-								</a>
-								<a
-									href='/orders'
-									className='flex h-10 w-full items-center rounded-md px-4 hover:bg-accent'>
-									Orders
-								</a>
-								<a
-									href='/bills'
-									className='flex h-10 w-full items-center rounded-md px-4 hover:bg-accent'>
-									Bills
-								</a>
-								<a
-									href='/analytics'
-									className='flex h-10 w-full items-center rounded-md px-4 hover:bg-accent'>
-									Analytics
-								</a>
-							</nav>
-						</aside>
-						<main className='flex-1'>{children}</main>
-					</div>
-				</Provider>
+		<html lang='en' suppressHydrationWarning>
+			<head>
+				<title>StoreFront - Modern Inventory Management</title>
+				<meta
+					name='description'
+					content='A modern, vibrant inventory management system'
+				/>
+				<link rel='icon' href='/favicon.ico' />
+			</head>
+			<body
+				className={cn(
+					'min-h-screen bg-background font-sans antialiased',
+					fontSans.variable
+				)}>
+				<ThemeProvider attribute='class' defaultTheme='system' enableSystem>
+					<ReactQueryProvider>
+						<Provider store={store}>
+							<div
+								className={cn(
+									'flex min-h-screen overflow-hidden',
+									mounted ? 'animate-fade-in' : 'opacity-0'
+								)}>
+								{/* Sidebar navigation */}
+								<Sidebar />
+
+								{/* Main content area */}
+								<main className='flex-1 overflow-auto p-6'>
+									<div className='animate-slide-in'>{children}</div>
+								</main>
+							</div>
+							<ToastProvider />
+						</Provider>
+					</ReactQueryProvider>
+				</ThemeProvider>
 			</body>
 		</html>
 	);
