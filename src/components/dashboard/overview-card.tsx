@@ -187,10 +187,8 @@ export function OverviewCard({
 								<a
 									href={action.href}
 									className='flex items-center justify-between cursor-pointer'>
-									<div className='flex items-center justify-between w-full'>
-										{action.label}
-										<ExternalLink className='h-3.5 w-3.5 ml-2' />
-									</div>
+									{action.label}
+									<ExternalLink className='h-3.5 w-3.5 ml-2' />
 								</a>
 							</DropdownMenuItem>
 						))}
