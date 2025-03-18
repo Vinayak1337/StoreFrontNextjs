@@ -190,17 +190,23 @@ export function MainNav() {
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className='cursor-pointer'>
-							<User className='mr-2 h-4 w-4' />
-							<span>Profile</span>
+							<div className='flex items-center w-full'>
+								<User className='mr-2 h-4 w-4' />
+								<span>Profile</span>
+							</div>
 						</DropdownMenuItem>
 						<DropdownMenuItem className='cursor-pointer'>
-							<Settings className='mr-2 h-4 w-4' />
-							<span>Settings</span>
+							<div className='flex items-center w-full'>
+								<Settings className='mr-2 h-4 w-4' />
+								<span>Settings</span>
+							</div>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className='cursor-pointer'>
-							<LogOut className='mr-2 h-4 w-4' />
-							<span>Log out</span>
+							<div className='flex items-center w-full'>
+								<LogOut className='mr-2 h-4 w-4' />
+								<span>Log out</span>
+							</div>
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

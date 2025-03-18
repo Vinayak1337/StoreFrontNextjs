@@ -223,14 +223,14 @@ export function RecentOrders({
 											</Button>
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align='end'>
-											<Link
-												href={`/orders/${order.id}`}
-												className='flex items-center justify-between w-full'>
-												<DropdownMenuItem>
-													View Details
-													<ArrowUpRight className='h-3.5 w-3.5 ml-2' />
-												</DropdownMenuItem>
-											</Link>
+											<DropdownMenuItem asChild>
+												<Link href={`/orders/${order.id}`}>
+													<div className='flex items-center justify-between w-full'>
+														View Details
+														<ArrowUpRight className='h-3.5 w-3.5 ml-2' />
+													</div>
+												</Link>
+											</DropdownMenuItem>
 											<DropdownMenuItem>Process Order</DropdownMenuItem>
 											<DropdownMenuItem>Contact Customer</DropdownMenuItem>
 										</DropdownMenuContent>
