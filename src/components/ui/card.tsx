@@ -5,30 +5,25 @@ import { cn } from '@/lib/utils';
 const Card = React.forwardRef<
 	HTMLDivElement,
 	React.HTMLAttributes<HTMLDivElement> & {
-		variant?: 'default' | 'interactive' | 'outline' | 'transparent';
+		gradient?: boolean;
+		hover?: 'scale' | 'glow' | 'raise' | 'none';
+		glass?: boolean;
 	}
->(({ className, variant = 'default', ...props }, ref) => {
-	const variantStyles = {
-		default: 'rounded-lg border bg-card text-card-foreground shadow-sm',
-		interactive:
-			'rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md card-hover',
-		outline: 'rounded-lg border bg-transparent text-card-foreground',
-		transparent: 'rounded-lg bg-transparent text-card-foreground'
-	};
-
-	return (
-		<div
-			ref={ref}
-			className={cn(
-				variantStyles[variant],
-				variant === 'interactive' &&
-					'transition-all duration-300 animate-scale',
-				className
-			)}
-			{...props}
-		/>
-	);
-});
+>(({ className, gradient, hover = 'none', glass, ...props }, ref) => (
+	<div
+		ref={ref}
+		className={cn(
+			'rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200',
+			glass && 'glassmorphism backdrop-blur-md bg-card/50',
+			gradient && 'bg-gradient-to-br from-primary/5 to-secondary/5',
+			hover === 'scale' && 'hover:scale-[1.02]',
+			hover === 'glow' && 'hover-glow',
+			hover === 'raise' && 'hover-raise',
+			className
+		)}
+		{...props}
+	/>
+));
 Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
@@ -45,20 +40,16 @@ CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<
 	HTMLParagraphElement,
-	React.HTMLAttributes<HTMLHeadingElement> & {
-		icon?: React.ReactNode;
-	}
->(({ className, icon, children, ...props }, ref) => (
+	React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
 	<h3
 		ref={ref}
 		className={cn(
-			'text-2xl font-semibold leading-none tracking-tight flex items-center gap-2',
+			'text-2xl font-semibold leading-none tracking-tight',
 			className
 		)}
-		{...props}>
-		{icon && <span className='text-primary'>{icon}</span>}
-		{children}
-	</h3>
+		{...props}
+	/>
 ));
 CardTitle.displayName = 'CardTitle';
 

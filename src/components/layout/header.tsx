@@ -2,14 +2,20 @@
 
 import Link from 'next/link';
 import { MainNav } from './main-nav';
+import { ShoppingCart } from 'lucide-react';
 
 export function Header() {
 	return (
-		<header className='sticky top-0 z-40 w-full border-b bg-background'>
-			<div className='container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0'>
-				<div className='flex gap-6 md:gap-10'>
-					<Link href='/' className='flex items-center space-x-2'>
-						<span className='inline-block font-bold'>StoreFront</span>
+		<header className='sticky top-0 z-40 w-full border-b border-border/30 backdrop-blur-md bg-background/80 shadow-sm'>
+			<div className='container flex h-16 items-center justify-between'>
+				<div className='flex gap-6 md:gap-10 items-center'>
+					<Link href='/' className='flex items-center space-x-2 hover-scale'>
+						<div className='bg-gradient-to-r from-primary to-secondary p-2 rounded-xl shadow-md'>
+							<ShoppingCart className='h-5 w-5 text-white' />
+						</div>
+						<span className='inline-block font-bold text-lg tracking-tight text-gradient'>
+							StoreFront
+						</span>
 					</Link>
 					<MainNav />
 				</div>

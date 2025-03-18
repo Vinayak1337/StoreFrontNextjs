@@ -24,11 +24,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { RootState } from '@/lib/redux/store';
 import { format } from 'date-fns';
-import { BarChart3, LineChart, Calendar } from 'lucide-react';
+import {
+	BarChart3,
+	LineChart,
+	Calendar,
+	ArrowUp,
+	ArrowDown
+} from 'lucide-react';
 
 interface TooltipProps {
 	active?: boolean;
-	payload?: Array<{ value: number }>;
+	payload?: Array<{ value: number; dataKey: string; stroke: string }>;
 	label?: string;
 }
 
@@ -36,11 +42,26 @@ interface TooltipProps {
 const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 	if (active && payload && payload.length) {
 		return (
-			<div className='bg-background border rounded-md shadow-md p-3 animate-fade-in'>
-				<p className='font-medium'>{label}</p>
-				<p className='text-sm text-green-600 font-semibold mt-1'>
-					Sales: ${payload[0].value.toFixed(2)}
-				</p>
+			<div className='bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg p-4 animate-fade-in'>
+				<p className='font-medium text-sm mb-2'>{label}</p>
+				{payload.map((entry, index) => (
+					<div
+						key={index}
+						className='flex items-center justify-between gap-3 mb-1'>
+						<div className='flex items-center gap-2'>
+							<div
+								className='w-3 h-3 rounded-full'
+								style={{ backgroundColor: entry.stroke }}
+							/>
+							<span className='text-sm'>
+								{entry.dataKey === 'sales' ? 'Revenue' : 'Profit'}:
+							</span>
+						</div>
+						<span className='text-sm font-semibold'>
+							${entry.value.toFixed(2)}
+						</span>
+					</div>
+				))}
 			</div>
 		);
 	}
@@ -51,7 +72,7 @@ export function SalesChart() {
 	const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>(
 		'daily'
 	);
-	const [chartType, setChartType] = useState<'bar' | 'area'>('bar');
+	const [chartType, setChartType] = useState<'bar' | 'area'>('area');
 	const { salesData, loading } = useSelector(
 		(state: RootState) => state.analytics
 	);
@@ -87,33 +108,48 @@ export function SalesChart() {
 
 	const trend = calculateTrend();
 
+	// Chart colors
+	const colorPalette = {
+		revenue: '#8b5cf6', // purple-500
+		profit: '#06b6d4', // cyan-500
+		grid: 'rgba(148, 163, 184, 0.1)' // slate-400 with opacity
+	};
+
 	return (
 		<Card className='col-span-full animate-fade-in'>
-			<CardHeader className='flex flex-row items-center justify-between pb-2'>
+			<CardHeader className='flex flex-row items-center justify-between pb-4'>
 				<div>
 					<CardTitle className='text-lg font-medium flex items-center gap-2'>
-						<BarChart3 className='h-5 w-5 text-primary' />
+						<div className='icon-container'>
+							<BarChart3 className='h-5 w-5 text-primary' />
+						</div>
 						Sales Overview
 					</CardTitle>
-					<CardDescription className='mt-1'>
+					<CardDescription className='mt-1 flex items-center'>
 						{trend.isPositive ? (
-							<span className='text-emerald-500 font-medium flex items-center'>
-								↑ Up {trend.percentage.toFixed(1)}% from previous period
-							</span>
+							<div className='flex items-center gap-1 text-success text-sm font-medium'>
+								<ArrowUp className='h-4 w-4' />
+								<span>
+									Up {trend.percentage.toFixed(1)}% from previous period
+								</span>
+							</div>
 						) : (
-							<span className='text-rose-500 font-medium flex items-center'>
-								↓ Down {trend.percentage.toFixed(1)}% from previous period
-							</span>
+							<div className='flex items-center gap-1 text-destructive text-sm font-medium'>
+								<ArrowDown className='h-4 w-4' />
+								<span>
+									Down {trend.percentage.toFixed(1)}% from previous period
+								</span>
+							</div>
 						)}
 					</CardDescription>
 				</div>
 				<div className='flex gap-2'>
-					<div className='bg-muted/50 rounded-md p-1 mr-2'>
+					<div className='bg-muted/50 rounded-lg p-1 mr-2'>
 						<Button
 							size='sm'
 							variant={chartType === 'bar' ? 'default' : 'ghost'}
 							onClick={() => setChartType('bar')}
-							className='h-8 w-8 p-0'
+							className='h-8 w-8 p-0 rounded-md'
 							title='Bar Chart'>
 							<BarChart3 className='h-4 w-4' />
 						</Button>
@@ -121,7 +157,7 @@ export function SalesChart() {
 							size='sm'
 							variant={chartType === 'area' ? 'default' : 'ghost'}
 							onClick={() => setChartType('area')}
-							className='h-8 w-8 p-0'
+							className='h-8 w-8 p-0 rounded-md'
 							title='Area Chart'>
 							<LineChart className='h-4 w-4' />
 						</Button>
@@ -130,7 +166,7 @@ export function SalesChart() {
 						size='sm'
 						variant={viewMode === 'daily' ? 'gradient' : 'outline'}
 						onClick={() => setViewMode('daily')}
-						className='shadow-sm'
+						className='shadow-sm rounded-lg'
 						leftIcon={<Calendar className='h-4 w-4' />}>
 						Daily
 					</Button>
@@ -138,14 +174,14 @@ export function SalesChart() {
 						size='sm'
 						variant={viewMode === 'weekly' ? 'gradient' : 'outline'}
 						onClick={() => setViewMode('weekly')}
-						className='shadow-sm'>
+						className='shadow-sm rounded-lg'>
 						Weekly
 					</Button>
 					<Button
 						size='sm'
 						variant={viewMode === 'monthly' ? 'gradient' : 'outline'}
 						onClick={() => setViewMode('monthly')}
-						className='shadow-sm'>
+						className='shadow-sm rounded-lg'>
 						Monthly
 					</Button>
 				</div>
@@ -175,48 +211,128 @@ export function SalesChart() {
 								<BarChart
 									data={chartData}
 									margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-									<CartesianGrid strokeDasharray='3 3' opacity={0.2} />
-									<XAxis dataKey='date' />
-									<YAxis tickFormatter={value => `$${value}`} />
+									<CartesianGrid
+										strokeDasharray='3 3'
+										vertical={false}
+										stroke={colorPalette.grid}
+									/>
+									<XAxis
+										dataKey='date'
+										axisLine={false}
+										tickLine={false}
+										tickMargin={10}
+									/>
+									<YAxis
+										tickFormatter={value => `$${value}`}
+										axisLine={false}
+										tickLine={false}
+										tickMargin={10}
+									/>
 									<Tooltip content={<CustomTooltip />} />
-									<Legend />
+									<Legend
+										iconType='circle'
+										iconSize={8}
+										wrapperStyle={{ paddingTop: 15 }}
+									/>
 									<Bar
 										dataKey='sales'
 										name='Revenue'
-										fill='#22c55e'
+										fill={colorPalette.revenue}
 										radius={[4, 4, 0, 0]}
+										animationDuration={1000}
 									/>
 									<Bar
 										dataKey='profit'
 										name='Profit'
-										fill='#0ea5e9'
+										fill={colorPalette.profit}
 										radius={[4, 4, 0, 0]}
+										animationDuration={1000}
+										animationBegin={300}
 									/>
 								</BarChart>
 							) : (
 								<AreaChart
 									data={chartData}
 									margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-									<CartesianGrid strokeDasharray='3 3' opacity={0.2} />
-									<XAxis dataKey='date' />
-									<YAxis tickFormatter={value => `$${value}`} />
+									<defs>
+										<linearGradient
+											id='revenueGradient'
+											x1='0'
+											y1='0'
+											x2='0'
+											y2='1'>
+											<stop
+												offset='5%'
+												stopColor={colorPalette.revenue}
+												stopOpacity={0.8}
+											/>
+											<stop
+												offset='95%'
+												stopColor={colorPalette.revenue}
+												stopOpacity={0.1}
+											/>
+										</linearGradient>
+										<linearGradient
+											id='profitGradient'
+											x1='0'
+											y1='0'
+											x2='0'
+											y2='1'>
+											<stop
+												offset='5%'
+												stopColor={colorPalette.profit}
+												stopOpacity={0.8}
+											/>
+											<stop
+												offset='95%'
+												stopColor={colorPalette.profit}
+												stopOpacity={0.1}
+											/>
+										</linearGradient>
+									</defs>
+									<CartesianGrid
+										strokeDasharray='3 3'
+										vertical={false}
+										stroke={colorPalette.grid}
+									/>
+									<XAxis
+										dataKey='date'
+										axisLine={false}
+										tickLine={false}
+										tickMargin={10}
+									/>
+									<YAxis
+										tickFormatter={value => `$${value}`}
+										axisLine={false}
+										tickLine={false}
+										tickMargin={10}
+									/>
 									<Tooltip content={<CustomTooltip />} />
-									<Legend />
+									<Legend
+										iconType='circle'
+										iconSize={8}
+										wrapperStyle={{ paddingTop: 15 }}
+									/>
 									<Area
 										type='monotone'
 										dataKey='sales'
 										name='Revenue'
-										stroke='#22c55e'
-										fill='#22c55e'
-										fillOpacity={0.3}
+										stroke={colorPalette.revenue}
+										fillOpacity={1}
+										fill='url(#revenueGradient)'
+										strokeWidth={2}
+										animationDuration={1000}
 									/>
 									<Area
 										type='monotone'
 										dataKey='profit'
 										name='Profit'
-										stroke='#0ea5e9'
-										fill='#0ea5e9'
-										fillOpacity={0.3}
+										stroke={colorPalette.profit}
+										fillOpacity={1}
+										fill='url(#profitGradient)'
+										strokeWidth={2}
+										animationDuration={1000}
+										animationBegin={300}
 									/>
 								</AreaChart>
 							)}

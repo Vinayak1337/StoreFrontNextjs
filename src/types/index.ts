@@ -44,6 +44,7 @@ export interface Bill {
 	paymentMethod: string;
 	createdAt: string;
 	order?: Order;
+	isPaid?: boolean;
 }
 
 // User type
@@ -53,6 +54,7 @@ export interface User {
 	email: string;
 	password: string;
 	createdAt: string;
+	avatar?: string;
 }
 
 // Authentication types

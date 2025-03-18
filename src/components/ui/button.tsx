@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-	'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+	'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
 	{
 		variants: {
 			variant: {
@@ -18,10 +18,16 @@ const buttonVariants = cva(
 					'border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent',
 				secondary:
 					'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md',
-				ghost: 'hover:bg-accent hover:text-accent-foreground',
+				ghost: 'hover:bg-accent/50 hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
+				glass:
+					'bg-background/40 backdrop-blur-md border border-border/30 hover:bg-background/60 shadow-sm hover:shadow-md',
 				gradient:
-					'bg-gradient-to-r from-primary to-indigo-600 text-primary-foreground hover:brightness-110 shadow-sm hover:shadow-md'
+					'bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90 shadow-sm hover:shadow-md',
+				success:
+					'bg-success text-success-foreground hover:bg-success/90 shadow-sm hover:shadow-md',
+				warning:
+					'bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm hover:shadow-md'
 			},
 			size: {
 				default: 'h-10 px-4 py-2',
@@ -34,7 +40,9 @@ const buttonVariants = cva(
 				none: '',
 				pulse: 'animate-pulse',
 				bounce: 'hover:animate-bounce',
-				scale: 'hover:scale-105'
+				scale: 'hover:scale-105',
+				glow: 'hover-glow',
+				raise: 'hover-raise'
 			}
 		},
 		defaultVariants: {

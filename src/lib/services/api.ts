@@ -31,6 +31,13 @@ async function fetchAPI<T>(
 	}
 }
 
+// User API service
+export const userAPI = {
+	// Get current user
+	getCurrentUser: () =>
+		fetchAPI<{ id: string; name: string; email: string }>('/user')
+};
+
 // Items API service
 export const itemsAPI = {
 	// Get all items
@@ -149,6 +156,7 @@ export const analyticsAPI = {
 
 // Default export combining all API services
 const api = {
+	...userAPI,
 	...itemsAPI,
 	...ordersAPI,
 	...billsAPI,

@@ -19,7 +19,10 @@ import {
 	Moon,
 	Store,
 	LogOut,
-	Bell
+	Bell,
+	Search,
+	User,
+	HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -31,6 +34,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger
 } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 
 interface NavItemProps {
 	href: Route;
@@ -54,15 +58,15 @@ function NavItem({
 			href={href}
 			onClick={onClick}
 			className={cn(
-				'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-				'hover-scale hover:bg-primary/10',
+				'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+				'hover-scale relative overflow-hidden',
 				isActive
-					? 'bg-primary text-primary-foreground dark:bg-primary/70'
-					: 'text-muted-foreground hover:text-foreground'
+					? 'bg-primary text-primary-foreground dark:bg-primary/80 shadow-md'
+					: 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
 			)}>
 			<div
 				className={cn(
-					'flex h-7 w-7 items-center justify-center rounded-md',
+					'flex h-8 w-8 items-center justify-center rounded-md',
 					isActive
 						? 'text-primary-foreground'
 						: 'text-muted-foreground group-hover:text-foreground'
@@ -71,9 +75,12 @@ function NavItem({
 			</div>
 			<span className='flex-1'>{title}</span>
 			{badge !== undefined && badge > 0 && (
-				<Badge variant='secondary' className='animate-scale ml-auto'>
+				<Badge variant='secondary' className='animate-pulse-ping ml-auto'>
 					{badge}
 				</Badge>
+			)}
+			{isActive && (
+				<div className='absolute inset-y-0 left-0 w-1 bg-primary-foreground rounded-full'></div>
 			)}
 			<ChevronRight
 				className={cn(
@@ -90,6 +97,7 @@ export function Sidebar() {
 	const [open, setOpen] = useState(false);
 	const { theme, setTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
 
 	// Fix for hydration
 	useEffect(() => {
@@ -106,7 +114,7 @@ export function Sidebar() {
 		{
 			href: '/items' as Route,
 			icon: <ShoppingBag className='h-5 w-5' />,
-			title: 'Items',
+			title: 'Inventory',
 			badge: 3
 		},
 		{
@@ -118,7 +126,7 @@ export function Sidebar() {
 		{
 			href: '/bills' as Route,
 			icon: <Receipt className='h-5 w-5' />,
-			title: 'Bills',
+			title: 'Invoices',
 			badge: 0
 		},
 		{
@@ -145,7 +153,7 @@ export function Sidebar() {
 					<Button
 						variant='outline'
 						size='icon'
-						className='md:hidden fixed top-4 left-4 z-50'>
+						className='md:hidden fixed top-4 left-4 z-50 glassmorphism hover-glow'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>
@@ -153,8 +161,12 @@ export function Sidebar() {
 				<SheetContent side='left' className='flex flex-col p-0'>
 					<div className='flex items-center border-b px-6 py-4'>
 						<div className='flex items-center gap-2'>
-							<Store className='h-6 w-6 text-primary' />
-							<h2 className='text-lg font-semibold'>StoreFront</h2>
+							<div className='icon-container'>
+								<Store className='h-6 w-6 text-primary' />
+							</div>
+							<h2 className='text-lg font-semibold text-gradient'>
+								StoreFront
+							</h2>
 						</div>
 						<Button
 							variant='ghost'
@@ -165,7 +177,19 @@ export function Sidebar() {
 							<span className='sr-only'>Close</span>
 						</Button>
 					</div>
-					<nav className='flex-1 overflow-auto p-4'>
+					<div className='p-4'>
+						<div className='relative mb-4'>
+							<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+							<Input
+								type='search'
+								placeholder='Search...'
+								className='pl-9 bg-muted/50'
+								value={searchQuery}
+								onChange={e => setSearchQuery(e.target.value)}
+							/>
+						</div>
+					</div>
+					<nav className='flex-1 overflow-auto px-4'>
 						<div className='space-y-2'>
 							{routes.map(route => (
 								<NavItem
@@ -180,24 +204,29 @@ export function Sidebar() {
 							))}
 						</div>
 					</nav>
-					<div className='border-t px-6 py-3'>
+					<div className='border-t px-6 py-4'>
 						<div className='flex items-center justify-between'>
 							<Button
-								variant='ghost'
+								variant='outline'
 								size='icon'
-								onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+								onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+								className='hover-rotate'>
 								{theme === 'dark' ? (
-									<Sun className='h-5 w-5' />
+									<Sun className='h-5 w-5 text-amber-500' />
 								) : (
-									<Moon className='h-5 w-5' />
+									<Moon className='h-5 w-5 text-indigo-500' />
 								)}
 								<span className='sr-only'>Toggle theme</span>
 							</Button>
-							<Button variant='ghost' size='icon'>
-								<Bell className='h-5 w-5' />
+							<Button variant='outline' size='icon' className='hover-rotate'>
+								<Bell className='h-5 w-5 text-primary' />
 								<span className='sr-only'>Notifications</span>
 							</Button>
-							<Button variant='ghost' size='icon'>
+							<Button variant='outline' size='icon' className='hover-rotate'>
+								<User className='h-5 w-5 text-secondary' />
+								<span className='sr-only'>Profile</span>
+							</Button>
+							<Button variant='outline' size='icon' className='hover-rotate'>
 								<LogOut className='h-5 w-5 text-destructive' />
 								<span className='sr-only'>Log out</span>
 							</Button>
@@ -207,11 +236,13 @@ export function Sidebar() {
 			</Sheet>
 
 			{/* Desktop Navigation */}
-			<aside className='hidden md:flex flex-col w-64 h-screen border-r animate-slide-in'>
-				<div className='flex h-14 items-center border-b px-4'>
+			<aside className='hidden md:flex flex-col w-64 h-screen border-r animate-slide-in glassmorphism'>
+				<div className='flex h-16 items-center border-b px-6'>
 					<div className='flex items-center gap-2'>
-						<Store className='h-6 w-6 text-primary' />
-						<h2 className='text-lg font-semibold'>StoreFront</h2>
+						<div className='icon-container animate-pulse-ping'>
+							<Store className='h-6 w-6 text-primary' />
+						</div>
+						<h2 className='text-xl font-bold text-gradient'>StoreFront</h2>
 					</div>
 					<TooltipProvider>
 						<Tooltip>
@@ -219,12 +250,12 @@ export function Sidebar() {
 								<Button
 									variant='ghost'
 									size='icon'
-									className='ml-auto'
+									className='ml-auto hover-rotate'
 									onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
 									{theme === 'dark' ? (
-										<Sun className='h-4 w-4' />
+										<Sun className='h-4 w-4 text-amber-500' />
 									) : (
-										<Moon className='h-4 w-4' />
+										<Moon className='h-4 w-4 text-indigo-500' />
 									)}
 									<span className='sr-only'>Toggle theme</span>
 								</Button>
@@ -235,8 +266,22 @@ export function Sidebar() {
 						</Tooltip>
 					</TooltipProvider>
 				</div>
+
+				<div className='px-4 py-3'>
+					<div className='relative'>
+						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+						<Input
+							type='search'
+							placeholder='Search...'
+							className='pl-9 bg-muted/50'
+							value={searchQuery}
+							onChange={e => setSearchQuery(e.target.value)}
+						/>
+					</div>
+				</div>
+
 				<nav className='flex-1 overflow-auto p-4'>
-					<div className='space-y-2'>
+					<div className='space-y-1.5'>
 						{routes.map(route => (
 							<NavItem
 								key={route.href}
@@ -248,35 +293,38 @@ export function Sidebar() {
 							/>
 						))}
 					</div>
+
+					<div className='divider'></div>
+
+					<div className='mt-4'>
+						<h3 className='text-xs uppercase font-semibold text-muted-foreground mb-2 px-3'>
+							Support
+						</h3>
+						<Link
+							href='#'
+							className='group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-primary/10'>
+							<div className='flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground'>
+								<HelpCircle className='h-5 w-5' />
+							</div>
+							<span className='flex-1'>Help Center</span>
+						</Link>
+					</div>
 				</nav>
+
 				<div className='border-t p-4'>
-					<div className='flex items-center justify-between'>
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button variant='ghost' size='icon'>
-										<Bell className='h-5 w-5' />
-										<span className='sr-only'>Notifications</span>
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Notifications</p>
-								</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
-						<TooltipProvider>
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button variant='ghost' size='icon'>
-										<LogOut className='h-5 w-5 text-destructive' />
-										<span className='sr-only'>Log out</span>
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>Log out</p>
-								</TooltipContent>
-							</Tooltip>
-						</TooltipProvider>
+					<div className='flex items-center gap-3 px-2 py-3 rounded-lg hover:bg-muted/50 transition-colors'>
+						<div className='flex h-9 w-9 items-center justify-center rounded-full bg-secondary/10'>
+							<User className='h-5 w-5 text-secondary' />
+						</div>
+						<div className='flex-1 min-w-0'>
+							<p className='text-sm font-medium'>Admin User</p>
+							<p className='text-xs text-muted-foreground truncate'>
+								admin@example.com
+							</p>
+						</div>
+						<Button variant='ghost' size='icon' className='hover-rotate'>
+							<LogOut className='h-4 w-4 text-muted-foreground' />
+						</Button>
 					</div>
 				</div>
 			</aside>

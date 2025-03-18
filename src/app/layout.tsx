@@ -1,33 +1,22 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
 import './globals.css';
 import { Inter as FontSans } from 'next/font/google';
-import { Provider } from 'react-redux';
-import { store } from '@/lib/redux/store';
-import { Sidebar } from '@/components/layout/sidebar';
-import { ThemeProvider } from '@/components/theme-provider';
-import { ReactQueryProvider } from '@/lib/providers/query-provider';
-import { cn } from '@/lib/utils';
-import { ToastProvider } from '@/components/toast-provider';
+import ClientWrapper from './wrapper';
 
 const fontSans = FontSans({
 	subsets: ['latin'],
 	variable: '--font-sans'
 });
 
+export const metadata = {
+	title: 'StoreFront',
+	description: 'A modern inventory management system'
+};
+
 export default function RootLayout({
 	children
-}: Readonly<{
+}: {
 	children: React.ReactNode;
-}>) {
-	const [mounted, setMounted] = useState(false);
-
-	// Hydration fix and allows for animation on first load
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
+}) {
 	return (
 		<html lang='en' suppressHydrationWarning>
 			<head>
@@ -39,30 +28,8 @@ export default function RootLayout({
 				<link rel='icon' href='/favicon.ico' />
 			</head>
 			<body
-				className={cn(
-					'min-h-screen bg-background font-sans antialiased',
-					fontSans.variable
-				)}>
-				<ThemeProvider attribute='class' defaultTheme='system' enableSystem>
-					<ReactQueryProvider>
-						<Provider store={store}>
-							<div
-								className={cn(
-									'flex min-h-screen overflow-hidden',
-									mounted ? 'animate-fade-in' : 'opacity-0'
-								)}>
-								{/* Sidebar navigation */}
-								<Sidebar />
-
-								{/* Main content area */}
-								<main className='flex-1 overflow-auto p-6'>
-									<div className='animate-slide-in'>{children}</div>
-								</main>
-							</div>
-							<ToastProvider />
-						</Provider>
-					</ReactQueryProvider>
-				</ThemeProvider>
+				className={`min-h-screen bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
+				<ClientWrapper>{children}</ClientWrapper>
 			</body>
 		</html>
 	);

@@ -70,27 +70,28 @@ export default function AnalyticsPage() {
 							value={`$${totalSales.toFixed(2)}`}
 							icon={<DollarSignIcon className='h-4 w-4' />}
 							change={metrics?.revenueTrend || 0}
-							description='vs last period'
+							subtitle='vs last period'
 						/>
 						<MetricsCard
 							title='Total Orders'
 							value={metrics?.totalOrders || 0}
 							icon={<ShoppingCartIcon className='h-4 w-4' />}
 							change={metrics?.ordersTrend || 0}
-							description='vs last period'
+							subtitle='vs last period'
 						/>
 						<MetricsCard
 							title='Average Order Value'
 							value={`$${metrics?.averageOrderValue?.toFixed(2) || '0.00'}`}
 							icon={<ReceiptIcon className='h-4 w-4' />}
-							description='per order'
+							change={0}
+							subtitle='per order'
 						/>
 						<MetricsCard
 							title='Conversion Rate'
 							value={`${metrics?.conversionRate?.toFixed(1) || '0.0'}%`}
 							icon={<BarChartIcon className='h-4 w-4' />}
 							change={metrics?.conversionTrend || 0}
-							description='vs last period'
+							subtitle='vs last period'
 						/>
 					</div>
 
