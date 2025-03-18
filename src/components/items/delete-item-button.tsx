@@ -13,6 +13,7 @@ import {
 	DialogTrigger
 } from '@/components/ui/dialog';
 import { deleteItem } from '@/lib/redux/slices/items.slice';
+import { AppDispatch } from '@/lib/redux/store';
 
 interface DeleteItemButtonProps {
 	itemId: string;
@@ -20,7 +21,7 @@ interface DeleteItemButtonProps {
 }
 
 export function DeleteItemButton({ itemId, itemName }: DeleteItemButtonProps) {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const [open, setOpen] = useState(false);
 
 	const handleDelete = () => {

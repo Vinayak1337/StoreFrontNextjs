@@ -52,7 +52,7 @@ export function SalesChart() {
 
 		return salesData.dailySales.map(item => ({
 			date: format(new Date(item.date), 'MMM dd'),
-			sales: Number(item.totalSales)
+			sales: Number(item.totalAmount)
 		}));
 	};
 

@@ -11,11 +11,11 @@ import {
 	fetchOrders,
 	updateOrderStatus
 } from '@/lib/redux/slices/orders.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
 
 export default function OrdersPage() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const { orders, loading, error } = useSelector(
 		(state: RootState) => state.orders
 	);

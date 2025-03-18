@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/types';
 
+// Define the expected item structure for order creation
+interface OrderItemInput {
+	itemId: string;
+	quantity: number;
+	price: number;
+}
+
 // GET /api/orders - Get all orders
 export async function GET() {
 	try {
@@ -49,7 +56,7 @@ export async function POST(req: NextRequest) {
 		// Start a transaction
 		const result = await prisma.$transaction(async tx => {
 			// Validate and check items availability
-			for (const item of data.items) {
+			for (const item of data.items as OrderItemInput[]) {
 				const foundItem = await tx.item.findUnique({
 					where: { id: item.itemId }
 				});
@@ -69,7 +76,7 @@ export async function POST(req: NextRequest) {
 					customerName: data.customerName,
 					status: OrderStatus.PENDING,
 					orderItems: {
-						create: data.items.map(item => ({
+						create: (data.items as OrderItemInput[]).map(item => ({
 							quantity: item.quantity,
 							price: item.price,
 							item: {
@@ -88,7 +95,7 @@ export async function POST(req: NextRequest) {
 			});
 
 			// Update inventory (reduce quantities)
-			for (const item of data.items) {
+			for (const item of data.items as OrderItemInput[]) {
 				await tx.item.update({
 					where: { id: item.itemId },
 					data: {

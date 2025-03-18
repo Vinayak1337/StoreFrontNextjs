@@ -91,7 +91,8 @@ export async function GET(req: NextRequest) {
 					id: item.itemId,
 					name: itemDetails?.name || 'Unknown Item',
 					quantity: item._sum.quantity || 0,
-					revenue: (item._sum.price || 0) * (item._sum.quantity || 0)
+					revenue:
+						Number(item._sum.price || 0) * Number(item._sum.quantity || 0)
 				};
 			})
 		);

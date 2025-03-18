@@ -4,11 +4,12 @@ import { sampleBills } from '@/lib/mocks/data';
 // GET /api/bills/[id] - Get a specific bill
 export async function GET(
 	request: NextRequest,
-	context: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const id = Number(context.params.id);
-		const bill = sampleBills.find(bill => bill.id === id);
+		const { id } = await params;
+		const numberId = Number(id);
+		const bill = sampleBills.find(bill => Number(bill.id) === numberId);
 
 		if (!bill) {
 			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
@@ -25,13 +26,14 @@ export async function GET(
 // PUT /api/bills/[id] - Update a bill
 export async function PUT(
 	request: NextRequest,
-	context: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const id = Number(context.params.id);
+		const { id } = await params;
+		const numberId = Number(id);
 		const updates = await request.json();
 
-		const index = sampleBills.findIndex(bill => bill.id === id);
+		const index = sampleBills.findIndex(bill => Number(bill.id) === numberId);
 		if (index === -1) {
 			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
 		}
@@ -48,11 +50,12 @@ export async function PUT(
 // DELETE /api/bills/[id] - Delete a bill
 export async function DELETE(
 	request: NextRequest,
-	context: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const id = Number(context.params.id);
-		const index = sampleBills.findIndex(bill => bill.id === id);
+		const { id } = await params;
+		const numberId = Number(id);
+		const index = sampleBills.findIndex(bill => Number(bill.id) === numberId);
 
 		if (index === -1) {
 			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });

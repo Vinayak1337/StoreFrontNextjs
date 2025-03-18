@@ -14,11 +14,11 @@ import {
 } from '@/components/ui/dialog';
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
 import { createBill } from '@/lib/redux/slices/bills.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
 
 export function CreateBillDialog() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const [open, setOpen] = useState(false);
 	const { orders } = useSelector((state: RootState) => state.orders);
 	const [selectedOrderId, setSelectedOrderId] = useState('');

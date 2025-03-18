@@ -5,13 +5,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 import { AddItemDialog } from '@/components/items/add-item-dialog';
 import { EditItemDialog } from '@/components/items/edit-item-dialog';
 import { DeleteItemButton } from '@/components/items/delete-item-button';
 
 export default function ItemsPage() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const { items, loading, error } = useSelector(
 		(state: RootState) => state.items
 	);

@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma';
 // GET /api/items/[id] - Get a specific item
 export async function GET(
 	request: NextRequest,
-	context: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const id = context.params.id;
+		const { id } = await params;
 		const item = await prisma.item.findUnique({
 			where: { id }
 		});
@@ -27,10 +27,10 @@ export async function GET(
 // PUT /api/items/[id] - Update a specific item
 export async function PUT(
 	request: NextRequest,
-	context: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const id = context.params.id;
+		const { id } = await params;
 		const updates = await request.json();
 
 		const item = await prisma.item.findUnique({
@@ -57,10 +57,10 @@ export async function PUT(
 // DELETE /api/items/[id] - Delete a specific item
 export async function DELETE(
 	request: NextRequest,
-	context: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const id = context.params.id;
+		const { id } = await params;
 
 		// Check if the item exists
 		const item = await prisma.item.findUnique({

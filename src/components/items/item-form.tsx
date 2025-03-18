@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createItem, updateItem } from '@/lib/redux/slices/items.slice';
+import { AppDispatch } from '@/lib/redux/store';
 
 interface ItemFormProps {
 	item?: Item;
@@ -14,7 +15,7 @@ interface ItemFormProps {
 }
 
 export function ItemForm({ item, onClose }: ItemFormProps) {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const [formData, setFormData] = useState({
 		name: '',
 		price: '',

@@ -25,11 +25,11 @@ import { fetchItems } from '@/lib/redux/slices/items.slice';
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
 import { fetchBills } from '@/lib/redux/slices/bills.slice';
 import { fetchDailySales } from '@/lib/redux/slices/analytics.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
 
 export default function DashboardPage() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const { items } = useSelector((state: RootState) => state.items);
 	const { orders } = useSelector((state: RootState) => state.orders);
 	const { bills } = useSelector((state: RootState) => state.bills);

@@ -8,10 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CreateBillDialog } from '@/components/bills/create-bill-dialog';
 import { fetchBills } from '@/lib/redux/slices/bills.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 
 export default function BillsPage() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const { bills, loading, error } = useSelector(
 		(state: RootState) => state.bills
 	);

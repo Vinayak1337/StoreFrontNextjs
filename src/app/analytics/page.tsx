@@ -14,10 +14,10 @@ import {
 	fetchDailySales,
 	fetchAnalyticsMetrics
 } from '@/lib/redux/slices/analytics.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 
 export default function AnalyticsPage() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const { salesData, metrics, loading, error } = useSelector(
 		(state: RootState) => state.analytics
 	);
@@ -40,7 +40,7 @@ export default function AnalyticsPage() {
 		if (!salesData || !salesData.dailySales) return 0;
 
 		return salesData.dailySales.reduce(
-			(sum, day) => sum + Number(day.totalSales),
+			(sum, day) => sum + Number(day.totalAmount),
 			0
 		);
 	};

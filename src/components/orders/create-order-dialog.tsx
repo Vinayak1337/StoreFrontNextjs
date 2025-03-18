@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
 import { createOrder } from '@/lib/redux/slices/orders.slice';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
 
 interface OrderItem {
@@ -24,7 +24,7 @@ interface OrderItem {
 }
 
 export function CreateOrderDialog() {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const [open, setOpen] = useState(false);
 	const { items } = useSelector((state: RootState) => state.items);
 	const [customerName, setCustomerName] = useState('');
