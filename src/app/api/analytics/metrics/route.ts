@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/types';
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '@prisma/client';
 
 // GET /api/analytics/metrics - Get analytics metrics
 export async function GET(req: NextRequest) {
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
 			itemId: string;
 			_sum: {
 				quantity: number | null;
-				price: Decimal | null;
+				price: Prisma.Decimal | null;
 			};
 		}
 
