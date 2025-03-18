@@ -99,12 +99,12 @@ export function RecentOrders({
 			<CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
 				<div>
 					<CardTitle className='text-lg font-medium flex items-center gap-2'>
-						<span className='flex items-center gap-2'>
+						<div className='flex items-center gap-2'>
 							<div className='icon-container'>
 								<ShoppingCart className='h-5 w-5 text-primary' />
 							</div>
 							Recent Orders
-						</span>
+						</div>
 					</CardTitle>
 					<CardDescription className='mt-1'>
 						Showing the {limit} most recent orders
@@ -205,10 +205,8 @@ export function RecentOrders({
 									<Badge
 										variant={getStatusColor(order.status)}
 										className='capitalize flex items-center gap-1'>
-										<span className='flex items-center gap-1'>
-											{getStatusIcon(order.status)}
-											{order.status.toLowerCase()}
-										</span>
+										{getStatusIcon(order.status)}
+										{order.status.toLowerCase()}
 									</Badge>
 
 									<p className='text-sm font-medium'>
@@ -225,16 +223,14 @@ export function RecentOrders({
 											</Button>
 										</DropdownMenuTrigger>
 										<DropdownMenuContent align='end'>
-											<DropdownMenuItem asChild>
-												<Link
-													href={`/orders/${order.id}`}
-													className='flex items-center justify-between w-full'>
-													<span className='flex items-center justify-between w-full'>
-														View Details
-														<ArrowUpRight className='h-3.5 w-3.5 ml-2' />
-													</span>
-												</Link>
-											</DropdownMenuItem>
+											<Link
+												href={`/orders/${order.id}`}
+												className='flex items-center justify-between w-full'>
+												<DropdownMenuItem>
+													View Details
+													<ArrowUpRight className='h-3.5 w-3.5 ml-2' />
+												</DropdownMenuItem>
+											</Link>
 											<DropdownMenuItem>Process Order</DropdownMenuItem>
 											<DropdownMenuItem>Contact Customer</DropdownMenuItem>
 										</DropdownMenuContent>
@@ -249,14 +245,12 @@ export function RecentOrders({
 				<p className='text-sm text-muted-foreground'>
 					Showing {recentOrders.length} of {orders.length} orders
 				</p>
-				<Button asChild variant='outline' size='sm' className='gap-1'>
-					<Link href='/orders'>
-						<span className='flex items-center'>
-							View All Orders
-							<ArrowUpRight className='h-3.5 w-3.5 ml-1' />
-						</span>
-					</Link>
-				</Button>
+				<Link href='/orders'>
+					<Button variant='outline' size='sm' className='gap-1'>
+						View All Orders
+						<ArrowUpRight className='h-3.5 w-3.5' />
+					</Button>
+				</Link>
 			</CardFooter>
 		</Card>
 	);
