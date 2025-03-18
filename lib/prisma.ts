@@ -1,29 +1,9 @@
-'use client';
+import { PrismaClient } from '@prisma/client';
 
-// Mock Prisma client for development
-const mockPrismaClient = {
-	item: {
-		findMany: async () => [],
-		findUnique: async () => null,
-		create: async data => data.data,
-		update: async data => data.data,
-		delete: async () => ({})
-	},
-	order: {
-		findMany: async () => [],
-		findUnique: async () => null,
-		create: async data => data.data,
-		update: async data => data.data
-	},
-	bill: {
-		findMany: async () => [],
-		findUnique: async () => null,
-		create: async data => data.data,
-		update: async data => data.data,
-		delete: async () => ({})
-	}
-};
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-export const prisma = mockPrismaClient;
+export const prisma = globalForPrisma.prisma || new PrismaClient();
 
-export default mockPrismaClient;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+export default prisma;

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sampleOrders, sampleItems, sampleBills } from '@/lib/mocks/data';
+import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/types';
-
-// Create mutable copies for operations
-const ordersData = [...sampleOrders];
 
 // GET /api/orders/[id] - Get a specific order
 export async function GET(
@@ -11,8 +8,17 @@ export async function GET(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const id = Number(params.id);
-		const order = ordersData.find(order => order.id === id);
+		const id = params.id;
+		const order = await prisma.order.findUnique({
+			where: { id },
+			include: {
+				orderItems: {
+					include: {
+						item: true
+					}
+				}
+			}
+		});
 
 		if (!order) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -32,16 +38,24 @@ export async function PUT(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const id = Number(params.id);
+		const id = params.id;
 		const data = await request.json();
 
 		// Find order
-		const orderIndex = ordersData.findIndex(order => order.id === id);
-		if (orderIndex === -1) {
+		const order = await prisma.order.findUnique({
+			where: { id },
+			include: {
+				orderItems: {
+					include: {
+						item: true
+					}
+				}
+			}
+		});
+
+		if (!order) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
-
-		const order = ordersData[orderIndex];
 
 		// Validate status change
 		if (data.status && Object.values(OrderStatus).includes(data.status)) {
@@ -50,43 +64,46 @@ export async function PUT(
 				data.status === OrderStatus.COMPLETED &&
 				order.status === OrderStatus.PENDING
 			) {
-				// Create a bill when order is completed
-				const totalAmount = order.items.reduce(
+				// Calculate total amount
+				const totalAmount = order.orderItems.reduce(
 					(sum, item) => sum + Number(item.price) * Number(item.quantity),
 					0
 				);
 
-				const newBill = {
-					id: sampleBills.length + 1,
-					orderId: order.id,
-					customerName: order.customerName,
-					totalAmount: totalAmount,
-					date: new Date().toISOString(),
-					paymentMethod: 'cash'
-				};
+				// Apply tax rate (e.g., 5%)
+				const taxRate = 0.05;
+				const taxes = totalAmount * taxRate;
 
-				sampleBills.push(newBill);
-			} else if (
-				data.status === OrderStatus.CANCELLED &&
-				order.status === OrderStatus.PENDING
-			) {
-				// Return items to inventory if cancelled
-				order.items.forEach(item => {
-					const inventoryItem = sampleItems.find(i => i.id === item.itemId);
-					if (inventoryItem) {
-						inventoryItem.quantity += item.quantity;
+				// Create a bill when order is completed
+				await prisma.bill.create({
+					data: {
+						totalAmount,
+						taxes,
+						paymentMethod: data.paymentMethod || 'CASH',
+						orderId: order.id
 					}
 				});
 			}
 
 			// Update order status
-			ordersData[orderIndex] = {
-				...order,
-				status: data.status
-			};
+			const updatedOrder = await prisma.order.update({
+				where: { id },
+				data: {
+					status: data.status
+				},
+				include: {
+					orderItems: {
+						include: {
+							item: true
+						}
+					}
+				}
+			});
+
+			return NextResponse.json(updatedOrder);
 		}
 
-		return NextResponse.json(ordersData[orderIndex]);
+		return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';

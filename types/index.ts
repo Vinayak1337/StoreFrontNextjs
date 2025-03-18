@@ -7,38 +7,43 @@ export enum OrderStatus {
 
 // Item model
 export interface Item {
-	id: number;
+	id: string;
 	name: string;
 	price: number;
 	quantity: number;
 	weight?: number;
+	createdAt: string;
 }
 
 // Order item model
 export interface OrderItem {
-	itemId: number;
-	name: string;
+	id: string;
+	itemId: string;
+	orderId: string;
 	quantity: number;
 	price: number;
+	item?: Item;
 }
 
 // Order model
 export interface Order {
-	id: number;
+	id: string;
 	customerName: string;
 	status: OrderStatus;
-	items: OrderItem[];
-	date: string;
+	orderItems: OrderItem[];
+	createdAt: string;
+	bill?: Bill;
 }
 
 // Bill model
 export interface Bill {
-	id: number;
-	orderId: number;
-	customerName: string;
+	id: string;
+	orderId: string;
 	totalAmount: number;
-	date: string;
+	taxes: number;
 	paymentMethod: string;
+	createdAt: string;
+	order?: Order;
 }
 
 // User type
@@ -47,7 +52,7 @@ export interface User {
 	name: string;
 	email: string;
 	password: string;
-	createdAt: Date;
+	createdAt: string;
 }
 
 // Authentication types
@@ -63,6 +68,12 @@ export interface AuthState {
 export interface DailySales {
 	date: string;
 	sales: number;
+}
+
+export interface DailySalesItem {
+	date: string;
+	totalAmount: number;
+	count: number;
 }
 
 export interface AnalyticsMetrics {
@@ -85,18 +96,21 @@ export interface AnalyticsMetrics {
 // State types for Redux
 export interface ItemsState {
 	items: Item[];
+	activeItem: Item | null;
 	loading: boolean;
 	error: string | null;
 }
 
 export interface OrdersState {
 	orders: Order[];
+	activeOrder: Order | null;
 	loading: boolean;
 	error: string | null;
 }
 
 export interface BillsState {
 	bills: Bill[];
+	activeBill: Bill | null;
 	loading: boolean;
 	error: string | null;
 }

@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { sampleOrders, sampleItems, sampleBills } from '@/lib/mocks/data';
-import { Order, OrderStatus } from '@/types';
-
-// Use mutable copies for operations
-const ordersData = [...sampleOrders];
-let orderId = ordersData.length + 1;
+import { OrderStatus } from '@/types';
 
 // GET /api/orders - Get all orders
 export async function GET() {
@@ -51,10 +46,13 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Validate and prepare items
-		const orderItems = data.items.map(
-			(item: { itemId: number; quantity: number; price: number }) => {
-				const foundItem = sampleItems.find(i => i.id === item.itemId);
+		// Start a transaction
+		const result = await prisma.$transaction(async tx => {
+			// Validate and check items availability
+			for (const item of data.items) {
+				const foundItem = await tx.item.findUnique({
+					where: { id: item.itemId }
+				});
 
 				if (!foundItem) {
 					throw new Error(`Item with ID ${item.itemId} not found`);
@@ -63,37 +61,48 @@ export async function POST(req: NextRequest) {
 				if (foundItem.quantity < item.quantity) {
 					throw new Error(`Not enough stock for item: ${foundItem.name}`);
 				}
-
-				return {
-					itemId: item.itemId,
-					name: foundItem.name,
-					quantity: item.quantity,
-					price: item.price || foundItem.price
-				};
 			}
-		);
 
-		// Create new order
-		const newOrder: Order = {
-			id: orderId++,
-			customerName: data.customerName,
-			status: OrderStatus.PENDING,
-			items: orderItems,
-			date: new Date().toISOString()
-		};
+			// Create new order with order items
+			const newOrder = await tx.order.create({
+				data: {
+					customerName: data.customerName,
+					status: OrderStatus.PENDING,
+					orderItems: {
+						create: data.items.map(item => ({
+							quantity: item.quantity,
+							price: item.price,
+							item: {
+								connect: { id: item.itemId }
+							}
+						}))
+					}
+				},
+				include: {
+					orderItems: {
+						include: {
+							item: true
+						}
+					}
+				}
+			});
 
-		// Add to orders
-		ordersData.push(newOrder);
-
-		// Update inventory (reduce quantities)
-		orderItems.forEach((item: { itemId: number; quantity: number }) => {
-			const inventoryItem = sampleItems.find(i => i.id === item.itemId);
-			if (inventoryItem) {
-				inventoryItem.quantity -= item.quantity;
+			// Update inventory (reduce quantities)
+			for (const item of data.items) {
+				await tx.item.update({
+					where: { id: item.itemId },
+					data: {
+						quantity: {
+							decrement: item.quantity
+						}
+					}
+				});
 			}
+
+			return newOrder;
 		});
 
-		return NextResponse.json(newOrder, { status: 201 });
+		return NextResponse.json(result, { status: 201 });
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';
