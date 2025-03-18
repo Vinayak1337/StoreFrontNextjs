@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { OrderStatus } from '@/types';
+import { Decimal } from '@prisma/client/runtime/library';
 
 // GET /api/analytics/metrics - Get analytics metrics
 export async function GET(req: NextRequest) {
@@ -80,9 +81,18 @@ export async function GET(req: NextRequest) {
 			take: 5
 		});
 
+		// Define type for the topSellingItems result
+		interface TopSellingItem {
+			itemId: string;
+			_sum: {
+				quantity: number | null;
+				price: Decimal | null;
+			};
+		}
+
 		// Get item details for top selling items
 		const topItems = await Promise.all(
-			topSellingItems.map(async item => {
+			topSellingItems.map(async (item: TopSellingItem) => {
 				const itemDetails = await prisma.item.findUnique({
 					where: { id: item.itemId }
 				});
