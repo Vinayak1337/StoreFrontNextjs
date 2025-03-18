@@ -7,8 +7,8 @@ export const fetchOrders = createAsyncThunk(
 	'orders/fetchOrders',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await api.get('/orders');
-			return response.data;
+			const response = await api.getAllOrders();
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -33,8 +33,8 @@ export const createOrder = createAsyncThunk(
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await api.post('/orders', data);
-			return response.data;
+			const response = await api.createOrder(data);
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -51,8 +51,8 @@ export const updateOrderStatus = createAsyncThunk(
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await api.patch(`/orders/${id}`, { status });
-			return response.data;
+			const response = await api.updateOrderStatus(id, status);
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -65,6 +65,7 @@ export const updateOrderStatus = createAsyncThunk(
 // Initial state
 const initialState: OrdersState = {
 	orders: [],
+	activeOrder: null,
 	loading: false,
 	error: null
 };

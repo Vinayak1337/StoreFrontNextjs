@@ -1,4 +1,4 @@
-import { Item, Order, Bill } from '@/types';
+import { Item, Order, Bill, AnalyticsMetrics } from '@/types';
 
 // Generic fetch function with error handling
 async function fetchAPI<T>(
@@ -69,7 +69,15 @@ export const ordersAPI = {
 	getOrderById: (id: string) => fetchAPI<Order>(`/orders/${id}`),
 
 	// Create a new order
-	createOrder: (order: Omit<Order, 'id' | 'createdAt'>) =>
+	createOrder: (order: {
+		customerName: string;
+		status: string;
+		orderItems: Array<{
+			itemId: string;
+			quantity: number;
+			price: number;
+		}>;
+	}) =>
 		fetchAPI<Order>('/orders', {
 			method: 'POST',
 			body: JSON.stringify(order)
@@ -133,7 +141,10 @@ export const analyticsAPI = {
 		}
 
 		return fetchAPI<DailySalesData[]>(url);
-	}
+	},
+
+	// Get analytics metrics
+	getMetrics: () => fetchAPI<AnalyticsMetrics>('/analytics/metrics')
 };
 
 // Default export combining all API services

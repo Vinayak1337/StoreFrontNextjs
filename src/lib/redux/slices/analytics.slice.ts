@@ -1,6 +1,13 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { AnalyticsState, DailySalesItem, AnalyticsMetrics } from '@/types';
+import { AnalyticsState, AnalyticsMetrics } from '@/types';
 import api from '@/lib/services/api';
+
+// Define the DailySalesData interface
+interface DailySalesData {
+	date: string;
+	totalAmount: number;
+	count: number;
+}
 
 // Async thunks
 export const fetchDailySales = createAsyncThunk(
@@ -10,10 +17,14 @@ export const fetchDailySales = createAsyncThunk(
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await api.get(
-				`/analytics/daily-sales?startDate=${startDate}&endDate=${endDate}`
-			);
-			return { dailySales: response.data };
+			const response = await api.getDailySales(startDate, endDate);
+			// Transform the response to match the expected format
+			const transformedData = response.map(item => ({
+				date: item.date,
+				totalAmount: item.sales,
+				count: item.orderCount
+			}));
+			return { dailySales: transformedData };
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -27,8 +38,8 @@ export const fetchAnalyticsMetrics = createAsyncThunk(
 	'analytics/fetchAnalyticsMetrics',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await api.get('/analytics/metrics');
-			return response.data;
+			const response = await api.getMetrics();
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -63,7 +74,7 @@ const analyticsSlice = createSlice({
 		});
 		builder.addCase(
 			fetchDailySales.fulfilled,
-			(state, action: PayloadAction<{ dailySales: DailySalesItem[] }>) => {
+			(state, action: PayloadAction<{ dailySales: DailySalesData[] }>) => {
 				state.loading = false;
 				state.salesData = {
 					dailySales: action.payload.dailySales

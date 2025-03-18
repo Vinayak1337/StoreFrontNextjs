@@ -7,8 +7,8 @@ export const fetchBills = createAsyncThunk(
 	'bills/fetchBills',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await api.get('/bills');
-			return response.data;
+			const response = await api.getAllBills();
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -30,8 +30,8 @@ export const createBill = createAsyncThunk(
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await api.post('/bills', data);
-			return response.data;
+			const response = await api.createBill(data);
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -44,6 +44,7 @@ export const createBill = createAsyncThunk(
 // Initial state
 const initialState: BillsState = {
 	bills: [],
+	activeBill: null,
 	loading: false,
 	error: null
 };

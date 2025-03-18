@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { ItemsState } from '@/types';
+import { ItemsState, Item } from '@/types';
 import api from '@/lib/services/api';
 
 // Async thunks
@@ -7,8 +7,8 @@ export const fetchItems = createAsyncThunk(
 	'items/fetchItems',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await api.get('/items');
-			return response.data;
+			const response = await api.getAllItems();
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -20,10 +20,10 @@ export const fetchItems = createAsyncThunk(
 
 export const createItem = createAsyncThunk(
 	'items/createItem',
-	async (data: Omit<Item, 'id' | 'createdAt'>, { rejectWithValue }) => {
+	async (item: Omit<Item, 'id' | 'createdAt'>, { rejectWithValue }) => {
 		try {
-			const response = await api.post('/items', data);
-			return response.data;
+			const response = await api.createItem(item);
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -36,12 +36,12 @@ export const createItem = createAsyncThunk(
 export const updateItem = createAsyncThunk(
 	'items/updateItem',
 	async (
-		{ id, data }: { id: string; data: Partial<Item> },
+		{ id, item }: { id: string; item: Partial<Item> },
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await api.put(`/items/${id}`, data);
-			return response.data;
+			const response = await api.updateItem(id, item);
+			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
@@ -55,7 +55,7 @@ export const deleteItem = createAsyncThunk(
 	'items/deleteItem',
 	async (id: string, { rejectWithValue }) => {
 		try {
-			await api.delete(`/items/${id}`);
+			await api.deleteItem(id);
 			return id;
 		} catch (error) {
 			if (error instanceof Error) {

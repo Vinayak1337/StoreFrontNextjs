@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Route } from 'next';
 import {
 	LayoutDashboard,
 	ShoppingBag,
@@ -18,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface NavItemProps {
-	href: string;
+	href: Route;
 	icon: React.ReactNode;
 	title: string;
 	isActive: boolean;
@@ -46,32 +47,32 @@ export function Sidebar() {
 
 	const routes = [
 		{
-			href: '/dashboard',
+			href: '/dashboard' as Route,
 			icon: <LayoutDashboard className='h-4 w-4' />,
 			title: 'Dashboard'
 		},
 		{
-			href: '/items',
+			href: '/items' as Route,
 			icon: <ShoppingBag className='h-4 w-4' />,
 			title: 'Items'
 		},
 		{
-			href: '/orders',
+			href: '/orders' as Route,
 			icon: <ShoppingCart className='h-4 w-4' />,
 			title: 'Orders'
 		},
 		{
-			href: '/bills',
+			href: '/bills' as Route,
 			icon: <Receipt className='h-4 w-4' />,
 			title: 'Bills'
 		},
 		{
-			href: '/analytics',
+			href: '/analytics' as Route,
 			icon: <BarChart3 className='h-4 w-4' />,
 			title: 'Analytics'
 		},
 		{
-			href: '/settings',
+			href: '/settings' as Route,
 			icon: <Settings className='h-4 w-4' />,
 			title: 'Settings'
 		}

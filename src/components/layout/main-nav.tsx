@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Route } from 'next';
 
 const navItems = [
-	{ name: 'Dashboard', href: '/' },
-	{ name: 'Items', href: '/items' },
-	{ name: 'Orders', href: '/orders' },
-	{ name: 'Bills', href: '/bills' },
-	{ name: 'Analytics', href: '/analytics' }
+	{ name: 'Dashboard', href: '/' as Route },
+	{ name: 'Items', href: '/items' as Route },
+	{ name: 'Orders', href: '/orders' as Route },
+	{ name: 'Bills', href: '/bills' as Route },
+	{ name: 'Analytics', href: '/analytics' as Route }
 ];
 
 export function MainNav() {

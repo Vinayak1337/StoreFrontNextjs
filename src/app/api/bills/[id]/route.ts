@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sampleBills } from '@/lib/mocks/data';
+import prisma from '@/lib/prisma';
 
 // GET /api/bills/[id] - Get a specific bill
 export async function GET(
@@ -8,8 +8,21 @@ export async function GET(
 ) {
 	try {
 		const { id } = await params;
-		const numberId = Number(id);
-		const bill = sampleBills.find(bill => Number(bill.id) === numberId);
+
+		const bill = await prisma.bill.findUnique({
+			where: { id },
+			include: {
+				order: {
+					include: {
+						orderItems: {
+							include: {
+								item: true
+							}
+						}
+					}
+				}
+			}
+		});
 
 		if (!bill) {
 			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
@@ -30,16 +43,33 @@ export async function PUT(
 ) {
 	try {
 		const { id } = await params;
-		const numberId = Number(id);
 		const updates = await request.json();
 
-		const index = sampleBills.findIndex(bill => Number(bill.id) === numberId);
-		if (index === -1) {
+		const bill = await prisma.bill.findUnique({
+			where: { id }
+		});
+
+		if (!bill) {
 			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
 		}
 
-		sampleBills[index] = { ...sampleBills[index], ...updates };
-		return NextResponse.json(sampleBills[index]);
+		const updatedBill = await prisma.bill.update({
+			where: { id },
+			data: updates,
+			include: {
+				order: {
+					include: {
+						orderItems: {
+							include: {
+								item: true
+							}
+						}
+					}
+				}
+			}
+		});
+
+		return NextResponse.json(updatedBill);
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';
@@ -54,14 +84,19 @@ export async function DELETE(
 ) {
 	try {
 		const { id } = await params;
-		const numberId = Number(id);
-		const index = sampleBills.findIndex(bill => Number(bill.id) === numberId);
 
-		if (index === -1) {
+		const bill = await prisma.bill.findUnique({
+			where: { id }
+		});
+
+		if (!bill) {
 			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
 		}
 
-		sampleBills.splice(index, 1);
+		await prisma.bill.delete({
+			where: { id }
+		});
+
 		return new NextResponse(null, { status: 204 });
 	} catch (error) {
 		const errorMessage =

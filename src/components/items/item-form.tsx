@@ -55,7 +55,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 			dispatch(
 				updateItem({
 					id: item.id,
-					data: itemData
+					item: itemData
 				})
 			);
 		} else {
