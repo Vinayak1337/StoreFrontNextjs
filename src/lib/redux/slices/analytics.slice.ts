@@ -19,11 +19,13 @@ export const fetchDailySales = createAsyncThunk(
 		try {
 			const response = await api.getDailySales(startDate, endDate);
 			// Transform the response to match the expected format
-			const transformedData = response.map(item => ({
-				date: item.date,
-				totalAmount: item.sales,
-				count: item.orderCount
-			}));
+			const transformedData = response.map(
+				(item: { date: string; sales: number; orderCount: number }) => ({
+					date: item.date,
+					totalAmount: item.sales,
+					count: item.orderCount
+				})
+			);
 			return { dailySales: transformedData };
 		} catch (error) {
 			if (error instanceof Error) {

@@ -128,7 +128,7 @@ const itemsSlice = createSlice({
 			state.error = null;
 		},
 		updateItemSuccess: (state, { payload }) => {
-			state.items = state.items.map(item =>
+			state.items = state.items.map((item: Item) =>
 				item.id === payload.id ? payload : item
 			);
 			state.activeItem = payload;

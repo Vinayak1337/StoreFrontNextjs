@@ -33,7 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { OrderStatus } from '@/types';
+import { Order, OrderStatus } from '@/types';
 import { RootState } from '@/lib/redux/store';
 
 interface RecentOrdersProps {
@@ -168,7 +168,7 @@ export function RecentOrders({
 					</div>
 				) : (
 					<div className='space-y-2'>
-						{recentOrders.map((order, index) => (
+						{recentOrders.map((order: Order, index: number) => (
 							<div
 								key={order.id}
 								className={cn(

@@ -115,9 +115,11 @@ export async function GET(req: NextRequest) {
 		});
 
 		const paymentMethodDistribution: Record<string, number> = {};
-		paymentMethods.forEach(method => {
-			paymentMethodDistribution[method.paymentMethod] = method._count;
-		});
+		paymentMethods.forEach(
+			(method: { paymentMethod: string; _count: number }) => {
+				paymentMethodDistribution[method.paymentMethod] = method._count;
+			}
+		);
 
 		// Build metrics object
 		const metrics = {

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { BillsState } from '@/types';
 import api from '@/lib/services/api';
+import { Bill } from '@/types';
 
 // Async thunks
 export const fetchBills = createAsyncThunk(
@@ -103,7 +104,7 @@ const billsSlice = createSlice({
 			state.error = null;
 		},
 		updateBillSuccess: (state, { payload }) => {
-			state.bills = state.bills.map(bill =>
+			state.bills = state.bills.map((bill: Bill) =>
 				bill.id === payload.id ? payload : bill
 			);
 			if (state.activeBill?.id === payload.id) {
