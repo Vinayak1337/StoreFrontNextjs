@@ -116,8 +116,7 @@ export function Sidebar() {
 	const pendingOrdersCount =
 		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
 	const lowStockCount = items?.filter(item => item?.quantity < 10)?.length || 0;
-	const unpaidBillsCount =
-		bills?.filter(bill => bill?.status === 'UNPAID')?.length || 0;
+	const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
 
 	const routes = [
 		{
