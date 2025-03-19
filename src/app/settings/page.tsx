@@ -24,25 +24,29 @@ import { Settings } from '@/types';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+// Default settings used as fallback
+const defaultSettings: Settings = {
+	storeName: 'StoreFront',
+	address: '123 Main Street, City',
+	phone: '(123) 456-7890',
+	email: 'contact@storefront.com',
+	taxRate: 10,
+	currency: 'USD',
+	footer: 'Thank you for your business!',
+	notifications: {
+		lowStock: true,
+		newOrders: true,
+		orderStatus: true,
+		dailyReports: false
+	}
+};
+
 export default function SettingsPage() {
 	const dispatch = useAppDispatch();
 	const { settings, loading } = useAppSelector(
 		(state: RootState) => state.settings
 	);
-	const [formState, setFormState] = useState<Settings>({
-		storeName: '',
-		address: '',
-		phone: '',
-		email: '',
-		taxRate: 10,
-		currency: 'USD',
-		notifications: {
-			lowStock: true,
-			newOrders: true,
-			orderStatus: true,
-			dailyReports: false
-		}
-	});
+	const [formState, setFormState] = useState<Settings>(defaultSettings);
 
 	// Load settings on component mount
 	useEffect(() => {
@@ -52,7 +56,19 @@ export default function SettingsPage() {
 	// Update local state when settings are loaded
 	useEffect(() => {
 		if (settings) {
-			setFormState(settings);
+			// Make sure all required fields have values
+			const safeSettings = {
+				...defaultSettings,
+				...settings,
+				// Ensure taxRate is a valid number
+				taxRate: isNaN(Number(settings.taxRate)) ? 0 : Number(settings.taxRate),
+				// Ensure notifications object exists
+				notifications: {
+					...defaultSettings.notifications,
+					...(settings.notifications || {})
+				}
+			};
+			setFormState(safeSettings);
 		}
 	}, [settings]);
 
@@ -62,7 +78,12 @@ export default function SettingsPage() {
 		const { name, value } = e.target;
 		setFormState(prev => ({
 			...prev,
-			[name]: name === 'taxRate' ? parseFloat(value) : value
+			[name]:
+				name === 'taxRate'
+					? isNaN(parseFloat(value))
+						? 0
+						: parseFloat(value)
+					: value
 		}));
 	};
 
@@ -113,7 +134,7 @@ export default function SettingsPage() {
 										<Input
 											id='storeName'
 											name='storeName'
-											value={formState.storeName}
+											value={formState.storeName || ''}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -122,7 +143,7 @@ export default function SettingsPage() {
 										<Input
 											id='currency'
 											name='currency'
-											value={formState.currency}
+											value={formState.currency || ''}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -133,7 +154,7 @@ export default function SettingsPage() {
 									<Input
 										id='address'
 										name='address'
-										value={formState.address}
+										value={formState.address || ''}
 										onChange={handleStoreSettingsChange}
 									/>
 								</div>
@@ -144,7 +165,7 @@ export default function SettingsPage() {
 										<Input
 											id='phone'
 											name='phone'
-											value={formState.phone}
+											value={formState.phone || ''}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -153,7 +174,7 @@ export default function SettingsPage() {
 										<Input
 											id='email'
 											name='email'
-											value={formState.email}
+											value={formState.email || ''}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -165,7 +186,12 @@ export default function SettingsPage() {
 										id='taxRate'
 										name='taxRate'
 										type='number'
-										value={formState.taxRate}
+										value={
+											formState.taxRate !== undefined &&
+											!isNaN(Number(formState.taxRate))
+												? String(formState.taxRate)
+												: '0'
+										}
 										onChange={handleStoreSettingsChange}
 									/>
 								</div>
@@ -214,7 +240,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='lowStock'
-										checked={formState.notifications.lowStock}
+										checked={!!formState.notifications?.lowStock}
 										onCheckedChange={() => handleNotificationChange('lowStock')}
 									/>
 								</div>
@@ -228,7 +254,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='newOrders'
-										checked={formState.notifications.newOrders}
+										checked={!!formState.notifications?.newOrders}
 										onCheckedChange={() =>
 											handleNotificationChange('newOrders')
 										}
@@ -244,7 +270,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='orderStatus'
-										checked={formState.notifications.orderStatus}
+										checked={!!formState.notifications?.orderStatus}
 										onCheckedChange={() =>
 											handleNotificationChange('orderStatus')
 										}
@@ -260,7 +286,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='dailyReports'
-										checked={formState.notifications.dailyReports}
+										checked={!!formState.notifications?.dailyReports}
 										onCheckedChange={() =>
 											handleNotificationChange('dailyReports')
 										}
