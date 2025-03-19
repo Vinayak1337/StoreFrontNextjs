@@ -25,7 +25,8 @@ export async function POST(request: Request) {
 	try {
 		const body = await request.json();
 
-		const { name, price, weight, weightUnit, quantity, metadata } = body;
+		const { name, price, weight, weightUnit, quantity, inStock, metadata } =
+			body;
 
 		if (!name || !price) {
 			return NextResponse.json(
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
 				weight,
 				weightUnit: weight ? weightUnit : undefined,
 				quantity: quantity || 1,
+				inStock: inStock !== undefined ? inStock : true,
 				metadata: metadata || {}
 			}
 		});

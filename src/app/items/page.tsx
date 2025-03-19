@@ -18,23 +18,20 @@ export default function ItemsPage() {
 		(state: RootState) => state.items
 	);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [filterLowStock, setFilterLowStock] = useState(false);
+	const [filterOutOfStock, setFilterOutOfStock] = useState(false);
 
 	useEffect(() => {
 		dispatch(fetchItems());
 	}, [dispatch]);
 
-	// Filter items based on search term and low stock filter
+	// Filter items based on search term and stock filter
 	const filteredItems = items.filter(item => {
 		const matchesSearch = item.name
 			.toLowerCase()
 			.includes(searchTerm.toLowerCase());
-		const matchesLowStock = !filterLowStock || item.quantity < 10;
-		return matchesSearch && matchesLowStock;
+		const matchesStockFilter = !filterOutOfStock || !item.inStock;
+		return matchesSearch && matchesStockFilter;
 	});
-
-	// Check if an item has low stock
-	const isLowStock = (quantity: number) => quantity < 10;
 
 	// Helper to ensure price is a number before formatting
 	const formatPrice = (price: string | number | unknown) => {
@@ -67,11 +64,13 @@ export default function ItemsPage() {
 						/>
 					</div>
 					<Button
-						variant={filterLowStock ? 'default' : 'outline'}
-						onClick={() => setFilterLowStock(!filterLowStock)}
+						variant={filterOutOfStock ? 'default' : 'outline'}
+						onClick={() => setFilterOutOfStock(!filterOutOfStock)}
 						className='flex items-center gap-2'>
 						<AlertTriangle className='h-4 w-4' />
-						{filterLowStock ? 'Showing Low Stock Only' : 'Show Low Stock'}
+						{filterOutOfStock
+							? 'Showing Out of Stock Only'
+							: 'Show Out of Stock'}
 					</Button>
 				</div>
 
@@ -92,15 +91,13 @@ export default function ItemsPage() {
 						<Card
 							key={item.id}
 							className={`overflow-hidden ${
-								isLowStock(item.quantity)
-									? 'border-red-300 animate-pulse-subtle'
-									: ''
+								!item.inStock ? 'border-red-300 animate-pulse-subtle' : ''
 							}`}>
 							<CardHeader className='pb-3 flex flex-row items-center justify-between'>
 								<CardTitle>{item.name}</CardTitle>
-								{isLowStock(item.quantity) && (
+								{!item.inStock && (
 									<Badge variant='destructive' className='ml-2'>
-										Low Stock
+										Out of Stock
 									</Badge>
 								)}
 							</CardHeader>
@@ -114,14 +111,7 @@ export default function ItemsPage() {
 									</div>
 									<div className='flex justify-between'>
 										<span className='text-muted-foreground'>Quantity:</span>
-										<span
-											className={`font-medium ${
-												isLowStock(item.quantity)
-													? 'text-red-600 font-bold'
-													: ''
-											}`}>
-											{item.quantity} {isLowStock(item.quantity) && '(Low)'}
-										</span>
+										<span className='font-medium'>{item.quantity}</span>
 									</div>
 									{item.weight && (
 										<div className='flex justify-between'>
@@ -131,6 +121,17 @@ export default function ItemsPage() {
 											</span>
 										</div>
 									)}
+									<div className='flex justify-between'>
+										<span className='text-muted-foreground'>Status:</span>
+										<span
+											className={`font-medium ${
+												!item.inStock
+													? 'text-red-600 font-bold'
+													: 'text-green-600'
+											}`}>
+											{item.inStock ? 'In Stock' : 'Out of Stock'}
+										</span>
+									</div>
 								</div>
 								<div className='flex justify-end gap-2 mt-4'>
 									<EditItemDialog item={item} />
@@ -146,7 +147,7 @@ export default function ItemsPage() {
 						<Package className='h-12 w-12 mb-3 opacity-20' />
 						<p className='text-lg font-medium'>No items found</p>
 						<p className='text-sm mt-1'>
-							{searchTerm || filterLowStock
+							{searchTerm || filterOutOfStock
 								? 'Try adjusting your filters'
 								: 'Add some items to get started'}
 						</p>

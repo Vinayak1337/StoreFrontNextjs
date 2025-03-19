@@ -6,6 +6,7 @@ import { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
 	Select,
 	SelectContent,
@@ -31,7 +32,8 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 		price: '',
 		weight: '',
 		weightUnit: 'kg' as WeightUnit,
-		quantity: '1'
+		quantity: '1',
+		inStock: true
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,7 +45,8 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				price: String(item.price),
 				weight: item.weight ? String(item.weight) : '',
 				weightUnit: (item.weightUnit || 'kg') as WeightUnit,
-				quantity: String(item.quantity)
+				quantity: String(item.quantity),
+				inStock: item.inStock !== undefined ? item.inStock : true
 			});
 		}
 	}, [item]);
@@ -57,6 +60,10 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 		setFormData(prev => ({ ...prev, weightUnit: value }));
 	};
 
+	const handleInStockChange = (checked: boolean) => {
+		setFormData(prev => ({ ...prev, inStock: checked }));
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsSubmitting(true);
@@ -66,7 +73,8 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 			price: parseFloat(formData.price),
 			weight: formData.weight ? parseFloat(formData.weight) : undefined,
 			weightUnit: formData.weight ? formData.weightUnit : undefined,
-			quantity: parseInt(formData.quantity, 10)
+			quantity: parseInt(formData.quantity, 10),
+			inStock: formData.inStock
 		};
 
 		try {
@@ -165,8 +173,8 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value='kg'>Kilograms (kg)</SelectItem>
-							<SelectItem value='g'>Grams (g)</SelectItem>
-							<SelectItem value='l'>Liters (l)</SelectItem>
+							<SelectItem value='g'>Grams (gm)</SelectItem>
+							<SelectItem value='l'>Liters (ltr)</SelectItem>
 							<SelectItem value='ml'>Milliliters (ml)</SelectItem>
 						</SelectContent>
 					</Select>
@@ -192,6 +200,22 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					required
 					className='transition-all focus:border-purple-500'
 					placeholder='Enter quantity'
+				/>
+			</div>
+
+			<div
+				className='flex items-center justify-between animate-slide-in'
+				style={{ animationDelay: '0.45s' }}>
+				<Label
+					htmlFor='in-stock'
+					className='text-sm font-medium flex items-center gap-2'>
+					<ShoppingBag className='h-4 w-4 text-orange-500' />
+					In Stock
+				</Label>
+				<Switch
+					id='in-stock'
+					checked={formData.inStock}
+					onCheckedChange={handleInStockChange}
 				/>
 			</div>
 

@@ -11,6 +11,7 @@ export interface Item {
 	name: string;
 	price: number;
 	quantity: number;
+	inStock: boolean;
 	weight?: number;
 	weightUnit?: 'kg' | 'g' | 'l' | 'ml';
 	createdAt: string;
