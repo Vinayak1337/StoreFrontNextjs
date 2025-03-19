@@ -22,13 +22,15 @@ interface ItemFormProps {
 	onClose: () => void;
 }
 
+type WeightUnit = 'kg' | 'g' | 'l' | 'ml';
+
 export function ItemForm({ item, onClose }: ItemFormProps) {
 	const dispatch = useDispatch<AppDispatch>();
 	const [formData, setFormData] = useState({
 		name: '',
 		price: '',
 		weight: '',
-		weightUnit: 'kg',
+		weightUnit: 'kg' as WeightUnit,
 		quantity: '1'
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +42,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				name: item.name,
 				price: String(item.price),
 				weight: item.weight ? String(item.weight) : '',
-				weightUnit: item.weightUnit || 'kg',
+				weightUnit: (item.weightUnit || 'kg') as WeightUnit,
 				quantity: String(item.quantity)
 			});
 		}
@@ -51,7 +53,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 		setFormData(prev => ({ ...prev, [name]: value }));
 	};
 
-	const handleWeightUnitChange = (value: string) => {
+	const handleWeightUnitChange = (value: WeightUnit) => {
 		setFormData(prev => ({ ...prev, weightUnit: value }));
 	};
 
