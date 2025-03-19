@@ -36,6 +36,17 @@ export default function ItemsPage() {
 	// Check if an item has low stock
 	const isLowStock = (quantity: number) => quantity < 10;
 
+	// Helper to ensure price is a number before formatting
+	const formatPrice = (price: string | number | unknown) => {
+		if (typeof price === 'number') {
+			return price.toFixed(2);
+		}
+		if (typeof price === 'string') {
+			return parseFloat(price).toFixed(2);
+		}
+		return '0.00';
+	};
+
 	return (
 		<div className='flex min-h-screen flex-col'>
 			<main className='flex-1 container py-10'>
@@ -98,7 +109,7 @@ export default function ItemsPage() {
 									<div className='flex justify-between'>
 										<span className='text-muted-foreground'>Price:</span>
 										<span className='font-medium'>
-											${item.price.toFixed(2)}
+											${formatPrice(item.price)}
 										</span>
 									</div>
 									<div className='flex justify-between'>
