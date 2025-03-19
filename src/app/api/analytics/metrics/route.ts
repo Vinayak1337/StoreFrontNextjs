@@ -82,19 +82,24 @@ export async function GET(req: NextRequest) {
 
 		// Get item details for top selling items
 		const topItems = await Promise.all(
-			topSellingItems.map(async item => {
-				const itemDetails = await prisma.item.findUnique({
-					where: { id: item.itemId }
-				});
+			topSellingItems.map(
+				async (item: {
+					itemId: string;
+					_sum: { quantity: number | null; price: unknown | null };
+				}) => {
+					const itemDetails = await prisma.item.findUnique({
+						where: { id: item.itemId }
+					});
 
-				return {
-					id: item.itemId,
-					name: itemDetails?.name || 'Unknown Item',
-					quantity: item._sum.quantity || 0,
-					revenue:
-						Number(item._sum.price || 0) * Number(item._sum.quantity || 0)
-				};
-			})
+					return {
+						id: item.itemId,
+						name: itemDetails?.name || 'Unknown Item',
+						quantity: item._sum.quantity || 0,
+						revenue:
+							Number(item._sum.price || 0) * Number(item._sum.quantity || 0)
+					};
+				}
+			)
 		);
 
 		// Get payment method distribution
