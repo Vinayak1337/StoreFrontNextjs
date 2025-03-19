@@ -24,6 +24,11 @@ async function fetchAPI<T>(
 			);
 		}
 
+		// For 204 No Content responses, return without attempting to parse JSON
+		if (response.status === 204) {
+			return {} as T;
+		}
+
 		return await response.json();
 	} catch (error) {
 		console.error(`Error calling ${url}:`, error);
