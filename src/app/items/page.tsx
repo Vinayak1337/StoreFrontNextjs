@@ -115,7 +115,9 @@ export default function ItemsPage() {
 									{item.weight && (
 										<div className='flex justify-between'>
 											<span className='text-muted-foreground'>Weight:</span>
-											<span className='font-medium'>{item.weight} kg</span>
+											<span className='font-medium'>
+												{item.weight} {item.weightUnit || 'kg'}
+											</span>
 										</div>
 									)}
 								</div>

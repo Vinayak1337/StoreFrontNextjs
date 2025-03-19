@@ -12,6 +12,7 @@ export interface Item {
 	price: number;
 	quantity: number;
 	weight?: number;
+	weightUnit?: 'kg' | 'g' | 'l' | 'ml';
 	createdAt: string;
 }
 

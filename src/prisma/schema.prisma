@@ -27,13 +27,14 @@ model User {
 
 // Define the Item model
 model Item {
-  id        String   @id @default(uuid())
-  name      String
-  price     Decimal
-  weight    Decimal?
-  quantity  Int      @default(1)
-  metadata  Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid())
+  name       String
+  price      Decimal
+  weight     Decimal?
+  weightUnit String?
+  quantity   Int      @default(1)
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
 
   // Relationships
   orderItems OrderItem[]

@@ -6,6 +6,13 @@ import { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '@/components/ui/select';
 import { createItem, updateItem } from '@/lib/redux/slices/items.slice';
 import { AppDispatch } from '@/lib/redux/store';
 import { Package, DollarSign, Scale, ShoppingBag, Save, X } from 'lucide-react';
@@ -21,6 +28,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 		name: '',
 		price: '',
 		weight: '',
+		weightUnit: 'kg',
 		quantity: '1'
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,6 +40,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				name: item.name,
 				price: String(item.price),
 				weight: item.weight ? String(item.weight) : '',
+				weightUnit: item.weightUnit || 'kg',
 				quantity: String(item.quantity)
 			});
 		}
@@ -42,6 +51,10 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 		setFormData(prev => ({ ...prev, [name]: value }));
 	};
 
+	const handleWeightUnitChange = (value: string) => {
+		setFormData(prev => ({ ...prev, weightUnit: value }));
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsSubmitting(true);
@@ -50,6 +63,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 			name: formData.name,
 			price: parseFloat(formData.price),
 			weight: formData.weight ? parseFloat(formData.weight) : undefined,
+			weightUnit: formData.weight ? formData.weightUnit : undefined,
 			quantity: parseInt(formData.quantity, 10)
 		};
 
@@ -127,19 +141,34 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					htmlFor='weight'
 					className='text-sm font-medium flex items-center gap-2'>
 					<Scale className='h-4 w-4 text-blue-500' />
-					Weight (kg, optional)
+					Weight
 				</Label>
-				<Input
-					id='weight'
-					name='weight'
-					type='number'
-					step='0.01'
-					min='0'
-					value={formData.weight}
-					onChange={handleChange}
-					className='transition-all focus:border-blue-500'
-					placeholder='Enter weight in kg (optional)'
-				/>
+				<div className='flex gap-2'>
+					<Input
+						id='weight'
+						name='weight'
+						type='number'
+						step='0.01'
+						min='0'
+						value={formData.weight}
+						onChange={handleChange}
+						className='transition-all focus:border-blue-500 flex-1'
+						placeholder='Enter weight'
+					/>
+					<Select
+						value={formData.weightUnit}
+						onValueChange={handleWeightUnitChange}>
+						<SelectTrigger className='w-[120px]'>
+							<SelectValue placeholder='Unit' />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value='kg'>Kilograms (kg)</SelectItem>
+							<SelectItem value='g'>Grams (g)</SelectItem>
+							<SelectItem value='l'>Liters (l)</SelectItem>
+							<SelectItem value='ml'>Milliliters (ml)</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
 			</div>
 
 			<div
