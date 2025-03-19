@@ -125,23 +125,19 @@ export function SalesChart() {
 						</div>
 						Sales Overview
 					</CardTitle>
-					<CardDescription className='mt-1 flex items-center'>
+					<div className='mt-1 flex items-center text-sm text-muted-foreground'>
 						{trend.isPositive ? (
-							<div className='flex items-center gap-1 text-success text-sm font-medium'>
+							<span className='flex items-center gap-1 text-success font-medium'>
 								<ArrowUp className='h-4 w-4' />
-								<span>
-									Up {trend.percentage.toFixed(1)}% from previous period
-								</span>
-							</div>
+								Up {trend.percentage.toFixed(1)}% from previous period
+							</span>
 						) : (
-							<div className='flex items-center gap-1 text-destructive text-sm font-medium'>
+							<span className='flex items-center gap-1 text-destructive font-medium'>
 								<ArrowDown className='h-4 w-4' />
-								<span>
-									Down {trend.percentage.toFixed(1)}% from previous period
-								</span>
-							</div>
+								Down {trend.percentage.toFixed(1)}% from previous period
+							</span>
 						)}
-					</CardDescription>
+					</div>
 				</div>
 				<div className='flex gap-2'>
 					<div className='bg-muted/50 rounded-lg p-1 mr-2'>
@@ -166,8 +162,8 @@ export function SalesChart() {
 						size='sm'
 						variant={viewMode === 'daily' ? 'gradient' : 'outline'}
 						onClick={() => setViewMode('daily')}
-						className='shadow-sm rounded-lg'
-						leftIcon={<Calendar className='h-4 w-4' />}>
+						className='shadow-sm rounded-lg gap-1'>
+						<Calendar className='h-4 w-4' />
 						Daily
 					</Button>
 					<Button

@@ -1,4 +1,3 @@
-import { Header } from '@/components/layout/header';
 import {
 	Card,
 	CardContent,
@@ -11,7 +10,6 @@ import Link from 'next/link';
 export default function Home() {
 	return (
 		<div className='flex min-h-screen flex-col'>
-			<Header />
 			<main className='flex-1'>
 				<section className='w-full py-12 md:py-24 lg:py-32'>
 					<div className='container px-4 md:px-6'>
@@ -28,11 +26,11 @@ export default function Home() {
 						</div>
 					</div>
 				</section>
-				<section className='w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800'>
+				<section className='w-full py-12 md:py-24 lg:py-32 bg-gray-100'>
 					<div className='container px-4 md:px-6'>
 						<div className='grid gap-6 sm:grid-cols-2 lg:grid-cols-4'>
 							<Link href='/items'>
-								<Card className='h-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+								<Card className='h-full cursor-pointer hover:bg-gray-50 transition-colors'>
 									<CardHeader>
 										<CardTitle>Items</CardTitle>
 										<CardDescription>Manage your inventory</CardDescription>
@@ -43,7 +41,7 @@ export default function Home() {
 								</Card>
 							</Link>
 							<Link href='/orders'>
-								<Card className='h-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+								<Card className='h-full cursor-pointer hover:bg-gray-50 transition-colors'>
 									<CardHeader>
 										<CardTitle>Orders</CardTitle>
 										<CardDescription>Process customer orders</CardDescription>
@@ -54,7 +52,7 @@ export default function Home() {
 								</Card>
 							</Link>
 							<Link href='/bills'>
-								<Card className='h-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+								<Card className='h-full cursor-pointer hover:bg-gray-50 transition-colors'>
 									<CardHeader>
 										<CardTitle>Bills</CardTitle>
 										<CardDescription>
@@ -67,7 +65,7 @@ export default function Home() {
 								</Card>
 							</Link>
 							<Link href='/analytics'>
-								<Card className='h-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'>
+								<Card className='h-full cursor-pointer hover:bg-gray-50 transition-colors'>
 									<CardHeader>
 										<CardTitle>Analytics</CardTitle>
 										<CardDescription>View sales insights</CardDescription>

@@ -99,46 +99,6 @@ body {
 		--radius: 0.75rem;
 	}
 
-	.dark {
-		--background: 222.2 84% 4.9%;
-		--foreground: 210 40% 98%;
-
-		--muted: 217.2 32.6% 17.5%;
-		--muted-foreground: 215 20.2% 65.1%;
-
-		--popover: 222.2 84% 4.9%;
-		--popover-foreground: 210 40% 98%;
-
-		--border: 217.2 32.6% 17.5%;
-		--input: 217.2 32.6% 17.5%;
-
-		--card: 222.2 84% 4.9%;
-		--card-foreground: 210 40% 98%;
-
-		--primary: 262.1 83.3% 57.8%;
-		--primary-foreground: 210 40% 98%;
-
-		--secondary: 199 89% 48%;
-		--secondary-foreground: 210 40% 98%;
-
-		--accent: 217.2 32.6% 17.5%;
-		--accent-foreground: 210 40% 98%;
-
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 210 40% 98%;
-
-		--success: 142.1 70.6% 45.3%;
-		--success-foreground: 210 40% 98%;
-
-		--warning: 38 92% 50%;
-		--warning-foreground: 210 40% 98%;
-
-		--info: 214 95% 54%;
-		--info-foreground: 210 40% 98%;
-
-		--ring: 217.2 32.6% 17.5%;
-	}
-
 	body {
 		@apply antialiased bg-background text-foreground;
 	}
@@ -358,12 +318,6 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
 	@apply bg-primary/80;
-}
-
-/* Glassmorphism effects */
-.dark .glass {
-	background: rgba(17, 25, 40, 0.75);
-	border: 1px solid rgba(255, 255, 255, 0.125);
 }
 
 /* Button glow effect */

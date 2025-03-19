@@ -13,8 +13,6 @@ import {
 	Settings,
 	Search,
 	Bell,
-	Sun,
-	Moon,
 	Plus,
 	User,
 	LogOut
@@ -31,7 +29,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { useTheme } from 'next-themes';
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { RootState } from '@/lib/redux/store';
@@ -42,7 +39,6 @@ import { fetchCurrentUser } from '@/lib/redux/slices/user.slice';
 
 export function MainNav() {
 	const pathname = usePathname();
-	const { theme, setTheme } = useTheme();
 
 	// Connect to Redux store
 	const dispatch = useAppDispatch();
@@ -59,11 +55,11 @@ export function MainNav() {
 		dispatch(fetchCurrentUser());
 	}, [dispatch]);
 
-	// Calculate notification counts
+	// Calculate notification counts with null checks
 	const pendingOrdersCount =
-		orders?.filter(order => order.status === 'PENDING')?.length || 0;
-	const lowStockCount = items?.filter(item => item.quantity < 10)?.length || 0;
-	const unreadBillsCount = bills?.length || 0; // Consider all bills as unread for now
+		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
+	const lowStockCount = items?.filter(item => item?.quantity < 10)?.length || 0;
+	const unreadBillsCount = bills?.length || 0;
 	const totalNotifications =
 		pendingOrdersCount + lowStockCount + unreadBillsCount;
 
@@ -143,18 +139,6 @@ export function MainNav() {
 				<Button
 					variant='ghost'
 					size='icon'
-					className='rounded-full hover:bg-accent/50'
-					onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-					{theme === 'dark' ? (
-						<Sun className='h-[1.2rem] w-[1.2rem]' />
-					) : (
-						<Moon className='h-[1.2rem] w-[1.2rem]' />
-					)}
-				</Button>
-
-				<Button
-					variant='ghost'
-					size='icon'
 					className='rounded-full hover:bg-accent/50 relative'>
 					<Bell className='h-5 w-5' />
 					{totalNotifications > 0 && (
@@ -165,9 +149,9 @@ export function MainNav() {
 				<Button
 					variant='gradient'
 					size='sm'
-					className='hidden md:flex items-center'
-					leftIcon={<Plus className='h-3.5 w-3.5' />}>
-					New
+					className='hidden md:flex items-center gap-1'>
+					<Plus className='h-3.5 w-3.5' />
+					<span>New</span>
 				</Button>
 
 				<DropdownMenu>
@@ -179,7 +163,7 @@ export function MainNav() {
 							<Avatar className='h-9 w-9 shadow-sm border-2 border-border'>
 								<AvatarImage src='' alt={user?.name || 'Store Manager'} />
 								<AvatarFallback className='bg-gradient-to-r from-primary to-secondary text-primary-foreground'>
-									{user?.name?.split(' ')[0]?.charAt(0) || 'S'}
+									{user?.name?.split(' ')?.[0]?.charAt(0) || 'S'}
 								</AvatarFallback>
 							</Avatar>
 						</Button>

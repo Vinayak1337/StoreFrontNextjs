@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
@@ -39,7 +38,6 @@ export default function ItemsPage() {
 
 	return (
 		<div className='flex min-h-screen flex-col'>
-			<Header />
 			<main className='flex-1 container py-10'>
 				<div className='flex justify-between items-center mb-6'>
 					<h1 className='text-3xl font-bold'>Items</h1>

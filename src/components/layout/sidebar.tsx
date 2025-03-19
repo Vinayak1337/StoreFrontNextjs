@@ -15,8 +15,6 @@ import {
 	Menu,
 	X,
 	ChevronRight,
-	Sun,
-	Moon,
 	Store,
 	LogOut,
 	Bell,
@@ -26,14 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useTheme } from 'next-themes';
 import { Badge } from '@/components/ui/badge';
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger
-} from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 
 interface NavItemProps {
@@ -61,7 +52,7 @@ function NavItem({
 				'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
 				'hover-scale relative overflow-hidden',
 				isActive
-					? 'bg-primary text-primary-foreground dark:bg-primary/80 shadow-md'
+					? 'bg-primary text-primary-foreground shadow-md'
 					: 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
 			)}>
 			<div
@@ -95,7 +86,6 @@ function NavItem({
 export function Sidebar() {
 	const pathname = usePathname();
 	const [open, setOpen] = useState(false);
-	const { theme, setTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 
@@ -206,18 +196,6 @@ export function Sidebar() {
 					</nav>
 					<div className='border-t px-6 py-4'>
 						<div className='flex items-center justify-between'>
-							<Button
-								variant='outline'
-								size='icon'
-								onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-								className='hover-rotate'>
-								{theme === 'dark' ? (
-									<Sun className='h-5 w-5 text-amber-500' />
-								) : (
-									<Moon className='h-5 w-5 text-indigo-500' />
-								)}
-								<span className='sr-only'>Toggle theme</span>
-							</Button>
 							<Button variant='outline' size='icon' className='hover-rotate'>
 								<Bell className='h-5 w-5 text-primary' />
 								<span className='sr-only'>Notifications</span>
@@ -244,27 +222,6 @@ export function Sidebar() {
 						</div>
 						<h2 className='text-xl font-bold text-gradient'>StoreFront</h2>
 					</div>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant='ghost'
-									size='icon'
-									className='ml-auto hover-rotate'
-									onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-									{theme === 'dark' ? (
-										<Sun className='h-4 w-4 text-amber-500' />
-									) : (
-										<Moon className='h-4 w-4 text-indigo-500' />
-									)}
-									<span className='sr-only'>Toggle theme</span>
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Toggle theme</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
 				</div>
 
 				<div className='px-4 py-3'>
