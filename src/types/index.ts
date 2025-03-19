@@ -127,3 +127,28 @@ export interface AnalyticsState {
 	loading: boolean;
 	error: string | null;
 }
+
+// Settings types
+export interface Settings {
+	id?: string;
+	storeName: string;
+	address: string;
+	phone: string;
+	email: string;
+	taxRate: number;
+	currency: string;
+	logo?: string;
+	footer?: string;
+	notifications: {
+		lowStock: boolean;
+		newOrders: boolean;
+		orderStatus: boolean;
+		dailyReports: boolean;
+	};
+}
+
+export interface SettingsState {
+	settings: Settings | null;
+	loading: boolean;
+	error: string | null;
+}

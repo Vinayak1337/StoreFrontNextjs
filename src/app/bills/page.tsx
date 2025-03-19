@@ -8,17 +8,37 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CreateBillDialog } from '@/components/bills/create-bill-dialog';
 import { fetchBills } from '@/lib/redux/slices/bills.slice';
+import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
+import { printBill } from '@/lib/utils/bill-utils';
+import { toast } from 'react-toastify';
 
 export default function BillsPage() {
 	const dispatch = useDispatch<AppDispatch>();
 	const { bills, loading, error } = useSelector(
 		(state: RootState) => state.bills
 	);
+	const { settings } = useSelector((state: RootState) => state.settings);
 
 	useEffect(() => {
 		dispatch(fetchBills());
+		dispatch(fetchSettings());
 	}, [dispatch]);
+
+	const handlePrintBill = (billId: string) => {
+		if (!settings) {
+			toast.error('Store settings not loaded. Please try again later.');
+			return;
+		}
+
+		const bill = bills.find(b => b.id === billId);
+		if (!bill) {
+			toast.error('Bill not found');
+			return;
+		}
+
+		printBill(bill, settings);
+	};
 
 	return (
 		<div className='flex flex-col min-h-screen'>
@@ -78,7 +98,7 @@ export default function BillsPage() {
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Subtotal:</span>
 											<span>
-												$
+												{settings?.currency || '$'}
 												{(
 													Number(bill.totalAmount) - Number(bill.taxes)
 												).toFixed(2)}
@@ -86,17 +106,26 @@ export default function BillsPage() {
 										</div>
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Tax:</span>
-											<span>${Number(bill.taxes).toFixed(2)}</span>
+											<span>
+												{settings?.currency || '$'}
+												{Number(bill.taxes).toFixed(2)}
+											</span>
 										</div>
 										<div className='flex items-center justify-between font-medium mt-1'>
 											<span>Total:</span>
-											<span>${Number(bill.totalAmount).toFixed(2)}</span>
+											<span>
+												{settings?.currency || '$'}
+												{Number(bill.totalAmount).toFixed(2)}
+											</span>
 										</div>
 										<div className='flex justify-end gap-2 mt-4'>
 											<Button variant='outline' size='sm'>
 												View Details
 											</Button>
-											<Button variant='outline' size='sm'>
+											<Button
+												variant='outline'
+												size='sm'
+												onClick={() => handlePrintBill(bill.id)}>
 												Print
 											</Button>
 										</div>

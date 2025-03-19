@@ -91,3 +91,19 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
 }
+
+// Define the Settings model
+model Settings {
+  id            String  @id @default(uuid())
+  storeName     String  @map("store_name")
+  address       String
+  phone         String
+  email         String
+  taxRate       Decimal @map("tax_rate")
+  currency      String
+  logo          String?
+  footer        String?
+  notifications Json
+
+  @@map("settings")
+}

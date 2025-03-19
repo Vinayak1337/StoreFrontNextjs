@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
@@ -14,33 +14,79 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
+import { RootState } from '@/lib/redux/store';
+import {
+	fetchSettings,
+	updateSettings
+} from '@/lib/redux/slices/settings.slice';
+import { Settings } from '@/types';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export default function SettingsPage() {
-	const [storeSettings, setStoreSettings] = useState({
-		storeName: 'StoreFront',
-		address: '123 Main Street, City',
-		phone: '(123) 456-7890',
-		email: 'contact@storefront.com',
-		taxRate: '10',
-		currency: 'USD'
+	const dispatch = useAppDispatch();
+	const { settings, loading } = useAppSelector(
+		(state: RootState) => state.settings
+	);
+	const [formState, setFormState] = useState<Settings>({
+		storeName: '',
+		address: '',
+		phone: '',
+		email: '',
+		taxRate: 10,
+		currency: 'USD',
+		notifications: {
+			lowStock: true,
+			newOrders: true,
+			orderStatus: true,
+			dailyReports: false
+		}
 	});
 
-	const [notifications, setNotifications] = useState({
-		lowStock: true,
-		newOrders: true,
-		orderStatus: true,
-		dailyReports: false
-	});
+	// Load settings on component mount
+	useEffect(() => {
+		dispatch(fetchSettings());
+	}, [dispatch]);
+
+	// Update local state when settings are loaded
+	useEffect(() => {
+		if (settings) {
+			setFormState(settings);
+		}
+	}, [settings]);
 
 	const handleStoreSettingsChange = (
 		e: React.ChangeEvent<HTMLInputElement>
 	) => {
 		const { name, value } = e.target;
-		setStoreSettings(prev => ({ ...prev, [name]: value }));
+		setFormState(prev => ({
+			...prev,
+			[name]: name === 'taxRate' ? parseFloat(value) : value
+		}));
 	};
 
-	const handleNotificationChange = (key: keyof typeof notifications) => {
-		setNotifications(prev => ({ ...prev, [key]: !prev[key] }));
+	const handleNotificationChange = (
+		key: keyof typeof formState.notifications
+	) => {
+		setFormState(prev => ({
+			...prev,
+			notifications: {
+				...prev.notifications,
+				[key]: !prev.notifications[key]
+			}
+		}));
+	};
+
+	const handleSaveSettings = () => {
+		dispatch(updateSettings(formState))
+			.unwrap()
+			.then(() => {
+				toast.success('Settings saved successfully');
+			})
+			.catch(err => {
+				toast.error('Failed to save settings: ' + (err || 'Unknown error'));
+			});
 	};
 
 	return (
@@ -67,7 +113,7 @@ export default function SettingsPage() {
 										<Input
 											id='storeName'
 											name='storeName'
-											value={storeSettings.storeName}
+											value={formState.storeName}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -76,7 +122,7 @@ export default function SettingsPage() {
 										<Input
 											id='currency'
 											name='currency'
-											value={storeSettings.currency}
+											value={formState.currency}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -87,7 +133,7 @@ export default function SettingsPage() {
 									<Input
 										id='address'
 										name='address'
-										value={storeSettings.address}
+										value={formState.address}
 										onChange={handleStoreSettingsChange}
 									/>
 								</div>
@@ -98,7 +144,7 @@ export default function SettingsPage() {
 										<Input
 											id='phone'
 											name='phone'
-											value={storeSettings.phone}
+											value={formState.phone}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -107,7 +153,7 @@ export default function SettingsPage() {
 										<Input
 											id='email'
 											name='email'
-											value={storeSettings.email}
+											value={formState.email}
 											onChange={handleStoreSettingsChange}
 										/>
 									</div>
@@ -119,13 +165,33 @@ export default function SettingsPage() {
 										id='taxRate'
 										name='taxRate'
 										type='number'
-										value={storeSettings.taxRate}
+										value={formState.taxRate}
 										onChange={handleStoreSettingsChange}
+									/>
+								</div>
+
+								<div className='space-y-2'>
+									<Label htmlFor='footer'>Invoice Footer Message</Label>
+									<Input
+										id='footer'
+										name='footer'
+										value={formState.footer || ''}
+										onChange={handleStoreSettingsChange}
+										placeholder='Thank you for your business!'
 									/>
 								</div>
 							</CardContent>
 							<CardFooter>
-								<Button>Save Changes</Button>
+								<Button onClick={handleSaveSettings} disabled={loading}>
+									{loading ? (
+										<>
+											<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+											Saving...
+										</>
+									) : (
+										'Save Changes'
+									)}
+								</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>
@@ -148,7 +214,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='lowStock'
-										checked={notifications.lowStock}
+										checked={formState.notifications.lowStock}
 										onCheckedChange={() => handleNotificationChange('lowStock')}
 									/>
 								</div>
@@ -162,7 +228,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='newOrders'
-										checked={notifications.newOrders}
+										checked={formState.notifications.newOrders}
 										onCheckedChange={() =>
 											handleNotificationChange('newOrders')
 										}
@@ -178,7 +244,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='orderStatus'
-										checked={notifications.orderStatus}
+										checked={formState.notifications.orderStatus}
 										onCheckedChange={() =>
 											handleNotificationChange('orderStatus')
 										}
@@ -194,7 +260,7 @@ export default function SettingsPage() {
 									</div>
 									<Switch
 										id='dailyReports'
-										checked={notifications.dailyReports}
+										checked={formState.notifications.dailyReports}
 										onCheckedChange={() =>
 											handleNotificationChange('dailyReports')
 										}
@@ -202,7 +268,16 @@ export default function SettingsPage() {
 								</div>
 							</CardContent>
 							<CardFooter>
-								<Button>Save Preferences</Button>
+								<Button onClick={handleSaveSettings} disabled={loading}>
+									{loading ? (
+										<>
+											<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+											Saving...
+										</>
+									) : (
+										'Save Preferences'
+									)}
+								</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>

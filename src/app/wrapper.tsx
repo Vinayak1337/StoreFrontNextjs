@@ -8,7 +8,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { ReactQueryProvider } from '@/lib/providers/query-provider';
 import { TopNavbar } from '@/components/layout/top-navbar';
 import { cn } from '@/lib/utils';
-import { ToastProvider } from '@/components/toast-provider';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function ClientWrapper({
 	children
@@ -47,7 +48,18 @@ export default function ClientWrapper({
 							</main>
 						</div>
 					</div>
-					<ToastProvider />
+					<ToastContainer
+						position='top-right'
+						autoClose={3000}
+						hideProgressBar={false}
+						newestOnTop
+						closeOnClick
+						rtl={false}
+						pauseOnFocusLoss
+						draggable
+						pauseOnHover
+						theme='light'
+					/>
 				</Provider>
 			</ReactQueryProvider>
 		</ThemeProvider>
