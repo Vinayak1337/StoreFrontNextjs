@@ -20,7 +20,7 @@ export async function GET() {
 					logo: '',
 					footer: 'Thank you for your business!',
 					notifications: {
-						lowStock: true,
+						outOfStock: true,
 						newOrders: true,
 						orderStatus: true,
 						dailyReports: false

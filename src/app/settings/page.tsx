@@ -34,7 +34,7 @@ const defaultSettings: Settings = {
 	currency: 'USD',
 	footer: 'Thank you for your business!',
 	notifications: {
-		lowStock: true,
+		outOfStock: true,
 		newOrders: true,
 		orderStatus: true,
 		dailyReports: false
@@ -233,15 +233,17 @@ export default function SettingsPage() {
 							<CardContent className='space-y-4'>
 								<div className='flex items-center justify-between'>
 									<div className='space-y-0.5'>
-										<Label htmlFor='lowStock'>Low Stock Alerts</Label>
+										<Label htmlFor='outOfStock'>Out of Stock Alerts</Label>
 										<p className='text-sm text-muted-foreground'>
-											Receive notifications when items are running low
+											Receive notifications when items are out of stock
 										</p>
 									</div>
 									<Switch
-										id='lowStock'
-										checked={!!formState.notifications?.lowStock}
-										onCheckedChange={() => handleNotificationChange('lowStock')}
+										id='outOfStock'
+										checked={!!formState.notifications?.outOfStock}
+										onCheckedChange={() =>
+											handleNotificationChange('outOfStock')
+										}
 									/>
 								</div>
 

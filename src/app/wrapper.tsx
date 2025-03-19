@@ -10,6 +10,7 @@ import { TopNavbar } from '@/components/layout/top-navbar';
 import { cn } from '@/lib/utils';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { usePathname } from 'next/navigation';
 
 export default function ClientWrapper({
 	children
@@ -17,6 +18,10 @@ export default function ClientWrapper({
 	children: React.ReactNode;
 }) {
 	const [mounted, setMounted] = useState(false);
+	const pathname = usePathname();
+
+	// Check if the current path is the login page
+	const isLoginPage = pathname === '/login';
 
 	// Hydration fix and allows for animation on first load
 	useEffect(() => {
@@ -32,17 +37,21 @@ export default function ClientWrapper({
 							'flex min-h-screen overflow-hidden',
 							mounted ? 'animate-fade-in' : 'opacity-0'
 						)}>
-						{/* Sidebar navigation */}
-						<Sidebar />
+						{/* Sidebar navigation - only show when not on login page */}
+						{!isLoginPage && <Sidebar />}
 
 						{/* Main content area with header and content */}
 						<div className='flex-1 flex flex-col overflow-hidden'>
-							{/* Top navigation bar */}
-							<TopNavbar />
+							{/* Top navigation bar - only show when not on login page */}
+							{!isLoginPage && <TopNavbar />}
 
 							{/* Main scrollable content */}
 							<main className='flex-1 overflow-auto'>
-								<div className='px-6 py-6 h-full animate-slide-in'>
+								<div
+									className={cn(
+										'h-full animate-slide-in',
+										!isLoginPage ? 'px-6 py-6' : ''
+									)}>
 									{children}
 								</div>
 							</main>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Route } from 'next';
 import {
@@ -39,6 +39,7 @@ import { fetchCurrentUser } from '@/lib/redux/slices/user.slice';
 
 export function MainNav() {
 	const pathname = usePathname();
+	const router = useRouter();
 
 	// Connect to Redux store
 	const dispatch = useAppDispatch();
@@ -58,7 +59,8 @@ export function MainNav() {
 	// Calculate notification counts with null checks
 	const pendingOrdersCount =
 		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
-	const lowStockCount = items?.filter(item => item?.quantity < 10)?.length || 0;
+	const lowStockCount =
+		items?.filter(item => item?.inStock === false)?.length || 0;
 	const unreadBillsCount = bills?.length || 0;
 	const totalNotifications =
 		pendingOrdersCount + lowStockCount + unreadBillsCount;
@@ -95,6 +97,24 @@ export function MainNav() {
 			badge: 0
 		}
 	];
+
+	const handleLogout = async () => {
+		try {
+			const response = await fetch('/api/auth/logout', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				// Redirect to login page
+				router.push('/');
+			}
+		} catch (error) {
+			console.error('Logout error:', error);
+		}
+	};
 
 	return (
 		<div className='flex items-center justify-between w-full'>
@@ -182,7 +202,7 @@ export function MainNav() {
 							<span>Settings</span>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className='cursor-pointer'>
+						<DropdownMenuItem className='cursor-pointer' onClick={handleLogout}>
 							<LogOut className='mr-2 h-4 w-4' />
 							<span>Log out</span>
 						</DropdownMenuItem>

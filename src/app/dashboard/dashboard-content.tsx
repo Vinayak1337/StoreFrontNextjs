@@ -424,10 +424,10 @@ export default function DashboardContent() {
 								<div className='flex items-center justify-between'>
 									<div className='flex items-center gap-2'>
 										<div className='w-2 h-2 rounded-full bg-orange-500'></div>
-										<span className='text-sm font-medium'>Low Stock</span>
+										<span className='text-sm font-medium'>Out of Stock</span>
 									</div>
 									<div className='font-bold'>
-										{items.filter(item => item.quantity < 10).length}
+										{items.filter(item => item.inStock === false).length}
 									</div>
 								</div>
 							</div>

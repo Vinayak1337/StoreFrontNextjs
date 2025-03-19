@@ -142,7 +142,7 @@ export interface Settings {
 	logo?: string;
 	footer?: string;
 	notifications: {
-		lowStock: boolean;
+		outOfStock: boolean;
 		newOrders: boolean;
 		orderStatus: boolean;
 		dailyReports: boolean;

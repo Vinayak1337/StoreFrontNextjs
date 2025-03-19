@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Route } from 'next';
 import {
@@ -90,6 +90,7 @@ function NavItem({
 
 export function Sidebar() {
 	const pathname = usePathname();
+	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
@@ -115,7 +116,8 @@ export function Sidebar() {
 	// Calculate notification counts with null checks
 	const pendingOrdersCount =
 		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
-	const lowStockCount = items?.filter(item => item?.quantity < 10)?.length || 0;
+	const lowStockCount =
+		items?.filter(item => item?.inStock === false)?.length || 0;
 	const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
 
 	const routes = [
@@ -156,6 +158,24 @@ export function Sidebar() {
 			badge: 0
 		}
 	];
+
+	const handleLogout = async () => {
+		try {
+			const response = await fetch('/api/auth/logout', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				// Redirect to login page
+				router.push('/');
+			}
+		} catch (error) {
+			console.error('Logout error:', error);
+		}
+	};
 
 	if (!mounted) return null;
 
@@ -230,7 +250,11 @@ export function Sidebar() {
 								<User className='h-5 w-5 text-secondary' />
 								<span className='sr-only'>Profile</span>
 							</Button>
-							<Button variant='outline' size='icon' className='hover-rotate'>
+							<Button
+								variant='outline'
+								size='icon'
+								className='hover-rotate'
+								onClick={handleLogout}>
 								<LogOut className='h-5 w-5 text-destructive' />
 								<span className='sr-only'>Log out</span>
 							</Button>
@@ -305,7 +329,11 @@ export function Sidebar() {
 								admin@example.com
 							</p>
 						</div>
-						<Button variant='ghost' size='icon' className='hover-rotate'>
+						<Button
+							variant='ghost'
+							size='icon'
+							className='hover-rotate'
+							onClick={handleLogout}>
 							<LogOut className='h-4 w-4 text-muted-foreground' />
 						</Button>
 					</div>

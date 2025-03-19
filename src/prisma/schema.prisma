@@ -22,6 +22,11 @@ model User {
   password  String
   createdAt DateTime @default(now()) @map("created_at")
 
+  // Session tracking
+  session_id    String?   @map("session_id") // Current active session ID
+  session_type  String?   @map("session_type") // "production" or "development"
+  last_login_at DateTime? @map("last_login_at")
+
   @@map("users")
 }
 
