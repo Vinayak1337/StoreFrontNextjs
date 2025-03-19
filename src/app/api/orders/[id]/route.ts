@@ -66,7 +66,8 @@ export async function PUT(
 			) {
 				// Calculate total amount
 				const totalAmount = order.orderItems.reduce(
-					(sum, item) => sum + Number(item.price) * Number(item.quantity),
+					(sum: number, item) =>
+						sum + Number(item.price) * Number(item.quantity),
 					0
 				);
 
