@@ -102,7 +102,10 @@ export default function OrdersPage() {
 												$
 												{order.orderItems
 													.reduce(
-														(sum, item) => sum + item.price * item.quantity,
+														(
+															sum: number,
+															item: { price: number; quantity: number }
+														) => sum + item.price * item.quantity,
 														0
 													)
 													.toFixed(2)}

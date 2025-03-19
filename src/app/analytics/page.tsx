@@ -40,7 +40,8 @@ export default function AnalyticsPage() {
 		if (!salesData || !salesData.dailySales) return 0;
 
 		return salesData.dailySales.reduce(
-			(sum, day) => sum + Number(day.totalAmount),
+			(sum: number, day: { totalAmount: number | string }) =>
+				sum + Number(day.totalAmount),
 			0
 		);
 	};

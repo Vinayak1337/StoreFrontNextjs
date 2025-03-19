@@ -55,7 +55,8 @@ export function CreateBillDialog() {
 		if (!selectedOrder) return 0;
 
 		return selectedOrder.orderItems.reduce(
-			(sum, item) => sum + Number(item.price) * item.quantity,
+			(sum: number, item: { price: unknown; quantity: number }) =>
+				sum + Number(item.price) * item.quantity,
 			0
 		);
 	};
@@ -158,8 +159,10 @@ export function CreateBillDialog() {
 											$
 											{order.orderItems
 												.reduce(
-													(sum, item) =>
-														sum + Number(item.price) * item.quantity,
+													(
+														sum: number,
+														item: { price: unknown; quantity: number }
+													) => sum + Number(item.price) * item.quantity,
 													0
 												)
 												.toFixed(2)}

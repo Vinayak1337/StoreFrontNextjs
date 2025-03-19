@@ -149,7 +149,8 @@ export async function PUT(req: NextRequest) {
 			) {
 				// Calculate total amount
 				const totalAmount = order.orderItems.reduce(
-					(sum, item) => sum + Number(item.price) * Number(item.quantity),
+					(sum: number, item: { price: unknown; quantity: unknown }) =>
+						sum + Number(item.price) * Number(item.quantity),
 					0
 				);
 

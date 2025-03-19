@@ -82,7 +82,7 @@ export function CreateOrderDialog() {
 
 	// Calculate total
 	const total = orderItems.reduce(
-		(sum, item) => sum + item.price * item.quantity,
+		(sum: number, item: OrderItem) => sum + item.price * item.quantity,
 		0
 	);
 

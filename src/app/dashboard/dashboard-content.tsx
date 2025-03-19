@@ -398,10 +398,14 @@ export default function DashboardContent() {
 									</div>
 									<div className='font-bold'>
 										{orders.reduce(
-											(total, order) =>
+											(
+												total: number,
+												order: { orderItems: Array<{ quantity: number }> }
+											) =>
 												total +
 												order.orderItems.reduce(
-													(sum, item) => sum + item.quantity,
+													(sum: number, item: { quantity: number }) =>
+														sum + item.quantity,
 													0
 												),
 											0
