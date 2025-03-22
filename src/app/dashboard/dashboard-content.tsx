@@ -143,7 +143,7 @@ export default function DashboardContent() {
 							{loading ? (
 								<div className='h-8 bg-muted/50 rounded animate-pulse w-32'></div>
 							) : (
-								`$${totalRevenue}`
+								`₹${totalRevenue}`
 							)}
 						</div>
 						<div className='flex items-center text-xs'>
@@ -418,7 +418,7 @@ export default function DashboardContent() {
 										<div className='w-2 h-2 rounded-full bg-green-500'></div>
 										<span className='text-sm font-medium'>Revenue</span>
 									</div>
-									<div className='font-bold'>${totalRevenue}</div>
+									<div className='font-bold'>₹{totalRevenue}</div>
 								</div>
 
 								<div className='flex items-center justify-between'>

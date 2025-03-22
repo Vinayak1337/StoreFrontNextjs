@@ -6,15 +6,18 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreateOrderDialog } from '@/components/orders/create-order-dialog';
+import { useRouter } from 'next/navigation';
 import {
 	fetchOrders,
-	updateOrderStatus
+	updateOrderStatus,
+	deleteOrder
 } from '@/lib/redux/slices/orders.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
+import { Plus, Trash } from 'lucide-react';
 
 export default function OrdersPage() {
+	const router = useRouter();
 	const dispatch = useDispatch<AppDispatch>();
 	const { orders, loading, error } = useSelector(
 		(state: RootState) => state.orders
@@ -32,12 +35,27 @@ export default function OrdersPage() {
 		dispatch(updateOrderStatus({ id: orderId, status: OrderStatus.CANCELLED }));
 	};
 
+	const handleDeleteOrder = (orderId: string) => {
+		if (
+			confirm(
+				'Are you sure you want to delete this order? This action cannot be undone.'
+			)
+		) {
+			dispatch(deleteOrder(orderId));
+		}
+	};
+
 	return (
 		<div className='flex flex-col min-h-screen'>
 			<header className='sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6'>
 				<div className='flex flex-1 items-center justify-between'>
 					<h1 className='text-xl font-semibold'>Orders Management</h1>
-					<CreateOrderDialog />
+					<Button
+						onClick={() => router.push('/orders/create')}
+						className='flex items-center gap-2'>
+						<Plus className='h-4 w-4' />
+						Create New Order
+					</Button>
 				</div>
 			</header>
 			<main className='flex-1 p-6'>
@@ -99,7 +117,7 @@ export default function OrdersPage() {
 										<div className='flex items-center justify-between font-medium mt-1'>
 											<span>Total:</span>
 											<span>
-												$
+												₹
 												{order.orderItems
 													.reduce(
 														(
@@ -122,9 +140,9 @@ export default function OrdersPage() {
 															{item.item?.name ||
 																`Item #${item.itemId.substring(0, 6)}`}
 														</span>
-														<span>
-															${(item.price * item.quantity).toFixed(2)}
-														</span>
+														<div className='ml-auto text-right'>
+															₹{(item.price * item.quantity).toFixed(2)}
+														</div>
 													</li>
 												))}
 											</ul>
@@ -145,6 +163,17 @@ export default function OrdersPage() {
 												</Button>
 											</div>
 										)}
+
+										<div className='flex justify-end mt-2'>
+											<Button
+												variant='ghost'
+												size='sm'
+												className='text-red-500 hover:text-red-700 hover:bg-red-50'
+												onClick={() => handleDeleteOrder(order.id)}>
+												<Trash className='h-4 w-4 mr-1' />
+												Delete
+											</Button>
+										</div>
 									</div>
 								</CardContent>
 							</Card>

@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 					throw new Error(`Item with ID ${item.itemId} not found`);
 				}
 
-				if (foundItem.quantity < item.quantity) {
+				if (!foundItem.inStock) {
 					throw new Error(`Not enough stock for item: ${foundItem.name}`);
 				}
 			}
@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
 				data: {
 					customerName: data.customerName,
 					status: OrderStatus.PENDING,
+					customMessage: data.customMessage,
 					orderItems: {
 						create: (data.items as OrderItemInput[]).map(item => ({
 							quantity: item.quantity,
@@ -94,17 +95,8 @@ export async function POST(req: NextRequest) {
 				}
 			});
 
-			// Update inventory (reduce quantities)
-			for (const item of data.items as OrderItemInput[]) {
-				await tx.item.update({
-					where: { id: item.itemId },
-					data: {
-						quantity: {
-							decrement: item.quantity
-						}
-					}
-				});
-			}
+			// Remove inventory quantity update since we're only using inStock flag now
+			// No need to decrement quantities
 
 			return newOrder;
 		});
@@ -171,17 +163,8 @@ export async function PUT(req: NextRequest) {
 				data.status === OrderStatus.CANCELLED &&
 				order.status === OrderStatus.PENDING
 			) {
-				// Return items to inventory if cancelled
-				for (const item of order.orderItems) {
-					await prisma.item.update({
-						where: { id: item.itemId },
-						data: {
-							quantity: {
-								increment: item.quantity
-							}
-						}
-					});
-				}
+				// No need to return items to inventory since we're only using inStock flag
+				// No inventory quantity changes when canceling orders
 			}
 
 			// Update order status
@@ -203,6 +186,52 @@ export async function PUT(req: NextRequest) {
 		}
 
 		return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'An unknown error occurred';
+		return NextResponse.json({ error: errorMessage }, { status: 500 });
+	}
+}
+
+// DELETE /api/orders/:id - Delete an order
+export async function DELETE(req: NextRequest) {
+	try {
+		const url = new URL(req.url);
+		const id = url.pathname.split('/').pop() as string;
+
+		// Find order to check if it exists
+		const order = await prisma.order.findUnique({
+			where: { id },
+			include: {
+				bill: true
+			}
+		});
+
+		if (!order) {
+			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+		}
+
+		// Use transaction to delete related records properly
+		await prisma.$transaction(async tx => {
+			// Delete associated bill if it exists
+			if (order.bill) {
+				await tx.bill.delete({
+					where: { id: order.bill.id }
+				});
+			}
+
+			// Delete order items
+			await tx.orderItem.deleteMany({
+				where: { orderId: id }
+			});
+
+			// Delete the order
+			await tx.order.delete({
+				where: { id }
+			});
+		});
+
+		return NextResponse.json({ message: 'Order deleted successfully' });
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';

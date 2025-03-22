@@ -132,10 +132,10 @@ export function generateBillHTML(bill: Bill, settings: Settings): string {
 							}</td>
               <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${
 								formattedBill.totals.currency
-							} ${item.price.toFixed(2)}</td>
+							} ${Number(item.price).toFixed(2)}</td>
               <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${
 								formattedBill.totals.currency
-							} ${item.total.toFixed(2)}</td>
+							} ${Number(item.total).toFixed(2)}</td>
             </tr>
           `
 						)
@@ -147,21 +147,21 @@ export function generateBillHTML(bill: Bill, settings: Settings): string {
       <div style="margin-left: auto; width: 300px;">
         <div style="display: flex; justify-content: space-between; padding: 5px 0;">
           <span>Subtotal:</span>
-          <span>${
-						formattedBill.totals.currency
-					} ${formattedBill.totals.subtotal.toFixed(2)}</span>
+          <span>${formattedBill.totals.currency} ${Number(
+		formattedBill.totals.subtotal
+	).toFixed(2)}</span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 5px 0;">
           <span>Tax (${formattedBill.totals.taxRate}%):</span>
-          <span>${
-						formattedBill.totals.currency
-					} ${formattedBill.totals.taxAmount.toFixed(2)}</span>
+          <span>${formattedBill.totals.currency} ${Number(
+		formattedBill.totals.taxAmount
+	).toFixed(2)}</span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 10px 0; font-weight: bold; border-top: 1px solid #ddd;">
           <span>Total:</span>
-          <span>${
-						formattedBill.totals.currency
-					} ${formattedBill.totals.total.toFixed(2)}</span>
+          <span>${formattedBill.totals.currency} ${Number(
+		formattedBill.totals.total
+	).toFixed(2)}</span>
         </div>
       </div>
       

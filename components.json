@@ -17,5 +17,12 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "iconLibrary": "lucide"
+  "iconLibrary": "lucide",
+  "react": "^19.0.0",
+  "nextjs": "^15.0.0",
+  "tailwindVersion": "^3.4.1",
+  "features": {
+    "strict": true,
+    "minifyJs": true
+  }
 }

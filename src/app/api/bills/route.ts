@@ -108,3 +108,33 @@ export async function POST(request: Request) {
 		);
 	}
 }
+
+// DELETE /api/bills/:id - Delete a bill
+export async function DELETE(request: Request) {
+	try {
+		const url = new URL(request.url);
+		const id = url.pathname.split('/').pop() as string;
+
+		// Check if the bill exists
+		const bill = await prisma.bill.findUnique({
+			where: { id }
+		});
+
+		if (!bill) {
+			return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
+		}
+
+		// Delete the bill
+		await prisma.bill.delete({
+			where: { id }
+		});
+
+		return NextResponse.json({ message: 'Bill deleted successfully' });
+	} catch (error) {
+		console.error('Error deleting bill:', error);
+		return NextResponse.json(
+			{ error: 'Failed to delete bill' },
+			{ status: 500 }
+		);
+	}
+}

@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CreateBillDialog } from '@/components/bills/create-bill-dialog';
-import { fetchBills } from '@/lib/redux/slices/bills.slice';
+import { fetchBills, deleteBill } from '@/lib/redux/slices/bills.slice';
 import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { printBill } from '@/lib/utils/bill-utils';
 import { toast } from 'react-toastify';
+import { Trash } from 'lucide-react';
 
 export default function BillsPage() {
 	const dispatch = useDispatch<AppDispatch>();
@@ -38,6 +39,16 @@ export default function BillsPage() {
 		}
 
 		printBill(bill, settings);
+	};
+
+	const handleDeleteBill = (billId: string) => {
+		if (
+			confirm(
+				'Are you sure you want to delete this bill? This action cannot be undone.'
+			)
+		) {
+			dispatch(deleteBill(billId));
+		}
 	};
 
 	return (
@@ -98,7 +109,7 @@ export default function BillsPage() {
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Subtotal:</span>
 											<span>
-												{settings?.currency || '$'}
+												{settings?.currency || '₹'}
 												{(
 													Number(bill.totalAmount) - Number(bill.taxes)
 												).toFixed(2)}
@@ -107,14 +118,14 @@ export default function BillsPage() {
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Tax:</span>
 											<span>
-												{settings?.currency || '$'}
+												{settings?.currency || '₹'}
 												{Number(bill.taxes).toFixed(2)}
 											</span>
 										</div>
 										<div className='flex items-center justify-between font-medium mt-1'>
 											<span>Total:</span>
 											<span>
-												{settings?.currency || '$'}
+												{settings?.currency || '₹'}
 												{Number(bill.totalAmount).toFixed(2)}
 											</span>
 										</div>
@@ -127,6 +138,16 @@ export default function BillsPage() {
 												size='sm'
 												onClick={() => handlePrintBill(bill.id)}>
 												Print
+											</Button>
+										</div>
+										<div className='flex justify-end mt-2'>
+											<Button
+												variant='ghost'
+												size='sm'
+												className='text-red-500 hover:text-red-700 hover:bg-red-50'
+												onClick={() => handleDeleteBill(bill.id)}>
+												<Trash className='h-4 w-4 mr-1' />
+												Delete
 											</Button>
 										</div>
 									</div>

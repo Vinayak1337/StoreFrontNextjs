@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
 					<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
 						<MetricsCard
 							title='Total Revenue'
-							value={`$${totalSales.toFixed(2)}`}
+							value={`₹${totalSales.toFixed(2)}`}
 							icon={<DollarSignIcon className='h-4 w-4' />}
 							change={metrics?.revenueTrend || 0}
 							subtitle='vs last period'
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
 						/>
 						<MetricsCard
 							title='Average Order Value'
-							value={`$${metrics?.averageOrderValue?.toFixed(2) || '0.00'}`}
+							value={`₹${metrics?.averageOrderValue?.toFixed(2) || '0.00'}`}
 							icon={<ReceiptIcon className='h-4 w-4' />}
 							change={0}
 							subtitle='per order'

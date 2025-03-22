@@ -35,6 +35,7 @@ export interface Order {
 	orderItems: OrderItem[];
 	createdAt: string;
 	bill?: Bill;
+	customMessage?: string;
 }
 
 // Bill model

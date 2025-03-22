@@ -50,10 +50,11 @@ model Item {
 
 // Define the Order model
 model Order {
-  id           String      @id @default(uuid())
-  customerName String      @map("customer_name")
-  status       OrderStatus
-  createdAt    DateTime    @default(now()) @map("created_at")
+  id            String      @id @default(uuid())
+  customerName  String      @map("customer_name")
+  status        OrderStatus
+  customMessage String?     @map("custom_message")
+  createdAt     DateTime    @default(now()) @map("created_at")
 
   // Relationships
   orderItems OrderItem[]

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
 	Dialog,
 	DialogContent,
@@ -29,6 +30,7 @@ export function CreateOrderDialog() {
 	const { items } = useSelector((state: RootState) => state.items);
 	const [customerName, setCustomerName] = useState('');
 	const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+	const [customMessage, setCustomMessage] = useState('');
 
 	// Fetch items when dialog opens
 	useEffect(() => {
@@ -90,6 +92,7 @@ export function CreateOrderDialog() {
 	const resetForm = () => {
 		setCustomerName('');
 		setOrderItems([]);
+		setCustomMessage('');
 	};
 
 	// Handle form submission
@@ -102,7 +105,8 @@ export function CreateOrderDialog() {
 			createOrder({
 				customerName,
 				status: OrderStatus.PENDING,
-				orderItems
+				orderItems: orderItems,
+				customMessage: customMessage || undefined
 			})
 		);
 
@@ -142,7 +146,7 @@ export function CreateOrderDialog() {
 									size='sm'
 									onClick={() => addItem(item.id)}
 									className='justify-start'>
-									{item.name} - ${item.price}
+									{item.name} - ₹{item.price}
 								</Button>
 							))}
 						</div>
@@ -165,7 +169,7 @@ export function CreateOrderDialog() {
 											<div>
 												<p className='font-medium'>{item?.name}</p>
 												<p className='text-sm text-muted-foreground'>
-													${orderItem.price} each
+													₹{orderItem.price} each
 												</p>
 											</div>
 											<div className='flex items-center gap-2'>
@@ -207,10 +211,21 @@ export function CreateOrderDialog() {
 								})}
 								<div className='p-2 flex justify-between'>
 									<p className='font-bold'>Total:</p>
-									<p className='font-bold'>${total.toFixed(2)}</p>
+									<p className='font-bold'>₹{total.toFixed(2)}</p>
 								</div>
 							</div>
 						)}
+					</div>
+
+					<div className='space-y-2'>
+						<Label htmlFor='customMessage'>Custom Message (Optional)</Label>
+						<Textarea
+							id='customMessage'
+							placeholder='Add any special instructions or notes for this order'
+							value={customMessage}
+							onChange={e => setCustomMessage(e.target.value)}
+							className='min-h-[80px]'
+						/>
 					</div>
 
 					<div className='flex justify-end space-x-2 pt-4'>

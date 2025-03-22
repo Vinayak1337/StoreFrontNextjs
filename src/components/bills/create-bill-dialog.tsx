@@ -156,7 +156,7 @@ export function CreateBillDialog() {
 											#{order.id.substring(0, 8)} - {order.customerName}
 										</span>
 										<span className='bg-background/80 px-2 py-1 rounded text-sm'>
-											$
+											₹
 											{order.orderItems
 												.reduce(
 													(
@@ -231,18 +231,18 @@ export function CreateBillDialog() {
 								style={{ animationDelay: '0.4s' }}>
 								<div className='flex justify-between'>
 									<span className='text-muted-foreground'>Subtotal:</span>
-									<span className='font-medium'>${subtotal.toFixed(2)}</span>
+									<span className='font-medium'>₹{subtotal.toFixed(2)}</span>
 								</div>
 								<div className='flex justify-between'>
 									<span className='text-muted-foreground'>
 										Tax ({taxRate}%):
 									</span>
-									<span className='font-medium'>${taxAmount.toFixed(2)}</span>
+									<span className='font-medium'>₹{taxAmount.toFixed(2)}</span>
 								</div>
 								<div className='h-px bg-border my-2'></div>
 								<div className='flex justify-between font-bold text-lg'>
 									<span>Total:</span>
-									<span className='text-primary'>${total.toFixed(2)}</span>
+									<span className='text-primary'>₹{total.toFixed(2)}</span>
 								</div>
 							</div>
 						</>

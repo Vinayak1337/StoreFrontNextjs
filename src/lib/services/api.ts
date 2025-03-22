@@ -89,10 +89,16 @@ export const ordersAPI = {
 			quantity: number;
 			price: number;
 		}>;
+		customMessage?: string;
 	}) =>
 		fetchAPI<Order>('/orders', {
 			method: 'POST',
-			body: JSON.stringify(order)
+			body: JSON.stringify({
+				customerName: order.customerName,
+				status: order.status,
+				items: order.orderItems,
+				customMessage: order.customMessage
+			})
 		}),
 
 	// Update order status
@@ -100,7 +106,21 @@ export const ordersAPI = {
 		fetchAPI<Order>(`/orders/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify({ status })
-		})
+		}),
+
+	// Delete an order
+	deleteOrder: async (id: string) => {
+		const response = await fetch(`/api/orders/${id}`, {
+			method: 'DELETE'
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to delete order');
+		}
+
+		return response.json();
+	}
 };
 
 // Bills API service
@@ -126,10 +146,18 @@ export const billsAPI = {
 		}),
 
 	// Delete a bill
-	deleteBill: (id: string) =>
-		fetchAPI<{ success: boolean }>(`/bills/${id}`, {
+	deleteBill: async (id: string) => {
+		const response = await fetch(`/api/bills/${id}`, {
 			method: 'DELETE'
-		})
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to delete bill');
+		}
+
+		return response.json();
+	}
 };
 
 // Analytics API service

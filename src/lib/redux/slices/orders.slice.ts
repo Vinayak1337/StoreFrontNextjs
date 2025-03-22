@@ -29,6 +29,7 @@ export const createOrder = createAsyncThunk(
 				quantity: number;
 				price: number;
 			}>;
+			customMessage?: string;
 		},
 		{ rejectWithValue }
 	) => {
@@ -58,6 +59,21 @@ export const updateOrderStatus = createAsyncThunk(
 				return rejectWithValue(error.message);
 			}
 			return rejectWithValue('Failed to update order status');
+		}
+	}
+);
+
+export const deleteOrder = createAsyncThunk(
+	'orders/deleteOrder',
+	async (id: string, { rejectWithValue }) => {
+		try {
+			await api.deleteOrder(id);
+			return id;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to delete order');
 		}
 	}
 );
@@ -121,6 +137,20 @@ const ordersSlice = createSlice({
 			}
 		});
 		builder.addCase(updateOrderStatus.rejected, (state, { payload }) => {
+			state.loading = false;
+			state.error = payload as string;
+		});
+
+		// Delete order
+		builder.addCase(deleteOrder.pending, state => {
+			state.loading = true;
+			state.error = null;
+		});
+		builder.addCase(deleteOrder.fulfilled, (state, { payload }) => {
+			state.loading = false;
+			state.orders = state.orders.filter(order => order.id !== payload);
+		});
+		builder.addCase(deleteOrder.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
 		});

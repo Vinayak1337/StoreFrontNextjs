@@ -42,6 +42,21 @@ export const createBill = createAsyncThunk(
 	}
 );
 
+export const deleteBill = createAsyncThunk(
+	'bills/deleteBill',
+	async (id: string, { rejectWithValue }) => {
+		try {
+			await api.deleteBill(id);
+			return id;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to delete bill');
+		}
+	}
+);
+
 // Initial state
 const initialState: BillsState = {
 	bills: [],
@@ -169,6 +184,23 @@ const billsSlice = createSlice({
 			state.bills.push(payload);
 		});
 		builder.addCase(createBill.rejected, (state, { payload }) => {
+			state.loading = false;
+			state.error = payload as string;
+		});
+
+		// Delete bill
+		builder.addCase(deleteBill.pending, state => {
+			state.loading = true;
+			state.error = null;
+		});
+		builder.addCase(deleteBill.fulfilled, (state, { payload }) => {
+			state.loading = false;
+			state.bills = state.bills.filter(bill => bill.id !== payload);
+			if (state.activeBill?.id === payload) {
+				state.activeBill = null;
+			}
+		});
+		builder.addCase(deleteBill.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
 		});

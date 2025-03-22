@@ -58,45 +58,85 @@ body {
 
 @layer base {
 	:root {
-		--background: 210 40% 98%;
-		--foreground: 222.2 47.4% 11.2%;
+		--background: #f9fafb;
+		--foreground: #1f2937;
 
-		--muted: 210 40% 96.1%;
-		--muted-foreground: 215.4 16.3% 46.9%;
+		--muted: #f3f4f6;
+		--muted-foreground: #6b7280;
 
-		--popover: 0 0% 100%;
-		--popover-foreground: 222.2 47.4% 11.2%;
+		--popover: #ffffff;
+		--popover-foreground: #1f2937;
 
-		--border: 214.3 31.8% 91.4%;
-		--input: 214.3 31.8% 91.4%;
+		--border: #e5e7eb;
+		--input: #e5e7eb;
 
-		--card: 0 0% 100%;
-		--card-foreground: 222.2 47.4% 11.2%;
+		--card: #ffffff;
+		--card-foreground: #1f2937;
 
-		--primary: 262.1 83.3% 57.8%;
-		--primary-foreground: 210 40% 98%;
+		--primary: #6d28d9;
+		--primary-foreground: #f9fafb;
 
-		--secondary: 199 89% 48%;
-		--secondary-foreground: 210 40% 98%;
+		--secondary: #0ea5e9;
+		--secondary-foreground: #f9fafb;
 
-		--accent: 262.1 83.3% 57.8%;
-		--accent-foreground: 222.2 47.4% 11.2%;
+		--accent: #6d28d9;
+		--accent-foreground: #1f2937;
 
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 210 40% 98%;
+		--destructive: #ef4444;
+		--destructive-foreground: #f9fafb;
 
-		--success: 142.1 70.6% 45.3%;
-		--success-foreground: 210 40% 98%;
+		--success: #22c55e;
+		--success-foreground: #f9fafb;
 
-		--warning: 38 92% 50%;
-		--warning-foreground: 210 40% 98%;
+		--warning: #f59e0b;
+		--warning-foreground: #f9fafb;
 
-		--info: 214 95% 54%;
-		--info-foreground: 210 40% 98%;
+		--info: #3b82f6;
+		--info-foreground: #f9fafb;
 
-		--ring: 215 20.2% 65.1%;
+		--ring: #9ca3af;
 
 		--radius: 0.75rem;
+	}
+
+	.dark {
+		--background: #111827;
+		--foreground: #f9fafb;
+
+		--muted: #1f2937;
+		--muted-foreground: #9ca3af;
+
+		--popover: #1f2937;
+		--popover-foreground: #f9fafb;
+
+		--border: #374151;
+		--input: #374151;
+
+		--card: #1f2937;
+		--card-foreground: #f9fafb;
+
+		--primary: #8b5cf6;
+		--primary-foreground: #f9fafb;
+
+		--secondary: #38bdf8;
+		--secondary-foreground: #f9fafb;
+
+		--accent: #8b5cf6;
+		--accent-foreground: #f9fafb;
+
+		--destructive: #f87171;
+		--destructive-foreground: #f9fafb;
+
+		--success: #4ade80;
+		--success-foreground: #f9fafb;
+
+		--warning: #fbbf24;
+		--warning-foreground: #f9fafb;
+
+		--info: #60a5fa;
+		--info-foreground: #f9fafb;
+
+		--ring: #6b7280;
 	}
 
 	body {
@@ -105,7 +145,7 @@ body {
 
 	/* Basic focus styles */
 	*:focus-visible {
-		@apply outline-none ring-2 ring-primary/50 ring-offset-2;
+		@apply outline-none ring-2 ring-primary ring-opacity-50 ring-offset-2;
 	}
 
 	* {
@@ -151,7 +191,7 @@ body {
 
 /* App UI Elements */
 .glassmorphism {
-	@apply bg-background/40 backdrop-blur-md border border-white/20 shadow-lg;
+	@apply bg-background bg-opacity-40 backdrop-blur-md border border-white border-opacity-20 shadow-lg;
 }
 
 .card-hover {
@@ -167,7 +207,7 @@ body {
 }
 
 .icon-container {
-	@apply inline-flex items-center justify-center rounded-lg p-2 bg-background border border-border/50;
+	@apply inline-flex items-center justify-center rounded-lg p-2 bg-background border border-border border-opacity-50;
 }
 
 .divider {
@@ -313,11 +353,11 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-	@apply bg-primary/50 rounded;
+	@apply bg-primary bg-opacity-50 rounded;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	@apply bg-primary/80;
+	@apply bg-primary bg-opacity-80;
 }
 
 /* Button glow effect */
@@ -368,7 +408,7 @@ body {
 @layer components {
 	/* Glassmorphism effect for cards and elements */
 	.glassmorphism {
-		@apply bg-background/40 backdrop-blur-md border border-white/20 shadow-lg;
+		@apply bg-background bg-opacity-40 backdrop-blur-md border border-white border-opacity-20 shadow-lg;
 	}
 
 	/* Gradient backgrounds */
@@ -421,7 +461,7 @@ body {
 	}
 
 	.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-		@apply bg-muted-foreground/50;
+		@apply bg-muted-foreground bg-opacity-50;
 	}
 
 	/* Hide scrollbar for cleaner UI when needed */
@@ -437,9 +477,16 @@ body {
 
 /* Add a grid pattern for the login page */
 .bg-grid-pattern {
-	background-image: 
-		linear-gradient(to right, rgba(var(--foreground-rgb), 0.05) 1px, transparent 1px), 
-		linear-gradient(to bottom, rgba(var(--foreground-rgb), 0.05) 1px, transparent 1px);
+	background-image: linear-gradient(
+			to right,
+			rgba(var(--foreground-rgb), 0.05) 1px,
+			transparent 1px
+		),
+		linear-gradient(
+			to bottom,
+			rgba(var(--foreground-rgb), 0.05) 1px,
+			transparent 1px
+		);
 	background-size: 20px 20px;
 }
 

@@ -14,12 +14,7 @@ import {
 	AreaChart,
 	Area
 } from 'recharts';
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RootState } from '@/lib/redux/store';
 import { format } from 'date-fns';
@@ -218,7 +213,7 @@ export function SalesChart() {
 										tickMargin={10}
 									/>
 									<YAxis
-										tickFormatter={value => `$${value}`}
+										tickFormatter={value => `₹${value}`}
 										axisLine={false}
 										tickLine={false}
 										tickMargin={10}
@@ -297,7 +292,7 @@ export function SalesChart() {
 										tickMargin={10}
 									/>
 									<YAxis
-										tickFormatter={value => `$${value}`}
+										tickFormatter={value => `₹${value}`}
 										axisLine={false}
 										tickLine={false}
 										tickMargin={10}
