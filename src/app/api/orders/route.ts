@@ -231,7 +231,10 @@ export async function DELETE(req: NextRequest) {
 			});
 		});
 
-		return NextResponse.json({ message: 'Order deleted successfully' });
+		return NextResponse.json({
+			success: true,
+			message: 'Order deleted successfully'
+		});
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';

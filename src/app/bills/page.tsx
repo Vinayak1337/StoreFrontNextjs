@@ -12,10 +12,12 @@ import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { printBill } from '@/lib/utils/bill-utils';
 import { toast } from 'react-toastify';
-import { Trash } from 'lucide-react';
+import { Trash, Eye, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function BillsPage() {
 	const dispatch = useDispatch<AppDispatch>();
+	const router = useRouter();
 	const { bills, loading, error } = useSelector(
 		(state: RootState) => state.bills
 	);
@@ -25,6 +27,9 @@ export default function BillsPage() {
 		dispatch(fetchBills());
 		dispatch(fetchSettings());
 	}, [dispatch]);
+
+	// Calculate the number of unpaid bills
+	const unpaidBillsCount = bills.filter(bill => !bill.isPaid).length;
 
 	const handlePrintBill = (billId: string) => {
 		if (!settings) {
@@ -51,12 +56,28 @@ export default function BillsPage() {
 		}
 	};
 
+	const handleViewDetails = (billId: string) => {
+		router.push(`/bills/${billId}`);
+	};
+
 	return (
 		<div className='flex flex-col min-h-screen'>
 			<header className='sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6'>
 				<div className='flex flex-1 items-center justify-between'>
 					<h1 className='text-xl font-semibold'>Bills Management</h1>
-					<CreateBillDialog />
+					<div className='flex items-center gap-3'>
+						<Button
+							variant='ghost'
+							size='icon'
+							className='rounded-full hover:bg-accent/50 relative'>
+							<Bell className='h-5 w-5' />
+							{unpaidBillsCount > 0 && (
+								<span className='absolute top-0 right-0 h-2 w-2 bg-primary rounded-full animate-pulse'></span>
+							)}
+							<span className='sr-only'>Notifications</span>
+						</Button>
+						<CreateBillDialog />
+					</div>
 				</div>
 			</header>
 			<main className='flex-1 p-6'>
@@ -109,7 +130,7 @@ export default function BillsPage() {
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Subtotal:</span>
 											<span>
-												{settings?.currency || '₹'}
+												{settings?.currency || '₹'}{' '}
 												{(
 													Number(bill.totalAmount) - Number(bill.taxes)
 												).toFixed(2)}
@@ -118,29 +139,18 @@ export default function BillsPage() {
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Tax:</span>
 											<span>
-												{settings?.currency || '₹'}
+												{settings?.currency || '₹'}{' '}
 												{Number(bill.taxes).toFixed(2)}
 											</span>
 										</div>
 										<div className='flex items-center justify-between font-medium mt-1'>
 											<span>Total:</span>
 											<span>
-												{settings?.currency || '₹'}
+												{settings?.currency || '₹'}{' '}
 												{Number(bill.totalAmount).toFixed(2)}
 											</span>
 										</div>
-										<div className='flex justify-end gap-2 mt-4'>
-											<Button variant='outline' size='sm'>
-												View Details
-											</Button>
-											<Button
-												variant='outline'
-												size='sm'
-												onClick={() => handlePrintBill(bill.id)}>
-												Print
-											</Button>
-										</div>
-										<div className='flex justify-end mt-2'>
+										<div className='flex justify-between gap-2 mt-4'>
 											<Button
 												variant='ghost'
 												size='sm'
@@ -149,6 +159,21 @@ export default function BillsPage() {
 												<Trash className='h-4 w-4 mr-1' />
 												Delete
 											</Button>
+											<div className='flex gap-2'>
+												<Button
+													variant='outline'
+													size='sm'
+													onClick={() => handleViewDetails(bill.id)}>
+													<Eye className='h-4 w-4 mr-1' />
+													View Details
+												</Button>
+												<Button
+													variant='outline'
+													size='sm'
+													onClick={() => handlePrintBill(bill.id)}>
+													Print
+												</Button>
+											</div>
 										</div>
 									</div>
 								</CardContent>

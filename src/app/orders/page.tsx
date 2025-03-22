@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import {
 } from '@/lib/redux/slices/orders.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
-import { Plus, Trash } from 'lucide-react';
+import { Plus, Eye, ChevronUp, Trash } from 'lucide-react';
 
 export default function OrdersPage() {
 	const router = useRouter();
@@ -22,6 +22,7 @@ export default function OrdersPage() {
 	const { orders, loading, error } = useSelector(
 		(state: RootState) => state.orders
 	);
+	const [expandedOrders] = useState<string[]>([]);
 
 	useEffect(() => {
 		dispatch(fetchOrders());
@@ -43,6 +44,10 @@ export default function OrdersPage() {
 		) {
 			dispatch(deleteOrder(orderId));
 		}
+	};
+
+	const handleViewDetails = (orderId: string) => {
+		router.push(`/orders/${orderId}`);
 	};
 
 	return (
@@ -117,7 +122,7 @@ export default function OrdersPage() {
 										<div className='flex items-center justify-between font-medium mt-1'>
 											<span>Total:</span>
 											<span>
-												₹
+												₹{' '}
 												{order.orderItems
 													.reduce(
 														(
@@ -130,41 +135,29 @@ export default function OrdersPage() {
 											</span>
 										</div>
 
-										<div className='mt-2 pt-2 border-t'>
-											<h4 className='text-sm font-medium mb-1'>Order Items:</h4>
-											<ul className='text-sm space-y-1'>
-												{order.orderItems.map(item => (
-													<li key={item.id} className='flex justify-between'>
-														<span>
-															{item.quantity}x{' '}
-															{item.item?.name ||
-																`Item #${item.itemId.substring(0, 6)}`}
-														</span>
-														<div className='ml-auto text-right'>
-															₹{(item.price * item.quantity).toFixed(2)}
-														</div>
-													</li>
-												))}
-											</ul>
-										</div>
-
-										{order.status === OrderStatus.PENDING && (
-											<div className='flex justify-end gap-2 mt-4'>
-												<Button
-													variant='outline'
-													size='sm'
-													onClick={() => handleCancelOrder(order.id)}>
-													Cancel
-												</Button>
-												<Button
-													size='sm'
-													onClick={() => handleCompleteOrder(order.id)}>
-													Complete
-												</Button>
+										{expandedOrders.includes(order.id) && (
+											<div className='mt-2 pt-2 border-t'>
+												<h4 className='text-sm font-medium mb-1'>
+													Order Items:
+												</h4>
+												<ul className='text-sm space-y-1'>
+													{order.orderItems.map(item => (
+														<li key={item.id} className='flex justify-between'>
+															<span>
+																{item.quantity}x{' '}
+																{item.item?.name ||
+																	`Item #${item.itemId.substring(0, 6)}`}
+															</span>
+															<div className='ml-auto text-right'>
+																₹ {(item.price * item.quantity).toFixed(2)}
+															</div>
+														</li>
+													))}
+												</ul>
 											</div>
 										)}
 
-										<div className='flex justify-end mt-2'>
+										<div className='flex justify-between mt-4'>
 											<Button
 												variant='ghost'
 												size='sm'
@@ -173,6 +166,38 @@ export default function OrdersPage() {
 												<Trash className='h-4 w-4 mr-1' />
 												Delete
 											</Button>
+
+											<div className='flex gap-2'>
+												<Button
+													variant='outline'
+													size='sm'
+													onClick={() => handleViewDetails(order.id)}>
+													{expandedOrders.includes(order.id) ? (
+														<ChevronUp className='h-4 w-4 mr-1' />
+													) : (
+														<Eye className='h-4 w-4 mr-1' />
+													)}
+													{expandedOrders.includes(order.id)
+														? 'Hide Details'
+														: 'View Details'}
+												</Button>
+
+												{order.status === OrderStatus.PENDING && (
+													<>
+														<Button
+															variant='outline'
+															size='sm'
+															onClick={() => handleCancelOrder(order.id)}>
+															Cancel
+														</Button>
+														<Button
+															size='sm'
+															onClick={() => handleCompleteOrder(order.id)}>
+															Complete
+														</Button>
+													</>
+												)}
+											</div>
 										</div>
 									</div>
 								</CardContent>

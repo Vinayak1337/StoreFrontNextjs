@@ -6,6 +6,8 @@
     "dev": "next dev --turbopack",
     "prebuild": "npx prisma generate --schema=./src/prisma/schema.prisma",
     "build": "next build",
+    "build:static": "next build && next export",
+    "build:prod": "cross-env NODE_ENV=production DISABLE_ESLINT_PLUGIN=true next build",
     "start": "next start",
     "lint": "next lint",
     "clean": "rimraf .next node_modules"

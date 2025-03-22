@@ -54,7 +54,15 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Check if a bill already exists for this order
+		// Check if order is cancelled
+		if (order.status === 'CANCELLED') {
+			return NextResponse.json(
+				{ error: 'Cannot create bills for cancelled orders' },
+				{ status: 400 }
+			);
+		}
+
+		// Check if a bill already exists for this order (including soft-deleted bills)
 		const existingBill = await prisma.bill.findUnique({
 			where: { orderId }
 		});
@@ -91,14 +99,6 @@ export async function POST(request: Request) {
 			}
 		});
 
-		// Update the order status to COMPLETED
-		await prisma.order.update({
-			where: { id: orderId },
-			data: {
-				status: 'COMPLETED'
-			}
-		});
-
 		return NextResponse.json(bill, { status: 201 });
 	} catch (error) {
 		console.error('Error creating bill:', error);
@@ -129,7 +129,10 @@ export async function DELETE(request: Request) {
 			where: { id }
 		});
 
-		return NextResponse.json({ message: 'Bill deleted successfully' });
+		return NextResponse.json({
+			success: true,
+			message: 'Bill deleted successfully'
+		});
 	} catch (error) {
 		console.error('Error deleting bill:', error);
 		return NextResponse.json(

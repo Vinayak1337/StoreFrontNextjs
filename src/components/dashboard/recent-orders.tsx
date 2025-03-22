@@ -210,7 +210,10 @@ export function RecentOrders({
 									</Badge>
 
 									<p className='text-sm font-medium'>
-										₹{order.bill?.totalAmount.toFixed(2) || '0.00'}
+										₹
+										{order.bill
+											? Number(order.bill.totalAmount).toFixed(2)
+											: '0.00'}
 									</p>
 
 									<DropdownMenu>

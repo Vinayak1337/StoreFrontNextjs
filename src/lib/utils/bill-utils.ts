@@ -12,11 +12,6 @@ export function formatBillForPrinting(bill: Bill, settings: Settings) {
 	const items = order.orderItems || [];
 
 	// Calculate totals
-	const subtotal = items.reduce(
-		(sum, item) => sum + item.price * item.quantity,
-		0
-	);
-	const taxAmount = bill.taxes;
 	const totalAmount = bill.totalAmount;
 
 	return {
@@ -54,9 +49,6 @@ export function formatBillForPrinting(bill: Bill, settings: Settings) {
 		// Totals
 		totals: {
 			currency: settings.currency,
-			subtotal,
-			taxRate: settings.taxRate,
-			taxAmount,
 			total: totalAmount
 		}
 	};
@@ -145,18 +137,6 @@ export function generateBillHTML(bill: Bill, settings: Settings): string {
       
       <!-- Totals -->
       <div style="margin-left: auto; width: 300px;">
-        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-          <span>Subtotal:</span>
-          <span>${formattedBill.totals.currency} ${Number(
-		formattedBill.totals.subtotal
-	).toFixed(2)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-          <span>Tax (${formattedBill.totals.taxRate}%):</span>
-          <span>${formattedBill.totals.currency} ${Number(
-		formattedBill.totals.taxAmount
-	).toFixed(2)}</span>
-        </div>
         <div style="display: flex; justify-content: space-between; padding: 10px 0; font-weight: bold; border-top: 1px solid #ddd;">
           <span>Total:</span>
           <span>${formattedBill.totals.currency} ${Number(

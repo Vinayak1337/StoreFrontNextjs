@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
 	DialogTrigger
 } from '@/components/ui/dialog';
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
@@ -17,7 +17,6 @@ import { createBill } from '@/lib/redux/slices/bills.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { OrderStatus } from '@/types';
 import {
-	Calculator,
 	CreditCard,
 	Check,
 	Plus,
@@ -25,14 +24,15 @@ import {
 	Receipt,
 	X
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function CreateBillDialog() {
 	const dispatch = useDispatch<AppDispatch>();
+	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const { orders } = useSelector((state: RootState) => state.orders);
 	const [selectedOrderId, setSelectedOrderId] = useState('');
 	const [paymentMethod, setPaymentMethod] = useState('Cash');
-	const [taxRate, setTaxRate] = useState(10); // Default 10% tax rate
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	// Fetch orders when dialog opens
@@ -42,9 +42,9 @@ export function CreateBillDialog() {
 		}
 	}, [open, dispatch, orders.length]);
 
-	// Filter only PENDING orders
-	const pendingOrders = orders.filter(
-		order => order.status === OrderStatus.PENDING && !order.bill
+	// Filter all orders that don't have a bill yet
+	const availableOrders = orders.filter(
+		order => !order.bill && order.status !== 'CANCELLED'
 	);
 
 	// Get selected order
@@ -62,14 +62,12 @@ export function CreateBillDialog() {
 	};
 
 	const subtotal = calculateSubtotal();
-	const taxAmount = subtotal * (taxRate / 100);
-	const total = subtotal + taxAmount;
+	const total = subtotal;
 
 	// Reset form
 	const resetForm = () => {
 		setSelectedOrderId('');
 		setPaymentMethod('Cash');
-		setTaxRate(10);
 	};
 
 	// Handle form submission
@@ -80,17 +78,22 @@ export function CreateBillDialog() {
 		if (!selectedOrderId) return;
 
 		try {
-			await dispatch(
+			const result = await dispatch(
 				createBill({
 					orderId: selectedOrderId,
 					totalAmount: total,
-					taxes: taxAmount,
+					taxes: 0,
 					paymentMethod
 				})
 			);
 
 			resetForm();
 			setOpen(false);
+
+			// Navigate to the bill details page if creation was successful
+			if (createBill.fulfilled.match(result)) {
+				router.push(`/bills/${result.payload.id}`);
+			}
 		} catch (error) {
 			console.error('Failed to create bill:', error);
 		} finally {
@@ -126,6 +129,9 @@ export function CreateBillDialog() {
 						<Receipt className='h-5 w-5 text-primary' />
 						Create New Bill
 					</DialogTitle>
+					<DialogDescription>
+						Select an order and payment method to generate a bill.
+					</DialogDescription>
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className='space-y-5 animate-fade-in'>
@@ -136,13 +142,13 @@ export function CreateBillDialog() {
 							<ShoppingCart className='h-4 w-4 text-primary' />
 							Select Order
 						</Label>
-						{pendingOrders.length === 0 ? (
+						{availableOrders.length === 0 ? (
 							<div className='flex items-center justify-center p-6 border border-dashed rounded-md text-muted-foreground'>
-								<p className='text-center'>No pending orders available</p>
+								<p className='text-center'>No orders available for billing</p>
 							</div>
 						) : (
 							<div className='grid gap-2 max-h-48 overflow-y-auto p-2 border rounded-md bg-background/50'>
-								{pendingOrders.map(order => (
+								{availableOrders.map(order => (
 									<Button
 										key={order.id}
 										type='button'
@@ -154,9 +160,14 @@ export function CreateBillDialog() {
 										className='justify-between hover:shadow-sm transition-all'>
 										<span className='font-medium'>
 											#{order.id.substring(0, 8)} - {order.customerName}
+											{order.status !== OrderStatus.PENDING && (
+												<span className='ml-2 text-xs uppercase text-muted-foreground'>
+													({order.status})
+												</span>
+											)}
 										</span>
 										<span className='bg-background/80 px-2 py-1 rounded text-sm'>
-											₹
+											₹{' '}
 											{order.orderItems
 												.reduce(
 													(
@@ -204,45 +215,11 @@ export function CreateBillDialog() {
 							</div>
 
 							<div
-								className='space-y-2 animate-slide-in'
-								style={{ animationDelay: '0.3s' }}>
-								<Label
-									htmlFor='taxRate'
-									className='flex items-center gap-2 font-medium'>
-									<Calculator className='h-4 w-4 text-blue-500' />
-									Tax Rate (%)
-								</Label>
-								<Input
-									id='taxRate'
-									type='number'
-									step='0.01'
-									min='0'
-									max='100'
-									value={taxRate}
-									onChange={e => setTaxRate(parseFloat(e.target.value))}
-									required
-									className='transition-all focus:border-blue-500'
-									icon={<Calculator className='h-4 w-4' />}
-								/>
-							</div>
-
-							<div
 								className='border rounded-md p-5 space-y-3 shadow-sm bg-muted/30 animate-slide-in'
 								style={{ animationDelay: '0.4s' }}>
 								<div className='flex justify-between'>
-									<span className='text-muted-foreground'>Subtotal:</span>
-									<span className='font-medium'>₹{subtotal.toFixed(2)}</span>
-								</div>
-								<div className='flex justify-between'>
-									<span className='text-muted-foreground'>
-										Tax ({taxRate}%):
-									</span>
-									<span className='font-medium'>₹{taxAmount.toFixed(2)}</span>
-								</div>
-								<div className='h-px bg-border my-2'></div>
-								<div className='flex justify-between font-bold text-lg'>
-									<span>Total:</span>
-									<span className='text-primary'>₹{total.toFixed(2)}</span>
+									<span className='text-muted-foreground'>Total:</span>
+									<span className='font-medium'>₹{total.toFixed(2)}</span>
 								</div>
 							</div>
 						</>

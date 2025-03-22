@@ -1,5 +1,12 @@
 {
     "extends": "next/core-web-vitals",
+    "ignorePatterns": [
+        ".next/",
+        "node_modules/",
+        "public/",
+        "out/",
+        "dist/"
+    ],
     "rules": {
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/no-unused-vars": [

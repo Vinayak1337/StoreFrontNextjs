@@ -8,6 +8,7 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
 	DialogTrigger
 } from '@/components/ui/dialog';
 import { ItemForm } from './item-form';
@@ -29,6 +30,9 @@ export function EditItemDialog({ item }: EditItemDialogProps) {
 			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>
 					<DialogTitle>Edit Item</DialogTitle>
+					<DialogDescription>
+						Make changes to the item details below.
+					</DialogDescription>
 				</DialogHeader>
 				<ItemForm item={item} onClose={() => setOpen(false)} />
 			</DialogContent>

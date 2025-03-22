@@ -119,7 +119,7 @@ export const ordersAPI = {
 			throw new Error(error.error || 'Failed to delete order');
 		}
 
-		return response.json();
+		return id; // Just return the ID instead of parsing the response
 	}
 };
 
@@ -156,7 +156,7 @@ export const billsAPI = {
 			throw new Error(error.error || 'Failed to delete bill');
 		}
 
-		return response.json();
+		return id; // Just return the ID instead of parsing the response
 	}
 };
 

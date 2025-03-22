@@ -11,6 +11,7 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
+	DialogDescription,
 	DialogTrigger
 } from '@/components/ui/dialog';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
@@ -122,6 +123,9 @@ export function CreateOrderDialog() {
 			<DialogContent className='sm:max-w-[550px]'>
 				<DialogHeader>
 					<DialogTitle>Create New Order</DialogTitle>
+					<DialogDescription>
+						Fill out the form below to create a new customer order.
+					</DialogDescription>
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className='space-y-4'>

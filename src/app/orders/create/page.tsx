@@ -223,7 +223,7 @@ export default function CreateOrderPage() {
 														</div>
 														<div className='flex items-center'>
 															<span className='font-medium mr-2'>
-																₹{Number(item.price).toFixed(2)}
+																₹ {Number(item.price).toFixed(2)}
 															</span>
 															<Plus className='h-4 w-4' />
 														</div>
@@ -261,9 +261,9 @@ export default function CreateOrderPage() {
 														className='flex items-center justify-between p-3'>
 														<div>
 															<p className='font-medium'>{item?.name}</p>
-															<p className='text-sm text-muted-foreground'>
-																₹{orderItem.price} each
-															</p>
+															<span className='text-muted-foreground mr-2'>
+																₹ {orderItem.price} each
+															</span>
 														</div>
 														<div className='flex items-center gap-2'>
 															<Button
@@ -301,7 +301,7 @@ export default function CreateOrderPage() {
 											})}
 											<div className='p-3 flex justify-between bg-muted/30'>
 												<p className='font-bold'>Total:</p>
-												<p className='font-bold'>₹{total.toFixed(2)}</p>
+												<p className='font-bold'>₹ {total.toFixed(2)}</p>
 											</div>
 										</div>
 									)}
