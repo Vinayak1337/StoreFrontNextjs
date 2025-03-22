@@ -99,7 +99,9 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className='space-y-5 animate-fade-in'>
+		<form
+			onSubmit={handleSubmit}
+			className='space-y-5 animate-fade-in max-w-3xl mx-auto md:px-4'>
 			<div
 				className='space-y-2 animate-slide-in'
 				style={{ animationDelay: '0.1s' }}>
@@ -227,7 +229,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					variant='outline'
 					onClick={onClose}
 					leftIcon={<X className='h-4 w-4' />}
-					className='hover:bg-destructive/10 hover:text-destructive hover:border-destructive'>
+					className='hover:bg-destructive/10 hover:text-destructive hover:border-destructive py-2.5 md:py-2'>
 					Cancel
 				</Button>
 				<Button
@@ -235,7 +237,8 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					variant='gradient'
 					leftIcon={<Save className='h-4 w-4' />}
 					isLoading={isSubmitting}
-					animation='scale'>
+					animation='scale'
+					className='py-2.5 md:py-2'>
 					{item ? 'Update Item' : 'Create Item'}
 				</Button>
 			</div>

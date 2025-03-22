@@ -120,7 +120,7 @@ export function CreateOrderDialog() {
 			<DialogTrigger asChild>
 				<Button>Create New Order</Button>
 			</DialogTrigger>
-			<DialogContent className='sm:max-w-[550px]'>
+			<DialogContent className='sm:max-w-[550px] max-h-[85vh] overflow-y-auto pb-8'>
 				<DialogHeader>
 					<DialogTitle>Create New Order</DialogTitle>
 					<DialogDescription>
@@ -136,12 +136,13 @@ export function CreateOrderDialog() {
 							value={customerName}
 							onChange={e => setCustomerName(e.target.value)}
 							required
+							className='h-10 md:h-9'
 						/>
 					</div>
 
 					<div className='space-y-2'>
 						<Label>Select Items</Label>
-						<div className='grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md'>
+						<div className='grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md'>
 							{items.map(item => (
 								<Button
 									key={item.id}
@@ -149,7 +150,7 @@ export function CreateOrderDialog() {
 									variant='outline'
 									size='sm'
 									onClick={() => addItem(item.id)}
-									className='justify-start'>
+									className='justify-start py-2.5 md:py-2'>
 									{item.name} - ₹{item.price}
 								</Button>
 							))}
@@ -239,12 +240,14 @@ export function CreateOrderDialog() {
 							onClick={() => {
 								resetForm();
 								setOpen(false);
-							}}>
+							}}
+							className='py-2.5 md:py-2'>
 							Cancel
 						</Button>
 						<Button
 							type='submit'
-							disabled={!customerName || orderItems.length === 0}>
+							disabled={!customerName || orderItems.length === 0}
+							className='py-2.5 md:py-2'>
 							Create Order
 						</Button>
 					</div>

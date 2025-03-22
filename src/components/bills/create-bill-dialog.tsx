@@ -22,7 +22,8 @@ import {
 	Plus,
 	ShoppingCart,
 	Receipt,
-	X
+	X,
+	ChevronDown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -200,7 +201,7 @@ export function CreateBillDialog() {
 										id='paymentMethod'
 										value={paymentMethod}
 										onChange={e => setPaymentMethod(e.target.value)}
-										className='flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all'
+										className='flex h-11 md:h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all appearance-none'
 										required>
 										<option value='Cash'>Cash</option>
 										<option value='Credit Card'>Credit Card</option>
@@ -210,6 +211,9 @@ export function CreateBillDialog() {
 									</select>
 									<div className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'>
 										{getPaymentIcon(paymentMethod)}
+									</div>
+									<div className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none'>
+										<ChevronDown className='h-4 w-4' />
 									</div>
 								</div>
 							</div>

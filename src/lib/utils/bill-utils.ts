@@ -159,8 +159,86 @@ export function generateBillHTML(bill: Bill, settings: Settings): string {
 export function printBill(bill: Bill, settings: Settings): void {
 	const htmlContent = generateBillHTML(bill, settings);
 
-	// Create a new window for printing
-	const printWindow = window.open('', '_blank');
+	// Check if it's a Samsung tablet
+	const isSamsungBrowser = /SamsungBrowser/i.test(navigator.userAgent);
+
+	// Samsung-optimized approach: create an iframe instead of a new window
+	if (isSamsungBrowser) {
+		// First remove any existing print frames
+		const existingFrame = document.getElementById('print-frame');
+		if (existingFrame) {
+			document.body.removeChild(existingFrame);
+		}
+
+		// Create an iframe
+		const printFrame = document.createElement('iframe');
+		printFrame.id = 'print-frame';
+		printFrame.name = 'print-frame';
+		printFrame.style.position = 'fixed';
+		printFrame.style.right = '0';
+		printFrame.style.bottom = '0';
+		printFrame.style.width = '0';
+		printFrame.style.height = '0';
+		printFrame.style.border = '0';
+		document.body.appendChild(printFrame);
+
+		// Write content to the iframe
+		const frameWindow = printFrame.contentWindow;
+		if (frameWindow) {
+			const frameDoc = frameWindow.document;
+			frameDoc.open();
+			frameDoc.write(`
+				<!DOCTYPE html>
+				<html>
+					<head>
+						<title>Invoice #${bill.id}</title>
+						<meta charset="utf-8" />
+						<meta name="viewport" content="width=device-width, initial-scale=1" />
+						<style>
+							@media print {
+								body { 
+									margin: 0;
+									padding: 0;
+								}
+								@page {
+									size: A4;
+									margin: 10mm;
+								}
+							}
+						</style>
+					</head>
+					<body>
+						${htmlContent}
+					</body>
+				</html>
+			`);
+			frameDoc.close();
+
+			// Use timeout to ensure content is fully loaded
+			setTimeout(() => {
+				try {
+					frameWindow.focus();
+					frameWindow.print();
+				} catch (e) {
+					console.error('Print error:', e);
+					alert('There was an error when trying to print. Please try again.');
+				}
+			}, 1000);
+		} else {
+			console.error('Could not access iframe content window');
+			alert('There was a problem preparing the print view. Please try again.');
+		}
+
+		return;
+	}
+
+	// Standard approach for other browsers
+	// Create a new window for printing with optimized settings
+	const printWindow = window.open(
+		'',
+		'_blank',
+		'width=800,height=600,toolbar=0,menubar=0,location=0'
+	);
 	if (!printWindow) {
 		alert('Please allow pop-ups to print the bill');
 		return;
@@ -175,6 +253,10 @@ export function printBill(bill: Bill, settings: Settings): void {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <style>
+          body { 
+            margin: 0;
+            padding: 0;
+          }
           @media print {
             body { 
               margin: 0;
@@ -190,14 +272,14 @@ export function printBill(bill: Bill, settings: Settings): void {
       <body>
         ${htmlContent}
         <script>
-          // Automatically print when the page loads
-          window.onload = function() {
+          // Delay print to ensure content is fully loaded
+          setTimeout(function() {
             window.print();
-            // Close the window after printing
+            // Close the window after printing with a longer timeout
             window.setTimeout(function() {
               window.close();
-            }, 500);
-          };
+            }, 1000);
+          }, 1000);
         </script>
       </body>
     </html>

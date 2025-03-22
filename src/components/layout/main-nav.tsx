@@ -118,13 +118,13 @@ export function MainNav() {
 
 	return (
 		<div className='flex items-center justify-between w-full'>
-			<nav className='hidden md:flex gap-1 items-center'>
+			<nav className='flex gap-1 items-center'>
 				{navItems.map((item, index) => (
 					<Link
 						key={item.href}
 						href={item.href}
 						className={cn(
-							'flex items-center px-3 py-2 text-sm font-medium rounded-xl transition-all hover-scale',
+							'flex items-center px-2 md:px-3 py-2 text-sm font-medium rounded-xl transition-all hover-scale whitespace-nowrap',
 							pathname === item.href
 								? 'bg-primary/10 text-primary'
 								: 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
@@ -145,8 +145,8 @@ export function MainNav() {
 				))}
 			</nav>
 
-			<div className='flex items-center gap-3'>
-				<div className='relative w-64 mr-2'>
+			<div className='flex items-center gap-2 md:gap-3'>
+				<div className='relative w-full md:w-64 mr-1 md:mr-2'>
 					<div className='absolute left-2.5 top-2.5 text-muted-foreground'>
 						<Search className='h-4 w-4' />
 					</div>

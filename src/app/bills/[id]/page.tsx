@@ -42,7 +42,27 @@ export default function BillDetailsPage() {
 			return;
 		}
 
-		printBill(bill, settings);
+		// Show a notification that print is being prepared
+		toast.info('Preparing bill for printing...', { autoClose: 2000 });
+
+		// Detect Samsung browser for customized message
+		const isSamsungBrowser = /SamsungBrowser/i.test(navigator.userAgent);
+		if (isSamsungBrowser) {
+			// Show Samsung-specific instructions after a short delay
+			setTimeout(() => {
+				toast.info(
+					"Samsung tablet detected. If print doesn't appear, check your notification panel for print options.",
+					{ autoClose: 5000 }
+				);
+			}, 2500);
+		}
+
+		try {
+			printBill(bill, settings);
+		} catch (error) {
+			console.error('Print error:', error);
+			toast.error('There was an error printing the bill. Please try again.');
+		}
 	};
 
 	if (loading) {
@@ -135,7 +155,14 @@ export default function BillDetailsPage() {
 							<span className='text-muted-foreground'>Subtotal:</span>
 							<span className='font-medium'>
 								{settings?.currency || '₹'}{' '}
-								{Number(bill.totalAmount).toFixed(2)}
+								{(Number(bill.totalAmount) - Number(bill.taxes || 0)).toFixed(
+									2
+								)}
+							</span>
+
+							<span className='text-muted-foreground'>Tax:</span>
+							<span className='font-medium'>
+								{settings?.currency || '₹'} {Number(bill.taxes || 0).toFixed(2)}
 							</span>
 
 							<span className='text-muted-foreground font-bold'>

@@ -194,7 +194,7 @@ export function Sidebar() {
 				</SheetTrigger>
 				<SheetContent
 					side='left'
-					className='flex flex-col p-0 w-[80%] sm:w-[300px]'>
+					className='flex flex-col p-0 w-[90%] md:w-[350px] border-r'>
 					<div className='flex items-center border-b px-6 py-4'>
 						<div className='flex items-center gap-2'>
 							<div className='icon-container'>
@@ -225,7 +225,7 @@ export function Sidebar() {
 							/>
 						</div>
 					</div>
-					<nav className='flex-1 overflow-auto px-4'>
+					<nav className='flex-1 overflow-auto px-4 pb-20'>
 						<div className='space-y-2'>
 							{routes.map(route => (
 								<NavItem

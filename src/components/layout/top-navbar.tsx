@@ -15,18 +15,18 @@ export function TopNavbar({ className }: TopNavbarProps) {
 	return (
 		<header
 			className={cn('border-b bg-background sticky top-0 z-10', className)}>
-			<div className='container flex h-16 items-center px-4 md:px-6'>
-				<div className='hidden lg:flex'>
+			<div className='flex h-16 items-center px-4 md:px-6 max-w-[1600px] mx-auto'>
+				<div className='hidden md:flex md:flex-1'>
 					<MainNav />
 				</div>
 
-				<div className='flex items-center lg:hidden'>
+				<div className='flex items-center md:hidden'>
 					<Link href='/' className='flex items-center'>
 						<span className='font-bold text-lg mr-4'>StoreFront</span>
 					</Link>
 				</div>
 
-				<div className='flex-1'></div>
+				<div className='md:hidden flex-1'></div>
 
 				<div className='flex items-center gap-2'>
 					<Button

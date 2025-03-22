@@ -28,6 +28,30 @@ export default function ClientWrapper({
 		setMounted(true);
 	}, []);
 
+	// Detect virtual keyboard for tablets
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const detectKeyboard = () => {
+				// Initial window height when page loads
+				const initialHeight = window.innerHeight;
+
+				// When window resizes (keyboard appears), check for significant height change
+				window.addEventListener('resize', () => {
+					const heightDifference = initialHeight - window.innerHeight;
+
+					// If height decreases by more than 20%, keyboard is likely visible
+					if (heightDifference > initialHeight * 0.2) {
+						document.body.classList.add('keyboard-visible');
+					} else {
+						document.body.classList.remove('keyboard-visible');
+					}
+				});
+			};
+
+			detectKeyboard();
+		}
+	}, []);
+
 	return (
 		<ThemeProvider attribute='class' defaultTheme='light'>
 			<ReactQueryProvider>
@@ -50,7 +74,7 @@ export default function ClientWrapper({
 								<div
 									className={cn(
 										'h-full animate-slide-in',
-										!isLoginPage ? 'px-6 py-6' : ''
+										!isLoginPage ? 'px-4 py-4 md:px-6 md:py-6' : ''
 									)}>
 									{children}
 								</div>
@@ -68,6 +92,7 @@ export default function ClientWrapper({
 						draggable
 						pauseOnHover
 						theme='light'
+						style={{ zIndex: 9999 }}
 					/>
 				</Provider>
 			</ReactQueryProvider>
