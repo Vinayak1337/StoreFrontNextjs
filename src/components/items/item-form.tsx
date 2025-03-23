@@ -213,7 +213,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 			</div>
 
 			<div
-				className='stock-switch-container animate-slide-in'
+				className='stock-switch-container animate-slide-in flex justify-between gap-2'
 				style={{ animationDelay: '0.45s' }}>
 				<Label
 					htmlFor='in-stock'
@@ -221,7 +221,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					<ShoppingBag className='h-4 w-4 text-orange-500' />
 					In Stock
 				</Label>
-				<div className='switch-container'>
+				<div className='switch-container flex items-center gap-2'>
 					<Switch
 						id='in-stock'
 						checked={formData.inStock}
