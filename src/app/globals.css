@@ -609,8 +609,8 @@ body {
 }
 
 /* Tablet portrait mode specific styles */
-.tablet-portrait .lg\:hidden.fixed.top-14.left-4.z-50 {
-	top: 14px !important;
+.tablet-portrait .lg\:hidden.fixed.top-0.left-4.z-50 {
+	top: 0 !important;
 	left: 1rem !important;
 	z-index: 100 !important; /* Ensure it's above other elements */
 }
@@ -663,6 +663,13 @@ body {
 	.w-full.xs\:w-auto {
 		width: auto !important;
 	}
+
+	/* Fix hamburger menu positioning */
+	.lg\:hidden.fixed.top-0.left-4.z-50 {
+		position: fixed !important;
+		top: 0 !important;
+		left: 1rem !important;
+	}
 }
 
 /* Fix any scaling issues for elements in tablet portrait */
@@ -679,9 +686,9 @@ body {
 	}
 
 	/* Ensure the hamburger menu button is visible and properly positioned */
-	.lg\:hidden.fixed.top-14.left-4.z-50 {
+	.lg\:hidden.fixed.top-0.left-4.z-50 {
 		position: fixed !important;
-		top: 14px !important;
+		top: 0 !important;
 		left: 1rem !important;
 	}
 

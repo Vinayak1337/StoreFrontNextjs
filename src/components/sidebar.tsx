@@ -15,7 +15,7 @@ import {
 	Menu,
 	ChevronRight,
 	Store,
-	LogOut,
+	LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -187,7 +187,7 @@ export function Sidebar() {
 					<Button
 						variant='outline'
 						size='icon'
-						className='lg:hidden fixed top-1 left-4 z-50 glassmorphism hover-glow'>
+						className='lg:hidden fixed top-0 left-4 z-50 glassmorphism hover-glow'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>
@@ -264,7 +264,6 @@ export function Sidebar() {
 						))}
 					</div>
 				</nav>
-
 
 				<div className='border-t p-4'>
 					<div className='flex items-center justify-end'>
