@@ -755,12 +755,15 @@ export default function BillsPage() {
 														onCheckedChange={() =>
 															handleTogglePayment(bill.id, bill.isPaid === true)
 														}
+														className='medium-device-switch'
 													/>
-													<Label
-														htmlFor={`payment-status-${bill.id}`}
-														className='text-sm min-w-[50px] switch-label'>
+													<span
+														className='text-sm min-w-[50px] switch-label'
+														onClick={() =>
+															handleTogglePayment(bill.id, bill.isPaid === true)
+														}>
 														{bill.isPaid ? 'Paid' : 'Unpaid'}
-													</Label>
+													</span>
 												</div>
 											</div>
 										</div>
