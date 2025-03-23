@@ -19,8 +19,8 @@ export function TopNavbar({ className }: TopNavbarProps) {
 				</div>
 
 				<div className='flex items-center md:hidden'>
-					<Link href='/' className='flex items-center'>
-						<span className='font-bold text-lg mr-4'>StoreFront</span>
+					<Link href='/' className='flex items-center ml-14 sm:ml-16'>
+						<span className='font-bold text-lg'>StoreFront</span>
 					</Link>
 				</div>
 

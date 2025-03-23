@@ -1,4 +1,5 @@
 import { Item, Order, Bill, AnalyticsMetrics } from '@/types';
+import { fetchWithCsrf } from '@/lib/client/csrf-utils';
 
 // Generic fetch function with error handling
 async function fetchAPI<T>(
@@ -14,7 +15,8 @@ async function fetchAPI<T>(
 	};
 
 	try {
-		const response = await fetch(url, { ...options, headers });
+		// Use fetchWithCsrf instead of native fetch for automatic CSRF handling
+		const response = await fetchWithCsrf(url, { ...options, headers });
 
 		// Check if the request was successful
 		if (!response.ok) {
@@ -110,7 +112,8 @@ export const ordersAPI = {
 
 	// Delete an order
 	deleteOrder: async (id: string) => {
-		const response = await fetch(`/api/orders/${id}`, {
+		// Use fetchWithCsrf for direct fetch calls too
+		const response = await fetchWithCsrf(`/api/orders/${id}`, {
 			method: 'DELETE'
 		});
 
@@ -147,7 +150,8 @@ export const billsAPI = {
 
 	// Delete a bill
 	deleteBill: async (id: string) => {
-		const response = await fetch(`/api/bills/${id}`, {
+		// Use fetchWithCsrf for direct fetch calls too
+		const response = await fetchWithCsrf(`/api/bills/${id}`, {
 			method: 'DELETE'
 		});
 

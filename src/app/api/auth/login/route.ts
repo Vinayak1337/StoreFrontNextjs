@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/lib/prisma';
 import { verifyPasswordAction } from '@/app/actions';
 import { SESSION_TYPES, COOKIE_NAME } from '@/lib/auth-constants';
+import { CSRF_HEADER, CSRF_TOKEN_COOKIE } from '@/lib/csrf';
 import 'server-only';
 
 // Define types for custom fields
@@ -13,8 +13,73 @@ interface CustomUserFields {
 	last_login_at?: Date | null;
 }
 
+// Helper function to parse cookies from header
+function parseCookies(cookieHeader: string) {
+	const cookies: Record<string, string> = {};
+
+	if (!cookieHeader) return cookies;
+
+	cookieHeader.split(';').forEach(cookie => {
+		const [name, value] = cookie.trim().split('=');
+		if (name && value) {
+			cookies[name] = value;
+		}
+	});
+
+	return cookies;
+}
+
+// Simple in-memory rate limiting
+const MAX_ATTEMPTS = 5;
+const RESET_INTERVAL = 60 * 1000; // 1 minute
+const rateLimitStore: Map<string, { count: number; resetAt: number }> =
+	new Map();
+
 export async function POST(req: NextRequest) {
 	try {
+		// 1. CSRF Check
+		const cookieHeader = req.headers.get('cookie') || '';
+		const cookies = parseCookies(cookieHeader);
+		const csrfCookie = cookies[CSRF_TOKEN_COOKIE];
+		const csrfHeader = req.headers.get(CSRF_HEADER);
+
+		if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+			return NextResponse.json(
+				{ error: 'Invalid CSRF token' },
+				{ status: 403 }
+			);
+		}
+
+		// 2. Rate limiting
+		const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+		const now = Date.now();
+
+		let limitData = rateLimitStore.get(clientIp);
+		if (!limitData || limitData.resetAt < now) {
+			limitData = {
+				count: 0,
+				resetAt: now + RESET_INTERVAL
+			};
+		}
+
+		limitData.count++;
+		rateLimitStore.set(clientIp, limitData);
+
+		if (limitData.count > MAX_ATTEMPTS) {
+			return NextResponse.json(
+				{ error: 'Too many login attempts. Please try again later.' },
+				{
+					status: 429,
+					headers: {
+						'Retry-After': Math.ceil(
+							(limitData.resetAt - now) / 1000
+						).toString()
+					}
+				}
+			);
+		}
+
+		// 3. Login logic
 		const { password, sessionType = SESSION_TYPES.PROD } = await req.json();
 
 		if (!password) {
@@ -50,27 +115,11 @@ export async function POST(req: NextRequest) {
 				session_id: sessionId,
 				session_type: sessionType,
 				last_login_at: new Date()
-			} as unknown as CustomUserFields
+			} as CustomUserFields
 		});
 
-		// Set the session cookie (never expires)
-		const cookieStore = await cookies();
-		cookieStore.set({
-			name: COOKIE_NAME,
-			value: JSON.stringify({
-				userId: user.id,
-				sessionId,
-				sessionType
-			}),
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'strict',
-			// Never expires:
-			maxAge: 10 * 365 * 24 * 60 * 60, // ~10 years
-			path: '/'
-		});
-
-		return NextResponse.json({
+		// Create response with user data
+		const response = NextResponse.json({
 			success: true,
 			user: {
 				id: user.id,
@@ -79,6 +128,23 @@ export async function POST(req: NextRequest) {
 				sessionType
 			}
 		});
+
+		// Set the session cookie with 30 day expiration
+		const sessionValue = JSON.stringify({
+			userId: user.id,
+			sessionId,
+			sessionType
+		});
+
+		// Create cookie
+		response.headers.set(
+			'Set-Cookie',
+			`${COOKIE_NAME}=${encodeURIComponent(
+				sessionValue
+			)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000`
+		);
+
+		return response;
 	} catch (error) {
 		console.error('Login error:', error);
 		return NextResponse.json({ error: 'Login failed' }, { status: 500 });

@@ -6,10 +6,27 @@ import { COOKIE_NAME } from './lib/auth-constants';
 const publicPaths = [
 	'/api/auth/login',
 	'/api/auth/initialize',
+	'/api/auth/csrf',
 	'/api/auth/hash-password',
 	'/api/auth/verify-password',
 	'/login'
 ];
+
+// Helper function to parse cookies from header
+function parseCookies(cookieHeader: string) {
+	const cookies: Record<string, string> = {};
+
+	if (!cookieHeader) return cookies;
+
+	cookieHeader.split(';').forEach(cookie => {
+		const [name, value] = cookie.trim().split('=');
+		if (name && value) {
+			cookies[name] = value;
+		}
+	});
+
+	return cookies;
+}
 
 export function middleware(request: NextRequest) {
 	// Check if the path is public and if so, skip authentication
@@ -19,7 +36,9 @@ export function middleware(request: NextRequest) {
 	}
 
 	// Get the session cookie
-	const sessionCookie = request.cookies.get(COOKIE_NAME);
+	const cookieHeader = request.headers.get('cookie') || '';
+	const cookies = parseCookies(cookieHeader);
+	const sessionCookie = cookies[COOKIE_NAME];
 
 	// For homepage - redirect to dashboard if authenticated, redirect to login if not
 	if (path === '/') {

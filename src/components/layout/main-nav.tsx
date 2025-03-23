@@ -55,7 +55,7 @@ export function MainNav() {
 		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
 	const lowStockCount =
 		items?.filter(item => item?.inStock === false)?.length || 0;
-	const unreadBillsCount = bills?.length || 0;
+	const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
 
 	const navItems = [
 		{
@@ -80,7 +80,7 @@ export function MainNav() {
 			name: 'Bills',
 			href: '/bills' as Route,
 			icon: <CreditCard className='h-4 w-4' />,
-			badge: unreadBillsCount
+			badge: unpaidBillsCount
 		},
 		{
 			name: 'Analytics',
@@ -110,7 +110,7 @@ export function MainNav() {
 
 	return (
 		<div className='flex items-center justify-between w-full'>
-			<nav className='flex gap-1 items-center'>
+			<nav className='flex gap-1 items-center pl-12 xl:pl-0'>
 				{navItems.map((item, index) => (
 					<Link
 						key={item.href}

@@ -14,6 +14,9 @@ module.exports = {
 			}
 		},
 		extend: {
+			screens: {
+				xs: '420px'
+			},
 			colors: {
 				border: 'var(--border)',
 				input: 'var(--input)',

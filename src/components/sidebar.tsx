@@ -13,14 +13,19 @@ import {
 	BarChart3,
 	Settings,
 	Menu,
-	X,
 	ChevronRight,
 	Store,
 	LogOut,
-	HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+	Sheet,
+	SheetContent,
+	SheetTrigger,
+	SheetHeader,
+	SheetTitle,
+	SheetDescription
+} from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { RootState } from '@/lib/redux/store';
@@ -182,7 +187,7 @@ export function Sidebar() {
 					<Button
 						variant='outline'
 						size='icon'
-						className='lg:hidden fixed top-4 left-4 z-50 glassmorphism hover-glow'>
+						className='lg:hidden fixed top-1 left-4 z-50 glassmorphism hover-glow'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>
@@ -190,6 +195,10 @@ export function Sidebar() {
 				<SheetContent
 					side='left'
 					className='flex flex-col p-0 w-[90%] sm:w-[350px] border-r'>
+					<SheetHeader className='sr-only'>
+						<SheetTitle>Navigation Menu</SheetTitle>
+						<SheetDescription>Store navigation options</SheetDescription>
+					</SheetHeader>
 					<div className='flex items-center border-b px-6 py-4'>
 						<div className='flex items-center gap-2'>
 							<div className='icon-container'>
@@ -199,14 +208,6 @@ export function Sidebar() {
 								StoreFront
 							</h2>
 						</div>
-						<Button
-							variant='ghost'
-							size='icon'
-							className='ml-auto'
-							onClick={() => setOpen(false)}>
-							<X className='h-5 w-5' />
-							<span className='sr-only'>Close</span>
-						</Button>
 					</div>
 					<nav className='flex-1 overflow-auto px-4'>
 						<div className='space-y-2'>
@@ -262,21 +263,8 @@ export function Sidebar() {
 							/>
 						))}
 					</div>
-
-					<div className='mt-6 pt-6 border-t border-border/40'>
-						<h3 className='text-xs uppercase font-semibold text-muted-foreground mb-2 px-3'>
-							Support
-						</h3>
-						<Link
-							href='#'
-							className='group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all text-muted-foreground hover:text-foreground hover:bg-primary/10'>
-							<div className='flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground'>
-								<HelpCircle className='h-5 w-5' />
-							</div>
-							<span className='flex-1'>Help Center</span>
-						</Link>
-					</div>
 				</nav>
+
 
 				<div className='border-t p-4'>
 					<div className='flex items-center justify-end'>

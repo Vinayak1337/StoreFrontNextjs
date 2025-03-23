@@ -735,8 +735,8 @@ export default function BillsPage() {
 						{bills.map(bill => (
 							<Card key={bill.id} className='overflow-hidden'>
 								<CardContent className='p-0'>
-									<div className='p-6'>
-										<div className='flex justify-between items-start mb-4'>
+									<div className='p-4 sm:p-6'>
+										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4'>
 											<div>
 												<CardTitle className='mb-1'>
 													Bill #{bill.id.substring(0, 8)}
@@ -747,8 +747,8 @@ export default function BillsPage() {
 														: 'N/A'}
 												</p>
 											</div>
-											<div className='flex items-center gap-2'>
-												<div className='flex items-center space-x-2'>
+											<div className='flex items-center gap-2 sm:ml-4'>
+												<div className='flex items-center space-x-2 whitespace-nowrap'>
 													<Switch
 														id={`payment-status-${bill.id}`}
 														checked={bill.isPaid === true}
@@ -758,14 +758,14 @@ export default function BillsPage() {
 													/>
 													<Label
 														htmlFor={`payment-status-${bill.id}`}
-														className='text-sm'>
+														className='text-sm min-w-[50px]'>
 														{bill.isPaid ? 'Paid' : 'Unpaid'}
 													</Label>
 												</div>
 											</div>
 										</div>
 
-										<div className='grid grid-cols-2 gap-4 mb-4'>
+										<div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4'>
 											<div>
 												<span className='text-sm text-muted-foreground block'>
 													Customer
@@ -785,7 +785,7 @@ export default function BillsPage() {
 											</div>
 										</div>
 
-										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-4'>
+										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3'>
 											<Button
 												variant='outline'
 												size='sm'
@@ -794,11 +794,12 @@ export default function BillsPage() {
 												<Trash className='h-4 w-4 mr-1' />
 												Delete
 											</Button>
-											<div className='flex items-center gap-2'>
+											<div className='flex flex-col xs:flex-row items-center gap-2'>
 												<Button
 													variant='outline'
 													size='sm'
-													onClick={() => handleViewDetails(bill.id)}>
+													onClick={() => handleViewDetails(bill.id)}
+													className='w-full xs:w-auto'>
 													<Eye className='h-4 w-4 mr-1' />
 													View Details
 												</Button>
@@ -806,7 +807,8 @@ export default function BillsPage() {
 													variant='outline'
 													size='sm'
 													onClick={() => handlePrintBill(bill.id)}
-													disabled={isAutoConnecting}>
+													disabled={isAutoConnecting}
+													className='w-full xs:w-auto'>
 													{isAutoConnecting ? (
 														<>
 															<Loader2 className='h-4 w-4 mr-1 animate-spin' />

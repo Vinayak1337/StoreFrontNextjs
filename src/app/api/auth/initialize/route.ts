@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPasswordAction } from '@/app/actions';
 import 'server-only';
@@ -10,11 +10,46 @@ interface CustomUserFields {
 	last_login_at?: Date | null;
 }
 
-export async function GET() {
+// Simple in-memory rate limiting
+const MAX_ATTEMPTS = 2;
+const RESET_INTERVAL = 60 * 60 * 1000; // 1 hour
+const rateLimitStore: Map<string, { count: number; resetAt: number }> =
+	new Map();
+
+export async function GET(req: NextRequest) {
 	try {
-		// Define the password
-		const prodPassword = '570f230e3';
-		// No need for devPassword as we're using only prodPassword
+		// Apply rate limiting
+		const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+		const now = Date.now();
+
+		let limitData = rateLimitStore.get(clientIp);
+		if (!limitData || limitData.resetAt < now) {
+			limitData = {
+				count: 0,
+				resetAt: now + RESET_INTERVAL
+			};
+		}
+
+		limitData.count++;
+		rateLimitStore.set(clientIp, limitData);
+
+		if (limitData.count > MAX_ATTEMPTS) {
+			return NextResponse.json(
+				{ error: 'Too many initialization attempts. Please try again later.' },
+				{
+					status: 429,
+					headers: {
+						'Retry-After': Math.ceil(
+							(limitData.resetAt - now) / 1000
+						).toString()
+					}
+				}
+			);
+		}
+
+		// Get password from environment variable instead of hardcoding
+		const prodPassword =
+			process.env.INITIAL_ADMIN_PASSWORD || 'temporary-password';
 
 		// Hash the password
 		const hashedPassword = await hashPasswordAction(prodPassword);
@@ -30,7 +65,7 @@ export async function GET() {
 					password: hashedPassword,
 					// Clear any existing sessions
 					session_id: null
-				} as unknown as CustomUserFields
+				} as CustomUserFields
 			});
 
 			return NextResponse.json({
