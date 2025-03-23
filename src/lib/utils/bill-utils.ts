@@ -287,3 +287,111 @@ export function printBill(bill: Bill, settings: Settings): void {
 
 	printWindow.document.close();
 }
+
+/**
+ * Format bill content specifically for thermal printers
+ * This creates a plain text representation that can be used with ESC/POS commands
+ */
+export const formatBillForThermalPrinter = (
+	bill: Bill,
+	settings: Settings
+): string => {
+	if (!bill || !settings) return '';
+
+	// ESC/POS Commands
+	const ESC = '\x1B'; // Escape character
+	const GS = '\x1D'; // Group separator
+
+	// Text formatting commands
+	const CENTER = `${ESC}\x61\x01`; // Center alignment
+	const LEFT = `${ESC}\x61\x00`; // Left alignment
+	const BOLD_ON = `${ESC}E\x01`; // Bold on
+	const BOLD_OFF = `${ESC}E\x00`; // Bold off
+	const DOUBLE_WIDTH = `${GS}!\x01`; // Double width
+	const NORMAL_WIDTH = `${GS}!\x00`; // Normal width
+	const UNDERLINE_ON = `${ESC}-\x01`; // Underline on
+	const UNDERLINE_OFF = `${ESC}-\x00`; // Underline off
+
+	// Line feed and paper cut
+	const LF = '\n'; // Line feed
+	const DOUBLE_LF = '\n\n'; // Double line feed
+	const INIT = `${ESC}@`; // Initialize printer
+	const CUT = `${GS}V\x42\x00`; // Cut paper command
+
+	// Format the bill content with ESC/POS commands
+	let content = INIT;
+
+	// Store name and header
+	content += CENTER + BOLD_ON + DOUBLE_WIDTH;
+	content += settings.storeName + LF;
+	content += NORMAL_WIDTH;
+	content += settings.address + LF;
+	content += settings.phone + LF;
+
+	if (settings.email) {
+		content += settings.email + LF;
+	}
+
+	// Bill header
+	content += UNDERLINE_ON + `Invoice #: ${bill.id}` + UNDERLINE_OFF + LF;
+	content += `Date: ${new Date(bill.createdAt).toLocaleDateString()}` + LF;
+	content += `Customer: ${bill.order?.customerName || 'Walk-in'}` + LF;
+
+	content += LEFT + BOLD_OFF + DOUBLE_LF;
+
+	// Items header
+	content +=
+		BOLD_ON + 'ITEM                QTY    PRICE    TOTAL' + BOLD_OFF + LF;
+	content += '-----------------------------------------' + LF;
+
+	// Items
+	if (bill.order?.orderItems) {
+		bill.order.orderItems.forEach(item => {
+			const itemName = item.item?.name?.length
+				? item.item.name.length > 16
+					? item.item.name.substring(0, 15) + '.'
+					: item.item.name.padEnd(16, ' ')
+				: 'Unknown Item'.padEnd(16, ' ');
+
+			const qty = String(item.quantity).padStart(3, ' ');
+			const price = String(Number(item.price || 0).toFixed(2)).padStart(8, ' ');
+			const total = String(
+				Number((item.price || 0) * item.quantity).toFixed(2)
+			).padStart(8, ' ');
+
+			content += itemName + ' ' + qty + ' ' + price + ' ' + total + LF;
+		});
+	}
+
+	content += '-----------------------------------------' + LF;
+
+	// Totals
+	const subtotal = Number(bill.totalAmount) - Number(bill.taxes || 0);
+
+	content += LEFT;
+	content += `Subtotal:${' '.repeat(25)}${subtotal.toFixed(2)}` + LF;
+
+	if (bill.taxes && Number(bill.taxes) > 0) {
+		content += `Tax:${' '.repeat(30)}${Number(bill.taxes).toFixed(2)}` + LF;
+	}
+
+	content += BOLD_ON;
+	content +=
+		`TOTAL:${' '.repeat(28)}${Number(bill.totalAmount).toFixed(2)}` + LF;
+	content += BOLD_OFF;
+
+	// Payment method
+	content += `Payment: ${bill.paymentMethod || 'Cash'}` + DOUBLE_LF;
+
+	// Footer
+	content += CENTER;
+	content += (settings.footer || 'Thank you for your business!') + DOUBLE_LF;
+
+	// Add extra spacing before cutting
+	content += LF + LF + LF; // Add 3 extra line feeds for spacing
+
+	// Cut the paper
+	content += CUT;
+
+	return content;
+};

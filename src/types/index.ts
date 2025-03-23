@@ -155,3 +155,89 @@ export interface SettingsState {
 	loading: boolean;
 	error: string | null;
 }
+
+// Add Web Bluetooth API types
+declare global {
+	interface Window {
+		bluetooth?: {
+			requestDevice(options?: {
+				filters?: Array<{
+					services?: string[];
+					name?: string;
+					namePrefix?: string;
+					manufacturerId?: number;
+					serviceData?: Record<string, ArrayBuffer>;
+				}>;
+				optionalServices?: string[];
+				acceptAllDevices?: boolean;
+			}): Promise<BluetoothDevice>;
+		};
+	}
+
+	interface Navigator {
+		bluetooth?: {
+			requestDevice(options?: {
+				filters?: Array<{
+					services?: string[];
+					name?: string;
+					namePrefix?: string;
+					manufacturerId?: number;
+					serviceData?: Record<string, ArrayBuffer>;
+				}>;
+				optionalServices?: string[];
+				acceptAllDevices?: boolean;
+			}): Promise<BluetoothDevice>;
+		};
+	}
+
+	interface BluetoothDevice {
+		id: string;
+		name?: string;
+		gatt?: {
+			connected: boolean;
+			connect(): Promise<BluetoothRemoteGATTServer>;
+			disconnect(): void;
+		};
+	}
+
+	interface BluetoothRemoteGATTServer {
+		device: BluetoothDevice;
+		connected: boolean;
+		connect(): Promise<BluetoothRemoteGATTServer>;
+		disconnect(): void;
+		getPrimaryService(service: string): Promise<BluetoothRemoteGATTService>;
+		getPrimaryServices(service?: string): Promise<BluetoothRemoteGATTService[]>;
+	}
+
+	interface BluetoothRemoteGATTService {
+		device: BluetoothDevice;
+		uuid: string;
+		getCharacteristic(
+			characteristic: string
+		): Promise<BluetoothRemoteGATTCharacteristic>;
+		getCharacteristics(
+			characteristic?: string
+		): Promise<BluetoothRemoteGATTCharacteristic[]>;
+	}
+
+	interface BluetoothRemoteGATTCharacteristic {
+		service: BluetoothRemoteGATTService;
+		uuid: string;
+		properties: {
+			broadcast: boolean;
+			read: boolean;
+			writeWithoutResponse: boolean;
+			write: boolean;
+			notify: boolean;
+			indicate: boolean;
+			authenticatedSignedWrites: boolean;
+			reliableWrite: boolean;
+			writableAuxiliaries: boolean;
+		};
+		value?: DataView;
+		readValue(): Promise<DataView>;
+		writeValue(value: BufferSource): Promise<void>;
+		startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+		stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+	}
+}
