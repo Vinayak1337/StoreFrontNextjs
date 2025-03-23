@@ -8,14 +8,13 @@ interface CsrfProviderProps {
 }
 
 export default function CsrfProvider({ children }: CsrfProviderProps) {
-	const [isTokenLoaded, setIsTokenLoaded] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		const fetchCsrfToken = async () => {
 			try {
 				await getCsrfToken();
-				setIsTokenLoaded(true);
+				// Token loaded successfully
 			} catch (err) {
 				console.error('Error preloading CSRF token:', err);
 				setError(

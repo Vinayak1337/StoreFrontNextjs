@@ -609,7 +609,7 @@ body {
 }
 
 /* Tablet portrait mode specific styles */
-.tablet-portrait .lg\:hidden.fixed.top-0.left-4.z-50 {
+.tablet-portrait .menu-trigger {
 	top: 0 !important;
 	left: 1rem !important;
 	z-index: 100 !important; /* Ensure it's above other elements */
@@ -621,20 +621,20 @@ body {
 }
 
 /* Fix alignment issues with the top navbar in tablet portrait */
-.tablet-portrait header .ml-14 {
+.tablet-portrait .header-title {
 	margin-left: 60px !important; /* Ensure there's enough space for the hamburger menu */
 }
 
 /* Fix paid/unpaid switch UI for tablet screens */
 @media screen and (max-width: 850px) {
 	/* Ensure the switch and label stay together and don't wrap */
-	.flex.items-center.space-x-2.whitespace-nowrap {
+	.switch-container {
 		min-width: 110px; /* Set minimum width */
 		justify-content: flex-end; /* Align to the right */
 	}
 
 	/* Ensure consistent spacing for the label */
-	.text-sm.min-w-\[50px\] {
+	.switch-label {
 		display: inline-block;
 		min-width: 50px;
 		text-align: left;
@@ -644,28 +644,28 @@ body {
 /* Target specifically 800px width screens (common tablet width) */
 @media screen and (width: 800px) {
 	/* Fix for bill card layout at exactly 800px width */
-	.flex.flex-col.sm\:flex-row.sm\:justify-between.sm\:items-start.gap-3.mb-4 {
+	.bill-header {
 		flex-direction: row !important;
 		align-items: center !important;
 	}
 
 	/* Ensure switch doesn't break layout */
-	.flex.items-center.space-x-2.whitespace-nowrap {
+	.switch-container {
 		min-width: 120px !important;
 	}
 
 	/* Ensure buttons are properly sized on actions row */
-	.flex.flex-col.xs\:flex-row.items-center.gap-2 {
+	.button-group {
 		flex-direction: row !important;
 	}
 
 	/* Fix button width issues */
-	.w-full.xs\:w-auto {
+	.responsive-button {
 		width: auto !important;
 	}
 
 	/* Fix hamburger menu positioning */
-	.lg\:hidden.fixed.top-0.left-4.z-50 {
+	.menu-trigger {
 		position: fixed !important;
 		top: 0 !important;
 		left: 1rem !important;
@@ -680,21 +680,20 @@ body {
 	}
 
 	/* Adjust content padding */
-	.md\:px-6 {
+	.content-padding {
 		padding-left: 1rem !important;
 		padding-right: 1rem !important;
 	}
 
 	/* Ensure the hamburger menu button is visible and properly positioned */
-	.lg\:hidden.fixed.top-0.left-4.z-50 {
+	.menu-trigger {
 		position: fixed !important;
 		top: 0 !important;
 		left: 1rem !important;
 	}
 
 	/* Add extra margin to the dashboard title for hamburger menu */
-	header .ml-14,
-	header .ml-16 {
+	.header-title {
 		margin-left: 60px !important;
 	}
 }

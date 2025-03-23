@@ -38,6 +38,11 @@ async function fetchCsrfToken(): Promise<string> {
 		csrfToken = data.csrfToken;
 		tokenExpiry = Date.now() + TOKEN_LIFETIME;
 
+		// Ensure we're not returning null
+		if (!csrfToken) {
+			throw new Error('Failed to set CSRF token');
+		}
+
 		return csrfToken;
 	} catch (error) {
 		console.error('CSRF token fetch error:', error);

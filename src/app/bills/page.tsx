@@ -736,7 +736,7 @@ export default function BillsPage() {
 							<Card key={bill.id} className='overflow-hidden'>
 								<CardContent className='p-0'>
 									<div className='p-4 sm:p-6'>
-										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4'>
+										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 bill-header'>
 											<div>
 												<CardTitle className='mb-1'>
 													Bill #{bill.id.substring(0, 8)}
@@ -748,7 +748,7 @@ export default function BillsPage() {
 												</p>
 											</div>
 											<div className='flex items-center gap-2 sm:ml-4'>
-												<div className='flex items-center space-x-2 whitespace-nowrap'>
+												<div className='flex items-center space-x-2 whitespace-nowrap switch-container'>
 													<Switch
 														id={`payment-status-${bill.id}`}
 														checked={bill.isPaid === true}
@@ -758,7 +758,7 @@ export default function BillsPage() {
 													/>
 													<Label
 														htmlFor={`payment-status-${bill.id}`}
-														className='text-sm min-w-[50px]'>
+														className='text-sm min-w-[50px] switch-label'>
 														{bill.isPaid ? 'Paid' : 'Unpaid'}
 													</Label>
 												</div>
@@ -794,12 +794,12 @@ export default function BillsPage() {
 												<Trash className='h-4 w-4 mr-1' />
 												Delete
 											</Button>
-											<div className='flex flex-col xs:flex-row items-center gap-2'>
+											<div className='flex flex-col xs:flex-row items-center gap-2 button-group'>
 												<Button
 													variant='outline'
 													size='sm'
 													onClick={() => handleViewDetails(bill.id)}
-													className='w-full xs:w-auto'>
+													className='w-full xs:w-auto responsive-button'>
 													<Eye className='h-4 w-4 mr-1' />
 													View Details
 												</Button>
@@ -808,7 +808,7 @@ export default function BillsPage() {
 													size='sm'
 													onClick={() => handlePrintBill(bill.id)}
 													disabled={isAutoConnecting}
-													className='w-full xs:w-auto'>
+													className='w-full xs:w-auto responsive-button'>
 													{isAutoConnecting ? (
 														<>
 															<Loader2 className='h-4 w-4 mr-1 animate-spin' />

@@ -187,7 +187,7 @@ export function Sidebar() {
 					<Button
 						variant='outline'
 						size='icon'
-						className='lg:hidden fixed top-0 left-4 z-50 glassmorphism hover-glow'>
+						className='lg:hidden fixed top-0 left-4 z-50 glassmorphism hover-glow menu-trigger'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>
