@@ -52,7 +52,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 							</span>
 						</div>
 						<span className='text-sm font-semibold'>
-							${entry.value.toFixed(2)}
+							₹{entry.value.toFixed(2)}
 						</span>
 					</div>
 				))}

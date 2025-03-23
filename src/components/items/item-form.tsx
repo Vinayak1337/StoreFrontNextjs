@@ -16,7 +16,14 @@ import {
 } from '@/components/ui/select';
 import { createItem, updateItem } from '@/lib/redux/slices/items.slice';
 import { AppDispatch } from '@/lib/redux/store';
-import { Package, RupeeSign, Scale, ShoppingBag, Save, X } from 'lucide-react';
+import {
+	Package,
+	IndianRupee,
+	Scale,
+	ShoppingBag,
+	Save,
+	X
+} from 'lucide-react';
 
 interface ItemFormProps {
 	item?: Item;
@@ -128,7 +135,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				<Label
 					htmlFor='price'
 					className='text-sm font-medium flex items-center gap-2'>
-					<RupeeSign className='h-4 w-4 text-emerald-500' />
+					<IndianRupee className='h-4 w-4 text-emerald-500' />
 					Price
 				</Label>
 				<Input
@@ -141,7 +148,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					onChange={handleChange}
 					required
 					className='transition-all focus:border-emerald-500'
-					icon={<RupeeSign className='h-4 w-4 text-muted-foreground' />}
+					icon={<IndianRupee className='h-4 w-4 text-muted-foreground' />}
 					placeholder='0.00'
 				/>
 			</div>
