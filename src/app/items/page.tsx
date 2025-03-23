@@ -36,12 +36,12 @@ export default function ItemsPage() {
 	// Helper to ensure price is a number before formatting
 	const formatPrice = (price: string | number | unknown) => {
 		if (typeof price === 'number') {
-			return price.toFixed(2);
+			return `₹${price.toFixed(2)}`;
 		}
 		if (typeof price === 'string') {
-			return parseFloat(price).toFixed(2);
+			return `₹${parseFloat(price).toFixed(2)}`;
 		}
-		return '0.00';
+		return '₹0.00';
 	};
 
 	return (
@@ -106,7 +106,7 @@ export default function ItemsPage() {
 									<div className='flex justify-between'>
 										<span className='text-muted-foreground'>Price:</span>
 										<span className='font-medium'>
-											${formatPrice(item.price)}
+											{formatPrice(item.price)}
 										</span>
 									</div>
 									<div className='flex justify-between'>

@@ -31,7 +31,7 @@ const defaultSettings: Settings = {
 	phone: '(123) 456-7890',
 	email: 'contact@storefront.com',
 	taxRate: 10,
-	currency: 'USD',
+	currency: 'INR',
 	footer: 'Thank you for your business!',
 	notifications: {
 		outOfStock: true,

@@ -16,7 +16,7 @@ export async function GET() {
 					phone: '(123) 456-7890',
 					email: 'contact@storefront.com',
 					taxRate: 10,
-					currency: 'USD',
+					currency: 'INR',
 					logo: '',
 					footer: 'Thank you for your business!',
 					notifications: {

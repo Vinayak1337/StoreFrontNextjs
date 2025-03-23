@@ -369,15 +369,23 @@ export const formatBillForThermalPrinter = (
 	const subtotal = Number(bill.totalAmount) - Number(bill.taxes || 0);
 
 	content += LEFT;
-	content += `Subtotal:${' '.repeat(25)}${subtotal.toFixed(2)}` + LF;
+	content +=
+		`Subtotal:${' '.repeat(25)}${settings.currency || 'INR'} ${subtotal.toFixed(
+			2
+		)}` + LF;
 
 	if (bill.taxes && Number(bill.taxes) > 0) {
-		content += `Tax:${' '.repeat(30)}${Number(bill.taxes).toFixed(2)}` + LF;
+		content +=
+			`Tax:${' '.repeat(30)}${settings.currency || 'INR'} ${Number(
+				bill.taxes
+			).toFixed(2)}` + LF;
 	}
 
 	content += BOLD_ON;
 	content +=
-		`TOTAL:${' '.repeat(28)}${Number(bill.totalAmount).toFixed(2)}` + LF;
+		`TOTAL:${' '.repeat(28)}${settings.currency || 'INR'} ${Number(
+			bill.totalAmount
+		).toFixed(2)}` + LF;
 	content += BOLD_OFF;
 
 	// Payment method
