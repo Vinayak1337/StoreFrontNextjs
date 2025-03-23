@@ -67,7 +67,7 @@ export default function ClientWrapper({
 						{/* Main content area with header and content */}
 						<div className='flex-1 flex flex-col overflow-hidden'>
 							{/* Top navigation bar - only show when not on login page */}
-							{!isLoginPage && <TopNavbar />}
+							{!isLoginPage && <TopNavbar className='z-20' />}
 
 							{/* Main scrollable content */}
 							<main className='flex-1 overflow-auto'>

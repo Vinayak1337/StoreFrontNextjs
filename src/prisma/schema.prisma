@@ -84,6 +84,7 @@ model Bill {
   totalAmount   Decimal  @map("total_amount")
   taxes         Decimal
   paymentMethod String   @map("payment_method")
+  isPaid        Boolean  @default(false) @map("is_paid")
   createdAt     DateTime @default(now()) @map("created_at")
 
   // Relationships

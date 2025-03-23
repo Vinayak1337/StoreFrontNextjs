@@ -17,15 +17,11 @@ import {
 	ChevronRight,
 	Store,
 	LogOut,
-	Bell,
-	Search,
-	User,
 	HelpCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { RootState } from '@/lib/redux/store';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
@@ -93,7 +89,6 @@ export function Sidebar() {
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
-	const [searchQuery, setSearchQuery] = useState('');
 
 	// Connect to Redux store
 	const dispatch = useAppDispatch();
@@ -194,7 +189,7 @@ export function Sidebar() {
 				</SheetTrigger>
 				<SheetContent
 					side='left'
-					className='flex flex-col p-0 w-[90%] md:w-[350px] border-r'>
+					className='flex flex-col p-0 w-[90%] sm:w-[350px] border-r'>
 					<div className='flex items-center border-b px-6 py-4'>
 						<div className='flex items-center gap-2'>
 							<div className='icon-container'>
@@ -213,19 +208,7 @@ export function Sidebar() {
 							<span className='sr-only'>Close</span>
 						</Button>
 					</div>
-					<div className='p-4'>
-						<div className='relative mb-4'>
-							<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-							<Input
-								type='search'
-								placeholder='Search...'
-								className='pl-9 bg-muted/50'
-								value={searchQuery}
-								onChange={e => setSearchQuery(e.target.value)}
-							/>
-						</div>
-					</div>
-					<nav className='flex-1 overflow-auto px-4 pb-20'>
+					<nav className='flex-1 overflow-auto px-4'>
 						<div className='space-y-2'>
 							{routes.map(route => (
 								<NavItem
@@ -240,16 +223,8 @@ export function Sidebar() {
 							))}
 						</div>
 					</nav>
-					<div className='border-t px-6 py-4'>
-						<div className='flex items-center justify-between'>
-							<Button variant='outline' size='icon' className='hover-rotate'>
-								<Bell className='h-5 w-5 text-primary' />
-								<span className='sr-only'>Notifications</span>
-							</Button>
-							<Button variant='outline' size='icon' className='hover-rotate'>
-								<User className='h-5 w-5 text-secondary' />
-								<span className='sr-only'>Profile</span>
-							</Button>
+					<div className='p-4 border-t'>
+						<div className='flex items-center justify-end'>
 							<Button
 								variant='outline'
 								size='icon'
@@ -274,20 +249,7 @@ export function Sidebar() {
 					</div>
 				</div>
 
-				<div className='px-4 py-3'>
-					<div className='relative'>
-						<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-						<Input
-							type='search'
-							placeholder='Search...'
-							className='pl-9 bg-muted/50'
-							value={searchQuery}
-							onChange={e => setSearchQuery(e.target.value)}
-						/>
-					</div>
-				</div>
-
-				<nav className='flex-1 overflow-auto p-4'>
+				<nav className='flex-1 px-3 py-2 overflow-y-auto'>
 					<div className='space-y-1.5'>
 						{routes.map(route => (
 							<NavItem
@@ -301,9 +263,7 @@ export function Sidebar() {
 						))}
 					</div>
 
-					<div className='divider'></div>
-
-					<div className='mt-4'>
+					<div className='mt-6 pt-6 border-t border-border/40'>
 						<h3 className='text-xs uppercase font-semibold text-muted-foreground mb-2 px-3'>
 							Support
 						</h3>
@@ -319,22 +279,14 @@ export function Sidebar() {
 				</nav>
 
 				<div className='border-t p-4'>
-					<div className='flex items-center gap-3 px-2 py-3 rounded-lg hover:bg-muted/50 transition-colors'>
-						<div className='flex h-9 w-9 items-center justify-center rounded-full bg-secondary/10'>
-							<User className='h-5 w-5 text-secondary' />
-						</div>
-						<div className='flex-1 min-w-0'>
-							<p className='text-sm font-medium'>Admin User</p>
-							<p className='text-xs text-muted-foreground truncate'>
-								admin@example.com
-							</p>
-						</div>
+					<div className='flex items-center justify-end'>
 						<Button
 							variant='ghost'
 							size='icon'
 							className='hover-rotate'
 							onClick={handleLogout}>
 							<LogOut className='h-4 w-4 text-muted-foreground' />
+							<span className='sr-only'>Log out</span>
 						</Button>
 					</div>
 				</div>

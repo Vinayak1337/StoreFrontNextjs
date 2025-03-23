@@ -42,6 +42,21 @@ export const createBill = createAsyncThunk(
 	}
 );
 
+export const updateBill = createAsyncThunk(
+	'bills/updateBill',
+	async (data: { id: string; isPaid: boolean }, { rejectWithValue }) => {
+		try {
+			const response = await api.updateBill(data.id, { isPaid: data.isPaid });
+			return response;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to update bill');
+		}
+	}
+);
+
 export const deleteBill = createAsyncThunk(
 	'bills/deleteBill',
 	async (id: string, { rejectWithValue }) => {
@@ -184,6 +199,25 @@ const billsSlice = createSlice({
 			state.bills.push(payload);
 		});
 		builder.addCase(createBill.rejected, (state, { payload }) => {
+			state.loading = false;
+			state.error = payload as string;
+		});
+
+		// Update bill
+		builder.addCase(updateBill.pending, state => {
+			state.loading = true;
+			state.error = null;
+		});
+		builder.addCase(updateBill.fulfilled, (state, { payload }) => {
+			state.loading = false;
+			state.bills = state.bills.map((bill: Bill) =>
+				bill.id === payload.id ? payload : bill
+			);
+			if (state.activeBill?.id === payload.id) {
+				state.activeBill = payload;
+			}
+		});
+		builder.addCase(updateBill.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
 		});

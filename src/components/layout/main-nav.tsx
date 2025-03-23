@@ -10,14 +10,8 @@ import {
 	ShoppingCart,
 	CreditCard,
 	BarChart,
-	Settings,
-	Search,
-	Bell,
-	Plus,
-	User,
 	LogOut
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -62,8 +56,6 @@ export function MainNav() {
 	const lowStockCount =
 		items?.filter(item => item?.inStock === false)?.length || 0;
 	const unreadBillsCount = bills?.length || 0;
-	const totalNotifications =
-		pendingOrdersCount + lowStockCount + unreadBillsCount;
 
 	const navItems = [
 		{
@@ -145,35 +137,7 @@ export function MainNav() {
 				))}
 			</nav>
 
-			<div className='flex items-center gap-2 md:gap-3'>
-				<div className='relative w-full md:w-64 mr-1 md:mr-2'>
-					<div className='absolute left-2.5 top-2.5 text-muted-foreground'>
-						<Search className='h-4 w-4' />
-					</div>
-					<Input
-						placeholder='Search...'
-						className='pl-9 pr-4 w-full h-9 rounded-full bg-muted focus-visible:bg-accent/20 focus-visible:border-primary/30 transition-colors hover:bg-muted/70'
-					/>
-				</div>
-
-				<Button
-					variant='ghost'
-					size='icon'
-					className='rounded-full hover:bg-accent/50 relative'>
-					<Bell className='h-5 w-5' />
-					{totalNotifications > 0 && (
-						<span className='absolute top-0 right-0 h-2 w-2 bg-primary rounded-full animate-pulse'></span>
-					)}
-				</Button>
-
-				<Button
-					variant='gradient'
-					size='sm'
-					className='hidden md:flex items-center gap-1'>
-					<Plus className='h-3.5 w-3.5' />
-					<span>New</span>
-				</Button>
-
+			<div className='flex items-center gap-2'>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button
@@ -192,15 +156,6 @@ export function MainNav() {
 						<DropdownMenuLabel>
 							{user?.name || 'Store Manager'}
 						</DropdownMenuLabel>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem className='cursor-pointer'>
-							<User className='mr-2 h-4 w-4' />
-							<span>Profile</span>
-						</DropdownMenuItem>
-						<DropdownMenuItem className='cursor-pointer'>
-							<Settings className='mr-2 h-4 w-4' />
-							<span>Settings</span>
-						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className='cursor-pointer' onClick={handleLogout}>
 							<LogOut className='mr-2 h-4 w-4' />

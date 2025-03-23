@@ -7,7 +7,11 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CreateBillDialog } from '@/components/bills/create-bill-dialog';
-import { fetchBills, deleteBill } from '@/lib/redux/slices/bills.slice';
+import {
+	fetchBills,
+	deleteBill,
+	updateBill
+} from '@/lib/redux/slices/bills.slice';
 import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { printBill } from '@/lib/utils/bill-utils';
@@ -32,6 +36,7 @@ import {
 	DialogFooter
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { formatBillForThermalPrinter } from '@/lib/utils/bill-utils';
 import Cookies from 'js-cookie';
 
@@ -662,6 +667,17 @@ export default function BillsPage() {
 		}
 	};
 
+	// Toggle bill payment status
+	const handleTogglePayment = (billId: string, currentStatus: boolean) => {
+		try {
+			dispatch(updateBill({ id: billId, isPaid: !currentStatus }));
+			toast.success(`Bill marked as ${!currentStatus ? 'paid' : 'unpaid'}`);
+		} catch (error) {
+			console.error('Error updating bill payment status:', error);
+			toast.error('Failed to update payment status');
+		}
+	};
+
 	const handleDeleteBill = (billId: string) => {
 		if (
 			confirm(
@@ -687,7 +703,8 @@ export default function BillsPage() {
 						{unpaidBillsCount > 0 && (
 							<Badge variant='destructive' className='flex items-center gap-1'>
 								<Bell className='h-3 w-3' />
-								{unpaidBillsCount} Unpaid
+								{unpaidBillsCount} {unpaidBillsCount === 1 ? 'Bill' : 'Bills'}{' '}
+								Pending Payment
 							</Badge>
 						)}
 						<CreateBillDialog />
@@ -730,16 +747,21 @@ export default function BillsPage() {
 														: 'N/A'}
 												</p>
 											</div>
-											<div className='flex items-center'>
-												<Badge
-													variant={bill.isPaid ? 'default' : 'outline'}
-													className={
-														bill.isPaid
-															? 'bg-green-100 text-green-800 hover:bg-green-100'
-															: 'text-red-800 border-red-300 bg-red-50'
-													}>
-													{bill.isPaid ? 'Paid' : 'Unpaid'}
-												</Badge>
+											<div className='flex items-center gap-2'>
+												<div className='flex items-center space-x-2'>
+													<Switch
+														id={`payment-status-${bill.id}`}
+														checked={bill.isPaid === true}
+														onCheckedChange={() =>
+															handleTogglePayment(bill.id, bill.isPaid === true)
+														}
+													/>
+													<Label
+														htmlFor={`payment-status-${bill.id}`}
+														className='text-sm'>
+														{bill.isPaid ? 'Paid' : 'Unpaid'}
+													</Label>
+												</div>
 											</div>
 										</div>
 
