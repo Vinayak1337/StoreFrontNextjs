@@ -159,6 +159,15 @@ body {
 		font-size: 18px;
 	}
 
+	/* Larger touch targets for older users */
+	button,
+	a,
+	[role='button'],
+	.clickable {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
 	/* Improved readability */
 	p,
 	input,
@@ -177,6 +186,12 @@ body {
 	}
 	h3 {
 		font-size: 1.3rem;
+	}
+
+	/* Improve button touch targets */
+	button,
+	.button {
+		padding: 12px 16px;
 	}
 
 	/* Optimize popups and modals for tablets */
@@ -600,13 +615,27 @@ body {
 	padding-top: 1rem;
 }
 
-
 /* Target specifically 800px width screens (common tablet width) */
 @media screen and (width: 800px) {
 	/* Fix for bill card layout at exactly 800px width */
 	.bill-header {
 		flex-direction: row !important;
 		align-items: center !important;
+	}
+
+	/* Ensure switch doesn't break layout */
+	.switch-container {
+		min-width: 120px !important;
+		display: flex !important;
+		align-items: center !important;
+		gap: 8px !important;
+	}
+
+	/* Fix switch labels */
+	.switch-label {
+		display: inline-block !important;
+		min-width: 50px !important;
+		font-size: 14px !important;
 	}
 
 	/* Ensure buttons are properly sized on actions row */
@@ -640,8 +669,35 @@ body {
 		padding-right: 1rem !important;
 	}
 
+	/* Fix menu trigger positioning */
+	.menu-trigger {
+		position: fixed !important;
+		top: 16px !important;
+		left: 16px !important;
+		z-index: 50 !important;
+	}
+
 	/* Add extra margin to the dashboard title for hamburger menu */
 	.header-title {
 		margin-left: 60px !important;
+	}
+}
+
+/* Fixed switch styling for tablet and smaller screens */
+@media screen and (max-width: 850px) {
+	/* Ensure the switch and label stay together and don't wrap */
+	.switch-container {
+		min-width: 110px; /* Set minimum width */
+		justify-content: flex-end; /* Align to the right */
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	/* Ensure consistent spacing for the label */
+	.switch-label {
+		display: inline-block;
+		min-width: 50px;
+		text-align: left;
 	}
 }
