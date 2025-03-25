@@ -188,7 +188,7 @@ const itemsSlice = createSlice({
 		});
 		builder.addCase(createItem.fulfilled, (state, { payload }) => {
 			state.loading = false;
-			state.items.push(payload);
+			state.items = [payload, ...state.items];
 		});
 		builder.addCase(createItem.rejected, (state, { payload }) => {
 			state.loading = false;

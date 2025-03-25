@@ -787,23 +787,35 @@ export default function BillDetailsPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{bill.order.orderItems?.map(item => (
-										<tr key={item.id} className='border-t'>
-											<td className='p-3'>
-												{item.item?.name ||
-													`Item #${item.itemId.substring(0, 6)}`}
-											</td>
-											<td className='p-3 text-right'>{item.quantity}</td>
-											<td className='p-3 text-right'>
-												{settings?.currency || '₹'}{' '}
-												{Number(item.price).toFixed(2)}
-											</td>
-											<td className='p-3 text-right'>
-												{settings?.currency || '₹'}{' '}
-												{(Number(item.price) * item.quantity).toFixed(2)}
-											</td>
-										</tr>
-									))}
+									{bill.order.orderItems
+										?.slice()
+										.sort((a, b) => {
+											// Sort by creation date if available, most recent first
+											if (a.createdAt && b.createdAt) {
+												return (
+													new Date(b.createdAt).getTime() -
+													new Date(a.createdAt).getTime()
+												);
+											}
+											return 0;
+										})
+										.map(item => (
+											<tr key={item.id} className='border-t'>
+												<td className='p-3'>
+													{item.item?.name ||
+														`Item #${item.itemId.substring(0, 6)}`}
+												</td>
+												<td className='p-3 text-right'>{item.quantity}</td>
+												<td className='p-3 text-right'>
+													{settings?.currency || '₹'}{' '}
+													{Number(item.price).toFixed(2)}
+												</td>
+												<td className='p-3 text-right'>
+													{settings?.currency || '₹'}{' '}
+													{(Number(item.price) * item.quantity).toFixed(2)}
+												</td>
+											</tr>
+										))}
 									<tr className='border-t bg-muted/50'>
 										<td colSpan={3} className='p-3 text-right font-medium'>
 											Total:

@@ -339,57 +339,82 @@ export const formatBillForThermalPrinter = (
 
 	content += LEFT + BOLD_OFF + DOUBLE_LF;
 
-	// Items header
-	content +=
-		BOLD_ON + 'ITEM                QTY    PRICE    TOTAL' + BOLD_OFF + LF;
+	// Items header - Improved alignment with fixed column widths
+	content += BOLD_ON;
+	content += 'ITEM               QTY     PRICE     TOTAL' + BOLD_OFF + LF;
 	content += '-----------------------------------------' + LF;
 
-	// Items
+	// Items - Improved alignment
 	if (bill.order?.orderItems) {
-		bill.order.orderItems.forEach(item => {
-			const itemName = item.item?.name?.length
-				? item.item.name.length > 16
-					? item.item.name.substring(0, 15) + '.'
-					: item.item.name.padEnd(16, ' ')
-				: 'Unknown Item'.padEnd(16, ' ');
+		// Sort items by creation date (most recent first)
+		const sortedItems = [...bill.order.orderItems].sort((a, b) => {
+			if (a.createdAt && b.createdAt) {
+				return (
+					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+				);
+			}
+			return 0;
+		});
 
-			const qty = String(item.quantity).padStart(3, ' ');
-			const price = String(Number(item.price || 0).toFixed(2)).padStart(8, ' ');
+		sortedItems.forEach(item => {
+			const itemName = item.item?.name?.length
+				? item.item.name.length > 15
+					? item.item.name.substring(0, 14) + '.'
+					: item.item.name.padEnd(15, ' ')
+				: 'Unknown Item'.padEnd(15, ' ');
+
+			const qty = String(item.quantity).padStart(3, ' ').padEnd(6, ' ');
+			const price = String(Number(item.price || 0).toFixed(2))
+				.padStart(6, ' ')
+				.padEnd(9, ' ');
 			const total = String(
 				Number((item.price || 0) * item.quantity).toFixed(2)
 			).padStart(8, ' ');
 
-			content += itemName + ' ' + qty + ' ' + price + ' ' + total + LF;
+			content += itemName + ' ' + qty + price + total + LF;
 		});
 	}
 
 	content += '-----------------------------------------' + LF;
 
-	// Totals
+	// Totals - Improved alignment with consistent spacing
 	const subtotal = Number(bill.totalAmount) - Number(bill.taxes || 0);
+	const totalLabelWidth = 12; // Fixed width for all labels
+	const valuePosition = 32; // Fixed position for all values
 
 	content += LEFT;
-	content +=
-		`Subtotal:${' '.repeat(25)}${settings.currency || 'INR'} ${subtotal.toFixed(
-			2
-		)}` + LF;
 
+	// Subtotal - aligned
+	const subtotalLabel = 'Subtotal:';
+	content +=
+		subtotalLabel +
+		' '.repeat(valuePosition - subtotalLabel.length) +
+		`${settings.currency || 'INR'} ${subtotal.toFixed(2)}` +
+		LF;
+
+	// Tax - aligned
 	if (bill.taxes && Number(bill.taxes) > 0) {
+		const taxLabel = 'Tax:';
 		content +=
-			`Tax:${' '.repeat(30)}${settings.currency || 'INR'} ${Number(
-				bill.taxes
-			).toFixed(2)}` + LF;
+			taxLabel +
+			' '.repeat(valuePosition - taxLabel.length) +
+			`${settings.currency || 'INR'} ${Number(bill.taxes).toFixed(2)}` +
+			LF;
 	}
 
+	// Total - aligned and bold
 	content += BOLD_ON;
+	const totalLabel = 'TOTAL:';
 	content +=
-		`TOTAL:${' '.repeat(28)}${settings.currency || 'INR'} ${Number(
-			bill.totalAmount
-		).toFixed(2)}` + LF;
+		totalLabel +
+		' '.repeat(valuePosition - totalLabel.length) +
+		`${settings.currency || 'INR'} ${Number(bill.totalAmount).toFixed(2)}` +
+		LF;
 	content += BOLD_OFF;
 
 	// Payment method
-	content += `Payment: ${bill.paymentMethod || 'Cash'}` + DOUBLE_LF;
+	const paymentLabel = 'Payment:';
+	content += paymentLabel + ' ' + (bill.paymentMethod || 'Cash') + DOUBLE_LF;
 
 	// Footer
 	content += CENTER;
