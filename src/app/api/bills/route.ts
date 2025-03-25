@@ -11,6 +11,9 @@ export async function GET() {
 						orderItems: {
 							include: {
 								item: true
+							},
+							orderBy: {
+								id: 'desc' // Sort by ID descending as proxy for creation date
 							}
 						}
 					}

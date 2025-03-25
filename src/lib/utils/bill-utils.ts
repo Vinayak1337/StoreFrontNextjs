@@ -346,17 +346,8 @@ export const formatBillForThermalPrinter = (
 
 	// Items - Improved alignment
 	if (bill.order?.orderItems) {
-		// Sort items by creation date (most recent first)
-		const sortedItems = [...bill.order.orderItems].sort((a, b) => {
-			if (a.createdAt && b.createdAt) {
-				return (
-					new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-				);
-			}
-			return 0;
-		});
-
-		sortedItems.forEach(item => {
+		// Use the items directly without attempting to sort by createdAt
+		bill.order.orderItems.forEach(item => {
 			const itemName = item.item?.name?.length
 				? item.item.name.length > 15
 					? item.item.name.substring(0, 14) + '.'
@@ -379,7 +370,6 @@ export const formatBillForThermalPrinter = (
 
 	// Totals - Improved alignment with consistent spacing
 	const subtotal = Number(bill.totalAmount) - Number(bill.taxes || 0);
-	const totalLabelWidth = 12; // Fixed width for all labels
 	const valuePosition = 32; // Fixed position for all values
 
 	content += LEFT;
