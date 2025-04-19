@@ -122,12 +122,12 @@ export function generateBillHTML(bill: Bill, settings: Settings): string {
               <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${
 								item.quantity
 							}</td>
-              <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${
-								formattedBill.totals.currency
-							} ${Number(item.price).toFixed(2)}</td>
-              <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${
-								formattedBill.totals.currency
-							} ${Number(item.total).toFixed(2)}</td>
+              <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${Number(
+								item.price
+							).toFixed(2)}</td>
+              <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">${Number(
+								item.total
+							).toFixed(2)}</td>
             </tr>
           `
 						)
@@ -139,9 +139,7 @@ export function generateBillHTML(bill: Bill, settings: Settings): string {
       <div style="margin-left: auto; width: 300px;">
         <div style="display: flex; justify-content: space-between; padding: 10px 0; font-weight: bold; border-top: 1px solid #ddd;">
           <span>Total:</span>
-          <span>${formattedBill.totals.currency} ${Number(
-		formattedBill.totals.total
-	).toFixed(2)}</span>
+          <span>${Number(formattedBill.totals.total).toFixed(2)}</span>
         </div>
       </div>
       
@@ -315,24 +313,57 @@ export const formatBillForThermalPrinter = (
 	const INIT = `${ESC}@`; // Initialize printer
 	const CUT = `${GS}V\x42\x00`; // Cut paper command
 
-	// Receipt separator (42 chars)
-	const SEPARATOR = '------------------------------------------';
+	// Receipt constants
+	// For 58mm thermal printers (common width is 32-36 chars)
+	const WIDTH = 32; // Total width of paper in characters
+	const SEPARATOR = '-'.repeat(WIDTH);
+
+	// Column widths for perfect alignment
+	// The total must sum to WIDTH (32 characters)
+	const COLS = {
+		item: 14, // 14 chars for item name
+		qty: 4, // 4 chars for quantity
+		rate: 6, // 6 chars for rate/price (up to "999.99")
+		amount: 8 // 8 chars for amount/total (up to "99999.99" or "999999")
+	};
+
+	// Helper function to format a number with NO currency symbol
+	function money(n: number): string {
+		return n % 1 === 0 ? String(n) : n.toFixed(2); // "125" or "125.50"
+	}
+
+	// Helper function to create a perfectly aligned row
+	const row = (
+		item: string,
+		qty: string,
+		rate: string,
+		amount: string
+	): string => {
+		return (
+			item.padEnd(COLS.item).slice(0, COLS.item) + // clamp name
+			qty.padStart(COLS.qty) +
+			rate.padStart(COLS.rate) +
+			amount.padStart(COLS.amount) +
+			LF
+		);
+	};
+
+	// Helper function to create right-aligned data with label
+	const dataRow = (label: string, value: string): string => {
+		return label + ' '.repeat(WIDTH - label.length - value.length) + value + LF;
+	};
 
 	// Format the bill content with ESC/POS commands
 	let content = INIT;
 
 	// Store branding and header (centered, prominent)
 	content += CENTER + BOLD_ON + DOUBLE_SIZE;
-	content += settings.storeName.toUpperCase() + LF;
+	content += settings.storeName.toUpperCase() + LF; // BIG & BOLD
 	content += NORMAL_SIZE;
 	content += settings.address + LF;
-	content +=
-		`☎ ${settings.phone}` + (settings.email ? ` | ${settings.email}` : '') + LF;
-
-	// GSTIN if available - important for legal compliance
-	// Note: This is a placeholder, actual GSTIN should be added to settings model
-	if (settings.id) {
-		content += `GSTIN: ${settings.id}` + LF;
+	content += `${settings.phone}` + LF;
+	if (settings.email) {
+		content += settings.email + LF;
 	}
 
 	content += SEPARATOR + LF;
@@ -351,113 +382,52 @@ export const formatBillForThermalPrinter = (
 		'0'
 	)}:${String(createdDate.getMinutes()).padStart(2, '0')} (IST)`;
 
-	// Left-aligned invoice number and date
-	content += LEFT + 'Invoice #: ' + bill.id.substring(0, 10);
-	// Right-align the date on the same line by padding with spaces
-	content +=
-		' '.repeat(
-			42 -
-				('Invoice #: ' + bill.id.substring(0, 10)).length -
-				formattedDate.length
-		) +
-		formattedDate +
-		LF;
+	// Invoice number and date on separate lines to avoid collision
+	content += LEFT;
+	content += dataRow('Invoice# ' + bill.id.slice(0, 6), '');
+	content += dataRow('Date', formattedDate + ' ' + formattedTime);
 
-	// Cashier and time on second line
-	const cashier = bill.order?.customerName?.split(' ')[0] || 'Cashier';
-	content += 'Cashier : ' + cashier;
-	// Right-align the time with spacing
-	content +=
-		' '.repeat(42 - ('Cashier : ' + cashier).length - formattedTime.length) +
-		formattedTime +
-		LF;
+	// Customer on separate line (not cashier)
+	const cashier = bill.order?.customerName?.split(' ')[0] || 'Customer';
+	content += dataRow('Customer: ' + cashier, '');
+	content += LF; // Extra line before separator
 
 	content += SEPARATOR + LF;
 
 	// Items header - fixed column widths for proper alignment
 	content += BOLD_ON;
-	content += 'ITEM                 QTY   RATE    AMOUNT' + LF;
+	content += row('ITEM'.padEnd(COLS.item), 'QTY', 'RATE', 'AMT');
 	content += BOLD_OFF;
 
 	// Items with precise column alignment
 	if (bill.order?.orderItems) {
 		bill.order.orderItems.forEach(item => {
-			// Item name - 20 chars, truncating or padding as needed
-			let itemName = item.item?.name || 'Unknown Item';
-			if (itemName.length > 19) {
-				itemName = itemName.substring(0, 18) + '.';
-			}
-			itemName = itemName.padEnd(20, ' ');
+			// Item name - truncating as needed
+			const itemName = item.item?.name || 'Unknown';
 
-			// Format quantity - 4 chars, right-aligned
-			const qty = String(item.quantity).padStart(4, ' ');
-
-			// Price without decimals if it's a whole number
+			// Price without currency symbol
 			const price = Number(item.price || 0);
-			const priceStr =
-				price % 1 === 0
-					? String(Math.floor(price)).padStart(7, ' ')
-					: price.toFixed(2).padStart(7, ' ');
+			const priceStr = money(price);
 
-			// Total amount also without decimals if whole number
+			// Total amount without currency symbol
 			const total = price * item.quantity;
-			const totalStr =
-				total % 1 === 0
-					? `₹${Math.floor(total)}`.padStart(9, ' ')
-					: `₹${total.toFixed(2)}`.padStart(9, ' ');
+			const totalStr = money(total);
 
-			content += itemName + qty + priceStr + totalStr + LF;
+			content += row(itemName, String(item.quantity), priceStr, totalStr);
 		});
 	}
 
 	content += SEPARATOR + LF;
 
-	// Calculate GST components (assuming 18% split into CGST and SGST)
-	const subtotal = Number(bill.totalAmount) - Number(bill.taxes || 0);
-	// Assuming taxes are 18% total, split into 9% CGST and 9% SGST
-	const cgst = Number(bill.taxes || 0) / 2;
-	const sgst = Number(bill.taxes || 0) / 2;
-
-	// Add a blank line before totals for visual separation
-	content += LF;
-
-	// Subtotal - aligned to right
-	content += LEFT + 'Subtotal';
-	content +=
-		' '.repeat(42 - 'Subtotal'.length - formatCurrency(subtotal).length) +
-		formatCurrency(subtotal) +
-		LF;
-
-	// Tax breakdown with percentages - for GST compliance
-	if (bill.taxes && Number(bill.taxes) > 0) {
-		content += ' CGST 9%';
-		content +=
-			' '.repeat(42 - ' CGST 9%'.length - formatCurrency(cgst).length) +
-			formatCurrency(cgst) +
-			LF;
-
-		content += ' SGST 9%';
-		content +=
-			' '.repeat(42 - ' SGST 9%'.length - formatCurrency(sgst).length) +
-			formatCurrency(sgst) +
-			LF;
-	}
-
-	content += SEPARATOR + LF;
-
-	// Total with prominent formatting
-	content += BOLD_ON + 'TOTAL';
-	const totalAmount = formatCurrency(Number(bill.totalAmount));
-	content +=
-		' '.repeat(42 - 'TOTAL'.length - totalAmount.length) +
-		totalAmount +
-		LF +
-		BOLD_OFF;
+	// Total with prominent formatting (no subtotal needed since taxes were removed)
+	content += BOLD_ON;
+	content += dataRow('TOTAL', money(Number(bill.totalAmount)));
+	content += BOLD_OFF;
 
 	// Payment method
 	content += `Paid by: ${bill.paymentMethod.toUpperCase() || 'CASH'}` + LF;
 
-	content += SEPARATOR + LF;
+	content += LF + SEPARATOR + LF;
 
 	// Footer with thank you message - centered
 	content += CENTER + BOLD_ON;
@@ -466,21 +436,11 @@ export const formatBillForThermalPrinter = (
 	content +=
 		'Visit again' + (settings.footer ? ` - ${settings.footer}` : '') + LF;
 
-	// Add spacing before cutting
-	content += LF + LF;
+	// Add more spacing before cutting
+	content += LF + LF + LF + LF;
 
 	// Cut the paper
 	content += CUT;
 
 	return content;
 };
-
-// Helper function to format currency consistently
-function formatCurrency(amount: number): string {
-	// Remove .00 for whole numbers
-	if (amount % 1 === 0) {
-		return `₹${Math.floor(amount)}`;
-	} else {
-		return `₹${amount.toFixed(2)}`;
-	}
-}
