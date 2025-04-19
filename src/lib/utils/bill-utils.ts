@@ -307,114 +307,180 @@ export const formatBillForThermalPrinter = (
 	const LEFT = `${ESC}\x61\x00`; // Left alignment
 	const BOLD_ON = `${ESC}E\x01`; // Bold on
 	const BOLD_OFF = `${ESC}E\x00`; // Bold off
-	const DOUBLE_WIDTH = `${GS}!\x01`; // Double width
-	const NORMAL_WIDTH = `${GS}!\x00`; // Normal width
-	const UNDERLINE_ON = `${ESC}-\x01`; // Underline on
-	const UNDERLINE_OFF = `${ESC}-\x00`; // Underline off
+	const DOUBLE_SIZE = `${ESC}!\x30`; // Double width & height
+	const NORMAL_SIZE = `${ESC}!\x00`; // Normal size
 
 	// Line feed and paper cut
 	const LF = '\n'; // Line feed
-	const DOUBLE_LF = '\n\n'; // Double line feed
 	const INIT = `${ESC}@`; // Initialize printer
 	const CUT = `${GS}V\x42\x00`; // Cut paper command
+
+	// Receipt separator (42 chars)
+	const SEPARATOR = '------------------------------------------';
 
 	// Format the bill content with ESC/POS commands
 	let content = INIT;
 
-	// Store name and header
-	content += CENTER + BOLD_ON + DOUBLE_WIDTH;
-	content += settings.storeName + LF;
-	content += NORMAL_WIDTH;
+	// Store branding and header (centered, prominent)
+	content += CENTER + BOLD_ON + DOUBLE_SIZE;
+	content += settings.storeName.toUpperCase() + LF;
+	content += NORMAL_SIZE;
 	content += settings.address + LF;
-	content += settings.phone + LF;
+	content +=
+		`☎ ${settings.phone}` + (settings.email ? ` | ${settings.email}` : '') + LF;
 
-	if (settings.email) {
-		content += settings.email + LF;
+	// GSTIN if available - important for legal compliance
+	// Note: This is a placeholder, actual GSTIN should be added to settings model
+	if (settings.id) {
+		content += `GSTIN: ${settings.id}` + LF;
 	}
 
-	// Bill header
-	content += UNDERLINE_ON + `Invoice #: ${bill.id}` + UNDERLINE_OFF + LF;
-	content += `Date: ${new Date(bill.createdAt).toLocaleDateString()}` + LF;
-	content += `Customer: ${bill.order?.customerName || 'Walk-in'}` + LF;
+	content += SEPARATOR + LF;
 
-	content += LEFT + BOLD_OFF + DOUBLE_LF;
+	// Bill header - improved date format for India (DD-MM-YYYY)
+	const createdDate = new Date(bill.createdAt);
+	const formattedDate = `${String(createdDate.getDate()).padStart(
+		2,
+		'0'
+	)}-${String(createdDate.getMonth() + 1).padStart(
+		2,
+		'0'
+	)}-${createdDate.getFullYear()}`;
+	const formattedTime = `${String(createdDate.getHours()).padStart(
+		2,
+		'0'
+	)}:${String(createdDate.getMinutes()).padStart(2, '0')} (IST)`;
 
-	// Items header - Improved alignment with fixed column widths
+	// Left-aligned invoice number and date
+	content += LEFT + 'Invoice #: ' + bill.id.substring(0, 10);
+	// Right-align the date on the same line by padding with spaces
+	content +=
+		' '.repeat(
+			42 -
+				('Invoice #: ' + bill.id.substring(0, 10)).length -
+				formattedDate.length
+		) +
+		formattedDate +
+		LF;
+
+	// Cashier and time on second line
+	const cashier = bill.order?.customerName?.split(' ')[0] || 'Cashier';
+	content += 'Cashier : ' + cashier;
+	// Right-align the time with spacing
+	content +=
+		' '.repeat(42 - ('Cashier : ' + cashier).length - formattedTime.length) +
+		formattedTime +
+		LF;
+
+	content += SEPARATOR + LF;
+
+	// Items header - fixed column widths for proper alignment
 	content += BOLD_ON;
-	content += 'ITEM               QTY     PRICE     TOTAL' + BOLD_OFF + LF;
-	content += '-----------------------------------------' + LF;
+	content += 'ITEM                 QTY   RATE    AMOUNT' + LF;
+	content += BOLD_OFF;
 
-	// Items - Improved alignment
+	// Items with precise column alignment
 	if (bill.order?.orderItems) {
-		// Use the items directly without attempting to sort by createdAt
 		bill.order.orderItems.forEach(item => {
-			const itemName = item.item?.name?.length
-				? item.item.name.length > 15
-					? item.item.name.substring(0, 14) + '.'
-					: item.item.name.padEnd(15, ' ')
-				: 'Unknown Item'.padEnd(15, ' ');
+			// Item name - 20 chars, truncating or padding as needed
+			let itemName = item.item?.name || 'Unknown Item';
+			if (itemName.length > 19) {
+				itemName = itemName.substring(0, 18) + '.';
+			}
+			itemName = itemName.padEnd(20, ' ');
 
-			const qty = String(item.quantity).padStart(3, ' ').padEnd(6, ' ');
-			const price = String(Number(item.price || 0).toFixed(2))
-				.padStart(6, ' ')
-				.padEnd(9, ' ');
-			const total = String(
-				Number((item.price || 0) * item.quantity).toFixed(2)
-			).padStart(8, ' ');
+			// Format quantity - 4 chars, right-aligned
+			const qty = String(item.quantity).padStart(4, ' ');
 
-			content += itemName + ' ' + qty + price + total + LF;
+			// Price without decimals if it's a whole number
+			const price = Number(item.price || 0);
+			const priceStr =
+				price % 1 === 0
+					? String(Math.floor(price)).padStart(7, ' ')
+					: price.toFixed(2).padStart(7, ' ');
+
+			// Total amount also without decimals if whole number
+			const total = price * item.quantity;
+			const totalStr =
+				total % 1 === 0
+					? `₹${Math.floor(total)}`.padStart(9, ' ')
+					: `₹${total.toFixed(2)}`.padStart(9, ' ');
+
+			content += itemName + qty + priceStr + totalStr + LF;
 		});
 	}
 
-	content += '-----------------------------------------' + LF;
+	content += SEPARATOR + LF;
 
-	// Totals - Improved alignment with consistent spacing
+	// Calculate GST components (assuming 18% split into CGST and SGST)
 	const subtotal = Number(bill.totalAmount) - Number(bill.taxes || 0);
-	const valuePosition = 32; // Fixed position for all values
+	// Assuming taxes are 18% total, split into 9% CGST and 9% SGST
+	const cgst = Number(bill.taxes || 0) / 2;
+	const sgst = Number(bill.taxes || 0) / 2;
 
-	content += LEFT;
+	// Add a blank line before totals for visual separation
+	content += LF;
 
-	// Subtotal - aligned
-	const subtotalLabel = 'Subtotal:';
+	// Subtotal - aligned to right
+	content += LEFT + 'Subtotal';
 	content +=
-		subtotalLabel +
-		' '.repeat(valuePosition - subtotalLabel.length) +
-		`${settings.currency || 'INR'} ${subtotal.toFixed(2)}` +
+		' '.repeat(42 - 'Subtotal'.length - formatCurrency(subtotal).length) +
+		formatCurrency(subtotal) +
 		LF;
 
-	// Tax - aligned
+	// Tax breakdown with percentages - for GST compliance
 	if (bill.taxes && Number(bill.taxes) > 0) {
-		const taxLabel = 'Tax:';
+		content += ' CGST 9%';
 		content +=
-			taxLabel +
-			' '.repeat(valuePosition - taxLabel.length) +
-			`${settings.currency || 'INR'} ${Number(bill.taxes).toFixed(2)}` +
+			' '.repeat(42 - ' CGST 9%'.length - formatCurrency(cgst).length) +
+			formatCurrency(cgst) +
+			LF;
+
+		content += ' SGST 9%';
+		content +=
+			' '.repeat(42 - ' SGST 9%'.length - formatCurrency(sgst).length) +
+			formatCurrency(sgst) +
 			LF;
 	}
 
-	// Total - aligned and bold
-	content += BOLD_ON;
-	const totalLabel = 'TOTAL:';
+	content += SEPARATOR + LF;
+
+	// Total with prominent formatting
+	content += BOLD_ON + 'TOTAL';
+	const totalAmount = formatCurrency(Number(bill.totalAmount));
 	content +=
-		totalLabel +
-		' '.repeat(valuePosition - totalLabel.length) +
-		`${settings.currency || 'INR'} ${Number(bill.totalAmount).toFixed(2)}` +
-		LF;
-	content += BOLD_OFF;
+		' '.repeat(42 - 'TOTAL'.length - totalAmount.length) +
+		totalAmount +
+		LF +
+		BOLD_OFF;
 
 	// Payment method
-	const paymentLabel = 'Payment:';
-	content += paymentLabel + ' ' + (bill.paymentMethod || 'Cash') + DOUBLE_LF;
+	content += `Paid by: ${bill.paymentMethod.toUpperCase() || 'CASH'}` + LF;
 
-	// Footer
-	content += CENTER;
-	content += (settings.footer || 'Thank you for your business!') + DOUBLE_LF;
+	content += SEPARATOR + LF;
 
-	// Add extra spacing before cutting
-	content += LF + LF + LF; // Add 3 extra line feeds for spacing
+	// Footer with thank you message - centered
+	content += CENTER + BOLD_ON;
+	content += 'Thank you for shopping with us!' + LF;
+	content += BOLD_OFF;
+	content +=
+		'Visit again' + (settings.footer ? ` - ${settings.footer}` : '') + LF;
+
+	// Add spacing before cutting
+	content += LF + LF;
 
 	// Cut the paper
 	content += CUT;
 
 	return content;
 };
+
+// Helper function to format currency consistently
+function formatCurrency(amount: number): string {
+	// Remove .00 for whole numbers
+	if (amount % 1 === 0) {
+		return `₹${Math.floor(amount)}`;
+	} else {
+		return `₹${amount.toFixed(2)}`;
+	}
+}
