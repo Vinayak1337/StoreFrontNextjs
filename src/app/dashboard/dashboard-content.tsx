@@ -96,20 +96,20 @@ export default function DashboardContent() {
 	const invoicesChange = 7.8; // This could be calculated if we have historical data
 
 	return (
-		<div className='flex flex-col space-y-6'>
+		<div className='flex flex-col space-y-4 md:space-y-6 px-2 sm:px-4 md:px-0'>
 			{/* Welcome section */}
-			<div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-slide-up'>
-				<div>
-					<h1 className='text-3xl font-bold tracking-tight'>Dashboard</h1>
-					<p className='text-muted-foreground mt-1.5'>
+			<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 md:gap-4 animate-slide-up'>
+				<div className='min-w-0 flex-1'>
+					<h1 className='text-2xl md:text-3xl font-bold tracking-tight'>Dashboard</h1>
+					<p className='text-muted-foreground mt-1 md:mt-1.5 text-sm md:text-base'>
 						Welcome back! Here&apos;s what&apos;s happening with your store
 						today.
 					</p>
 				</div>
 
-				<div className='flex items-center gap-2'>
+				<div className='flex items-center gap-2 w-full lg:w-auto'>
 					<button
-						className='inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background bg-muted hover:bg-muted/80'
+						className='flex-1 lg:flex-none inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background bg-muted hover:bg-muted/80 transition-colors'
 						onClick={handleRefresh}
 						disabled={isRefreshing || loading}>
 						<RefreshCw
@@ -117,20 +117,25 @@ export default function DashboardContent() {
 								isRefreshing || loading ? 'animate-spin' : ''
 							}`}
 						/>
-						{isRefreshing ? 'Refreshing...' : 'Refresh'}
+						<span className='hidden sm:inline'>
+							{isRefreshing ? 'Refreshing...' : 'Refresh'}
+						</span>
+						<span className='sm:hidden'>
+							{isRefreshing ? '...' : 'Refresh'}
+						</span>
 					</button>
 
-					<button className='inline-flex items-center justify-center rounded-md w-9 h-9 bg-muted hover:bg-muted/80'>
+					<button className='flex-shrink-0 inline-flex items-center justify-center rounded-md w-9 h-9 bg-muted hover:bg-muted/80 transition-colors'>
 						<Filter className='h-4 w-4' />
 					</button>
 				</div>
 			</div>
 
 			{/* Main metrics grid */}
-			<div className='grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4'>
+			<div className='grid gap-3 sm:gap-4 md:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
 				{/* Revenue Card */}
 				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-6 flex flex-col space-y-2'>
+					<div className='p-4 md:p-6 flex flex-col space-y-2'>
 						<div className='flex justify-between items-start'>
 							<span className='text-sm font-medium text-muted-foreground'>
 								Total Revenue
@@ -139,9 +144,9 @@ export default function DashboardContent() {
 								<DollarSign className='h-4 w-4 text-primary' />
 							</div>
 						</div>
-						<div className='text-2xl font-bold'>
+						<div className='text-xl md:text-2xl font-bold'>
 							{loading ? (
-								<div className='h-8 bg-muted/50 rounded animate-pulse w-32'></div>
+								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-24 md:w-32'></div>
 							) : (
 								`₹${totalRevenue}`
 							)}
@@ -172,8 +177,11 @@ export default function DashboardContent() {
 								{Number(revenueChange) >= 0 ? '+' : ''}
 								{revenueChange}%
 							</span>
-							<span className='text-muted-foreground ml-1.5'>
+							<span className='text-muted-foreground ml-1.5 hidden sm:inline'>
 								conversion rate
+							</span>
+							<span className='text-muted-foreground ml-1.5 sm:hidden'>
+								conv.
 							</span>
 						</div>
 					</div>
@@ -181,7 +189,7 @@ export default function DashboardContent() {
 
 				{/* Orders Card */}
 				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-6 flex flex-col space-y-2'>
+					<div className='p-4 md:p-6 flex flex-col space-y-2'>
 						<div className='flex justify-between items-start'>
 							<span className='text-sm font-medium text-muted-foreground'>
 								Total Orders
@@ -190,9 +198,9 @@ export default function DashboardContent() {
 								<ShoppingCart className='h-4 w-4 text-blue-500' />
 							</div>
 						</div>
-						<div className='text-2xl font-bold'>
+						<div className='text-xl md:text-2xl font-bold'>
 							{loading ? (
-								<div className='h-8 bg-muted/50 rounded animate-pulse w-16'></div>
+								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-12 md:w-16'></div>
 							) : (
 								totalOrders
 							)}
@@ -223,8 +231,11 @@ export default function DashboardContent() {
 								{Number(ordersChange) >= 0 ? '+' : ''}
 								{ordersChange}%
 							</span>
-							<span className='text-muted-foreground ml-1.5'>
+							<span className='text-muted-foreground ml-1.5 hidden sm:inline'>
 								completion rate
+							</span>
+							<span className='text-muted-foreground ml-1.5 sm:hidden'>
+								comp.
 							</span>
 						</div>
 					</div>
@@ -232,7 +243,7 @@ export default function DashboardContent() {
 
 				{/* Inventory Card */}
 				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-6 flex flex-col space-y-2'>
+					<div className='p-4 md:p-6 flex flex-col space-y-2'>
 						<div className='flex justify-between items-start'>
 							<span className='text-sm font-medium text-muted-foreground'>
 								Inventory Items
@@ -241,9 +252,9 @@ export default function DashboardContent() {
 								<Package className='h-4 w-4 text-indigo-500' />
 							</div>
 						</div>
-						<div className='text-2xl font-bold'>
+						<div className='text-xl md:text-2xl font-bold'>
 							{loading ? (
-								<div className='h-8 bg-muted/50 rounded animate-pulse w-16'></div>
+								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-12 md:w-16'></div>
 							) : (
 								inventoryItems
 							)}
@@ -283,7 +294,7 @@ export default function DashboardContent() {
 
 				{/* Invoices Card */}
 				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-6 flex flex-col space-y-2'>
+					<div className='p-4 md:p-6 flex flex-col space-y-2'>
 						<div className='flex justify-between items-start'>
 							<span className='text-sm font-medium text-muted-foreground'>
 								Total Invoices
@@ -292,9 +303,9 @@ export default function DashboardContent() {
 								<CreditCard className='h-4 w-4 text-orange-500' />
 							</div>
 						</div>
-						<div className='text-2xl font-bold'>
+						<div className='text-xl md:text-2xl font-bold'>
 							{loading ? (
-								<div className='h-8 bg-muted/50 rounded animate-pulse w-16'></div>
+								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-12 md:w-16'></div>
 							) : (
 								totalInvoices
 							)}
@@ -317,8 +328,11 @@ export default function DashboardContent() {
 								</svg>
 								+{invoicesChange}%
 							</span>
-							<span className='text-muted-foreground ml-1.5'>
+							<span className='text-muted-foreground ml-1.5 hidden sm:inline'>
 								from last period
+							</span>
+							<span className='text-muted-foreground ml-1.5 sm:hidden'>
+								vs last
 							</span>
 						</div>
 					</div>
@@ -326,34 +340,35 @@ export default function DashboardContent() {
 			</div>
 
 			{/* Recent activity and charts section */}
-			<div className='grid gap-6 md:grid-cols-7'>
+			<div className='grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-7'>
 				{/* Chart area */}
-				<div className='md:col-span-5 rounded-xl border bg-card text-card-foreground shadow-sm'>
-					<div className='p-6'>
-						<div className='flex items-center justify-between mb-4'>
-							<h3 className='text-lg font-medium'>Sales Overview</h3>
+				<div className='xl:col-span-5 rounded-xl border bg-card text-card-foreground shadow-sm'>
+					<div className='p-4 md:p-6'>
+						<div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3'>
+							<h3 className='text-base md:text-lg font-medium'>Sales Overview</h3>
 							<Link
 								href='/analytics'
-								className='inline-flex items-center text-sm text-blue-500 hover:text-blue-700'>
-								View detailed report
+								className='inline-flex items-center text-sm text-blue-500 hover:text-blue-700 transition-colors'>
+								<span className='hidden sm:inline'>View detailed report</span>
+								<span className='sm:hidden'>View report</span>
 								<ArrowRight className='h-4 w-4 ml-1' />
 							</Link>
 						</div>
 						{loading || !salesData?.dailySales ? (
-							<div className='h-[300px] flex items-center justify-center bg-muted/30 rounded-lg animate-pulse'>
+							<div className='h-[250px] md:h-[300px] flex items-center justify-center bg-muted/30 rounded-lg animate-pulse'>
 								<p className='text-muted-foreground text-sm'>
 									Loading sales data...
 								</p>
 							</div>
 						) : salesData.dailySales.length === 0 ? (
-							<div className='h-[300px] flex items-center justify-center bg-muted/30 rounded-lg'>
-								<p className='text-muted-foreground text-sm'>
+							<div className='h-[250px] md:h-[300px] flex items-center justify-center bg-muted/30 rounded-lg'>
+								<p className='text-muted-foreground text-sm text-center'>
 									No sales data available for the selected period
 								</p>
 							</div>
 						) : (
-							<div className='h-[300px] flex items-center justify-center bg-muted/30 rounded-lg'>
-								<p className='text-muted-foreground text-sm'>
+							<div className='h-[250px] md:h-[300px] flex items-center justify-center bg-muted/30 rounded-lg'>
+								<p className='text-muted-foreground text-sm text-center'>
 									{salesData.dailySales.length} days of sales data loaded
 								</p>
 							</div>
@@ -362,9 +377,9 @@ export default function DashboardContent() {
 				</div>
 
 				{/* Activity stats */}
-				<div className='md:col-span-2 rounded-xl border bg-card text-card-foreground shadow-sm'>
-					<div className='p-6'>
-						<h3 className='text-lg font-medium mb-4'>Activity</h3>
+				<div className='xl:col-span-2 rounded-xl border bg-card text-card-foreground shadow-sm'>
+					<div className='p-4 md:p-6'>
+						<h3 className='text-base md:text-lg font-medium mb-4'>Activity</h3>
 
 						{loading ? (
 							// Loading skeleton
@@ -373,20 +388,20 @@ export default function DashboardContent() {
 									<div key={i} className='flex items-center justify-between'>
 										<div className='flex items-center gap-2'>
 											<div className='w-2 h-2 rounded-full bg-muted'></div>
-											<div className='h-4 w-24 bg-muted/50 rounded animate-pulse'></div>
+											<div className='h-4 w-20 md:w-24 bg-muted/50 rounded animate-pulse'></div>
 										</div>
-										<div className='h-4 w-16 bg-muted/50 rounded animate-pulse'></div>
+										<div className='h-4 w-12 md:w-16 bg-muted/50 rounded animate-pulse'></div>
 									</div>
 								))}
 							</div>
 						) : (
-							<div className='space-y-4'>
+							<div className='space-y-3 md:space-y-4'>
 								<div className='flex items-center justify-between'>
 									<div className='flex items-center gap-2'>
 										<div className='w-2 h-2 rounded-full bg-primary'></div>
 										<span className='text-sm font-medium'>New Orders</span>
 									</div>
-									<div className='font-bold'>
+									<div className='font-bold text-sm md:text-base'>
 										{orders.filter(order => order.status === 'PENDING').length}
 									</div>
 								</div>
@@ -396,7 +411,7 @@ export default function DashboardContent() {
 										<div className='w-2 h-2 rounded-full bg-blue-500'></div>
 										<span className='text-sm font-medium'>Items Sold</span>
 									</div>
-									<div className='font-bold'>
+									<div className='font-bold text-sm md:text-base'>
 										{orders.reduce(
 											(
 												total: number,
@@ -418,7 +433,7 @@ export default function DashboardContent() {
 										<div className='w-2 h-2 rounded-full bg-green-500'></div>
 										<span className='text-sm font-medium'>Revenue</span>
 									</div>
-									<div className='font-bold'>₹{totalRevenue}</div>
+									<div className='font-bold text-sm md:text-base'>₹{totalRevenue}</div>
 								</div>
 
 								<div className='flex items-center justify-between'>
@@ -426,7 +441,7 @@ export default function DashboardContent() {
 										<div className='w-2 h-2 rounded-full bg-orange-500'></div>
 										<span className='text-sm font-medium'>Out of Stock</span>
 									</div>
-									<div className='font-bold'>
+									<div className='font-bold text-sm md:text-base'>
 										{items.filter(item => item.inStock === false).length}
 									</div>
 								</div>
@@ -440,44 +455,44 @@ export default function DashboardContent() {
 			<RecentOrders limit={5} variant='glass' />
 
 			{/* Quick actions */}
-			<div className='grid gap-5 md:grid-cols-4'>
+			<div className='grid gap-3 md:gap-5 grid-cols-2 lg:grid-cols-4'>
 				<Link
-					href='/orders/new'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-6 hover:shadow-md transition-all'>
+					href='/orders/create'
+					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
 					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors'>
-							<ShoppingCart className='h-6 w-6 text-blue-500' />
+						<div className='p-2 md:p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors'>
+							<ShoppingCart className='h-5 w-5 md:h-6 md:w-6 text-blue-500' />
 						</div>
-						<h3 className='font-medium'>New Order</h3>
-						<p className='text-sm text-muted-foreground'>
+						<h3 className='font-medium text-sm md:text-base'>New Order</h3>
+						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
 							Create a new customer order
 						</p>
 					</div>
 				</Link>
 
 				<Link
-					href='/items/new'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-6 hover:shadow-md transition-all'>
+					href='/items'
+					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
 					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-3 bg-indigo-500/10 rounded-full group-hover:bg-indigo-500/20 transition-colors'>
-							<Package className='h-6 w-6 text-indigo-500' />
+						<div className='p-2 md:p-3 bg-indigo-500/10 rounded-full group-hover:bg-indigo-500/20 transition-colors'>
+							<Package className='h-5 w-5 md:h-6 md:w-6 text-indigo-500' />
 						</div>
-						<h3 className='font-medium'>Add Product</h3>
-						<p className='text-sm text-muted-foreground'>
+						<h3 className='font-medium text-sm md:text-base'>Add Product</h3>
+						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
 							Add a new product to inventory
 						</p>
 					</div>
 				</Link>
 
 				<Link
-					href='/customers'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-6 hover:shadow-md transition-all'>
+					href='/bills'
+					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
 					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-3 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors'>
-							<Users className='h-6 w-6 text-green-500' />
+						<div className='p-2 md:p-3 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors'>
+							<Users className='h-5 w-5 md:h-6 md:w-6 text-green-500' />
 						</div>
-						<h3 className='font-medium'>Customers</h3>
-						<p className='text-sm text-muted-foreground'>
+						<h3 className='font-medium text-sm md:text-base'>Customers</h3>
+						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
 							Manage your customer database
 						</p>
 					</div>
@@ -485,13 +500,13 @@ export default function DashboardContent() {
 
 				<Link
 					href='/settings'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-6 hover:shadow-md transition-all'>
+					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
 					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-3 bg-orange-500/10 rounded-full group-hover:bg-orange-500/20 transition-colors'>
-							<BarChart3 className='h-6 w-6 text-orange-500' />
+						<div className='p-2 md:p-3 bg-orange-500/10 rounded-full group-hover:bg-orange-500/20 transition-colors'>
+							<BarChart3 className='h-5 w-5 md:h-6 md:w-6 text-orange-500' />
 						</div>
-						<h3 className='font-medium'>Reports</h3>
-						<p className='text-sm text-muted-foreground'>
+						<h3 className='font-medium text-sm md:text-base'>Reports</h3>
+						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
 							View analytics and reports
 						</p>
 					</div>
