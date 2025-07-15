@@ -41,6 +41,17 @@ export default function CreateOrderPage() {
 	const [customMessage, setCustomMessage] = useState('');
 	const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
 	const [searchTerm, setSearchTerm] = useState('');
+	const [retryCount, setRetryCount] = useState(0);
+	const [lastOrderData, setLastOrderData] = useState<{
+		customerName: string;
+		status: OrderStatus;
+		orderItems: Array<{
+			itemId: string;
+			quantity: number;
+			price: number;
+		}>;
+		customMessage?: string;
+	} | null>(null);
 
 	// Fetch items on component mount
 	useEffect(() => {
@@ -101,24 +112,82 @@ export default function CreateOrderPage() {
 		0
 	);
 
-	// Handle form submission
-	const handleSubmit = (e: React.FormEvent) => {
+	// Handle form submission with retry logic
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
 		if (!customerName || orderItems.length === 0) {
 			return;
 		}
 
-		dispatch(
-			createOrder({
-				customerName,
-				status: OrderStatus.PENDING,
-				orderItems: orderItems,
-				customMessage: customMessage || undefined
-			})
-		).then(() => {
-			router.push('/orders');
-		});
+		const orderData = {
+			customerName,
+			status: OrderStatus.PENDING,
+			orderItems: orderItems,
+			customMessage: customMessage || undefined
+		};
+
+		// Store order data for potential retry
+		setLastOrderData(orderData);
+
+		try {
+			const result = await dispatch(createOrder(orderData));
+			
+			if (createOrder.fulfilled.match(result)) {
+				// Success - reset retry count and navigate
+				setRetryCount(0);
+				setLastOrderData(null);
+				router.push('/orders');
+			} else if (createOrder.rejected.match(result)) {
+				// Handle specific error types
+				const errorMessage = result.payload as string;
+				
+				if (errorMessage.includes('timed out') && retryCount < 2) {
+					// Auto-retry for timeout errors (max 2 retries)
+					console.log(`Order creation timed out, retrying... (attempt ${retryCount + 1}/2)`);
+					setRetryCount(prev => prev + 1);
+					
+					// Wait a bit before retrying
+					setTimeout(() => {
+						handleSubmit(e);
+					}, 1000);
+				} else {
+					// Reset retry count for other errors or max retries reached
+					setRetryCount(0);
+					setLastOrderData(null);
+				}
+			}
+		} catch (error) {
+			console.error('Unexpected error during order creation:', error);
+			setRetryCount(0);
+			setLastOrderData(null);
+		}
+	};
+
+	// Manual retry function
+	const handleRetry = async () => {
+		if (lastOrderData) {
+			setRetryCount(0);
+			
+			try {
+				const result = await dispatch(createOrder(lastOrderData));
+				
+				if (createOrder.fulfilled.match(result)) {
+					// Success - reset and navigate
+					setRetryCount(0);
+					setLastOrderData(null);
+					router.push('/orders');
+				} else {
+					// Reset retry count for any errors during manual retry
+					setRetryCount(0);
+					setLastOrderData(null);
+				}
+			} catch (error) {
+				console.error('Unexpected error during manual retry:', error);
+				setRetryCount(0);
+				setLastOrderData(null);
+			}
+		}
 	};
 
 	return (
@@ -136,7 +205,26 @@ export default function CreateOrderPage() {
 
 			{error && (
 				<div className='bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md mb-6'>
-					<p>Error: {error}</p>
+					<div className='flex items-start justify-between gap-3'>
+						<div className='flex-1'>
+							<p className='font-medium'>Error creating order:</p>
+							<p className='text-sm mt-1'>{error}</p>
+							{retryCount > 0 && (
+								<p className='text-sm mt-2 text-muted-foreground'>
+									Retry attempt {retryCount}/2 in progress...
+								</p>
+							)}
+						</div>
+						{lastOrderData && !orderLoading && !error.includes('timed out') && (
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={handleRetry}
+								className='flex-shrink-0'>
+								Retry
+							</Button>
+						)}
+					</div>
 				</div>
 			)}
 

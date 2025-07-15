@@ -64,39 +64,47 @@ export async function POST(req: NextRequest) {
 
 		console.log(`Processing order with ${data.items.length} items`);
 
-		// Start a transaction
-		const result = await prisma.$transaction(async tx => {
-			// Validate and check items availability
-			for (const item of data.items as OrderItemInput[]) {
-				console.log('Validating item:', item);
-				
-				const foundItem = await tx.item.findUnique({
-					where: { id: item.itemId }
-				});
+		// Extract item IDs for batch validation
+		const itemIds = (data.items as OrderItemInput[]).map(item => item.itemId);
+		
+		// Validate all items OUTSIDE the transaction first
+		console.log('Validating items:', itemIds);
+		const foundItems = await prisma.item.findMany({
+			where: { id: { in: itemIds } }
+		});
 
-				if (!foundItem) {
-					console.error(`Item not found: ${item.itemId}`);
-					throw new Error(`Item with ID ${item.itemId} not found`);
-				}
-
-				if (!foundItem.inStock) {
-					console.error(`Item out of stock: ${foundItem.name}`);
-					throw new Error(`Not enough stock for item: ${foundItem.name}`);
-				}
-
-				// Validate item data structure
-				if (!item.quantity || item.quantity <= 0) {
-					throw new Error(`Invalid quantity for item: ${foundItem.name}`);
-				}
-
-				if (!item.price || item.price <= 0) {
-					throw new Error(`Invalid price for item: ${foundItem.name}`);
-				}
+		// Check if all items exist and validate data
+		const itemMap = new Map(foundItems.map(item => [item.id, item]));
+		
+		for (const item of data.items as OrderItemInput[]) {
+			console.log('Validating item:', item);
+			
+			const foundItem = itemMap.get(item.itemId);
+			if (!foundItem) {
+				console.error(`Item not found: ${item.itemId}`);
+				throw new Error(`Item with ID ${item.itemId} not found`);
 			}
 
-			console.log('All items validated, creating order...');
+			if (!foundItem.inStock) {
+				console.error(`Item out of stock: ${foundItem.name}`);
+				throw new Error(`Item "${foundItem.name}" is out of stock`);
+			}
 
-			// Create new order with order items
+			// Validate item data structure
+			if (!item.quantity || item.quantity <= 0) {
+				throw new Error(`Invalid quantity for item "${foundItem.name}"`);
+			}
+
+			if (!item.price || item.price <= 0) {
+				throw new Error(`Invalid price for item "${foundItem.name}"`);
+			}
+		}
+
+		console.log('All items validated successfully, creating order...');
+
+		// Now use a much simpler transaction with increased timeout
+		const result = await prisma.$transaction(async tx => {
+			// Create the order with all order items in one operation
 			const newOrder = await tx.order.create({
 				data: {
 					customerName: data.customerName,
@@ -123,6 +131,9 @@ export async function POST(req: NextRequest) {
 
 			console.log('Order created successfully:', newOrder.id);
 			return newOrder;
+		}, {
+			timeout: 10000, // Increase timeout to 10 seconds
+			maxWait: 5000,  // Maximum time to wait for a transaction slot
 		});
 
 		return NextResponse.json(result, { status: 201 });

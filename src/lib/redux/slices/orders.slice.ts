@@ -39,9 +39,24 @@ export const createOrder = createAsyncThunk(
 			return response;
 		} catch (error) {
 			if (error instanceof Error) {
+				// Handle specific error types
+				if (error.message.includes('Transaction already closed') || 
+				    error.message.includes('timeout') || 
+				    error.message.includes('Transaction API error')) {
+					return rejectWithValue('Order creation timed out. Please try again with fewer items or check your connection.');
+				}
+				
+				if (error.message.includes('not found')) {
+					return rejectWithValue('One or more selected items are no longer available. Please refresh and try again.');
+				}
+				
+				if (error.message.includes('out of stock')) {
+					return rejectWithValue('One or more selected items are out of stock. Please remove them and try again.');
+				}
+				
 				return rejectWithValue(error.message);
 			}
-			return rejectWithValue('Failed to create order');
+			return rejectWithValue('Failed to create order. Please try again.');
 		}
 	}
 );
