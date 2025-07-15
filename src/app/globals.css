@@ -645,3 +645,129 @@ body {
 		margin-left: 60px !important;
 	}
 }
+
+/* Additional tablet responsive improvements */
+@media (min-width: 768px) and (max-width: 1024px) {
+	/* Improve card layouts for tablets */
+	.bill-header {
+		gap: 1rem !important;
+	}
+
+	.switch-container {
+		flex-shrink: 0;
+		min-width: 90px;
+	}
+
+	.switch-label {
+		white-space: nowrap;
+		font-weight: 500;
+	}
+
+	/* Better button group layouts */
+	.button-group {
+		gap: 0.5rem !important;
+	}
+
+	.responsive-button {
+		min-height: 36px;
+		font-size: 0.875rem;
+		padding: 0.5rem 0.75rem;
+	}
+
+	/* Improve dialog responsiveness */
+	.dialog-content {
+		max-width: 90vw !important;
+		max-height: 85vh !important;
+	}
+
+	/* Better grid layouts for tablets */
+	.orders-grid {
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+	}
+
+	.bills-grid {
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+	}
+
+	/* Improve touch targets */
+	button, [role="button"] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	/* Better spacing for form elements */
+	.form-grid {
+		gap: 1.5rem !important;
+	}
+
+	/* Improve table responsiveness */
+	.table-container {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+/* Landscape tablet improvements */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+	/* Optimize for landscape tablets */
+	.main-container {
+		padding: 1rem !important;
+	}
+
+	/* Better card layouts in landscape */
+	.card-grid {
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+	}
+
+	/* Improve header layout */
+	.page-header {
+		padding: 0.75rem 1rem !important;
+	}
+}
+
+/* High DPI tablet support */
+@media (min-width: 768px) and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
+	/* Ensure crisp rendering on high DPI tablets */
+	* {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+
+	/* Adjust icon sizes for better visibility */
+	.icon-small {
+		width: 18px !important;
+		height: 18px !important;
+	}
+
+	.icon-medium {
+		width: 22px !important;
+		height: 22px !important;
+	}
+}
+
+/* Samsung tablet specific optimizations */
+@media screen and (device-width: 800px) and (device-height: 1280px) {
+	/* Samsung Galaxy Tab optimizations */
+	.container {
+		padding-left: 1.5rem !important;
+		padding-right: 1.5rem !important;
+	}
+
+	/* Better touch targets for Samsung tablets */
+	.touch-target {
+		min-height: 48px !important;
+		min-width: 48px !important;
+	}
+}
+
+/* Fix for very specific tablet breakpoints */
+@media (min-width: 820px) and (max-width: 920px) {
+	/* Common tablet sizes like iPad Air */
+	.card-container {
+		padding: 1rem !important;
+	}
+
+	.grid-responsive {
+		grid-template-columns: repeat(2, 1fr) !important;
+	}
+}

@@ -122,16 +122,16 @@ export default function CreateOrderPage() {
 	};
 
 	return (
-		<div className='container py-8'>
+		<div className='container py-4 md:py-8'>
 			<div className='flex items-center gap-4 mb-6'>
 				<Button
 					variant='outline'
 					size='icon'
 					onClick={() => router.push('/orders')}
-					className='h-9 w-9'>
+					className='h-9 w-9 flex-shrink-0'>
 					<ArrowLeft className='h-4 w-4' />
 				</Button>
-				<h1 className='text-2xl font-bold'>Create New Order</h1>
+				<h1 className='text-xl md:text-2xl font-bold'>Create New Order</h1>
 			</div>
 
 			{error && (
@@ -145,7 +145,7 @@ export default function CreateOrderPage() {
 					{/* Customer Info Section */}
 					<Card>
 						<CardContent className='pt-6'>
-							<div className='grid md:grid-cols-2 gap-6'>
+							<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 								<div className='space-y-2'>
 									<Label htmlFor='customerName' className='text-base'>
 										Customer Name
@@ -177,14 +177,14 @@ export default function CreateOrderPage() {
 					</Card>
 
 					{/* Items Selection Section */}
-					<div className='grid md:grid-cols-2 gap-6'>
+					<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 						{/* Available Items (Left Column) */}
-						<Card>
-							<CardContent className='pt-6'>
+						<Card className='flex flex-col'>
+							<CardContent className='pt-6 flex-1 flex flex-col'>
 								<div className='flex flex-col h-full'>
-									<div className='flex justify-between items-center mb-4'>
+									<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4'>
 										<h2 className='text-lg font-semibold'>Available Items</h2>
-										<div className='relative w-full max-w-xs'>
+										<div className='relative w-full sm:max-w-xs'>
 											<Search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
 											<Input
 												type='search'
@@ -201,7 +201,7 @@ export default function CreateOrderPage() {
 											<div className='animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full'></div>
 										</div>
 									) : (
-										<div className='grid gap-2 max-h-[400px] overflow-y-auto p-2 border rounded-md'>
+										<div className='grid gap-2 max-h-[400px] md:max-h-[500px] overflow-y-auto p-2 border rounded-md flex-1'>
 											{filteredItems.length === 0 ? (
 												<p className='text-center py-4 text-muted-foreground'>
 													No items found
@@ -213,15 +213,15 @@ export default function CreateOrderPage() {
 														type='button'
 														variant='outline'
 														onClick={() => addItem(item.id)}
-														className='justify-between h-auto py-3'
+														className='justify-between h-auto py-3 hover:bg-muted/50 transition-colors'
 														disabled={!item.inStock}>
-														<div className='flex flex-col items-start'>
-															<span className='font-medium'>{item.name}</span>
+														<div className='flex flex-col items-start min-w-0 flex-1'>
+															<span className='font-medium truncate w-full text-left'>{item.name}</span>
 															<span className='text-sm text-muted-foreground'>
 																Available: {item.quantity}
 															</span>
 														</div>
-														<div className='flex items-center'>
+														<div className='flex items-center flex-shrink-0 ml-2'>
 															<span className='font-medium mr-2'>
 																₹ {Number(item.price).toFixed(2)}
 															</span>
@@ -237,8 +237,8 @@ export default function CreateOrderPage() {
 						</Card>
 
 						{/* Selected Items (Right Column) */}
-						<Card>
-							<CardContent className='pt-6'>
+						<Card className='flex flex-col'>
+							<CardContent className='pt-6 flex-1 flex flex-col'>
 								<div className='flex flex-col h-full'>
 									<h2 className='text-lg font-semibold mb-4 flex items-center gap-2'>
 										<ShoppingCart className='h-4 w-4' />
@@ -246,62 +246,64 @@ export default function CreateOrderPage() {
 									</h2>
 
 									{orderItems.length === 0 ? (
-										<div className='border border-dashed rounded-md p-8 text-center'>
+										<div className='border border-dashed rounded-md p-8 text-center flex-1 flex items-center justify-center'>
 											<p className='text-muted-foreground'>
 												No items selected. Add items from the left panel.
 											</p>
 										</div>
 									) : (
-										<div className='flex flex-col border rounded-md divide-y'>
-											{orderItems.map(orderItem => {
-												const item = items.find(i => i.id === orderItem.itemId);
-												return (
-													<div
-														key={orderItem.itemId}
-														className='flex items-center justify-between p-3'>
-														<div>
-															<p className='font-medium'>{item?.name}</p>
-															<span className='text-muted-foreground mr-2'>
-																₹ {orderItem.price} each
-															</span>
+										<div className='flex flex-col border rounded-md divide-y flex-1'>
+											<div className='max-h-[300px] md:max-h-[400px] overflow-y-auto'>
+												{orderItems.map(orderItem => {
+													const item = items.find(i => i.id === orderItem.itemId);
+													return (
+														<div
+															key={orderItem.itemId}
+															className='flex items-center justify-between p-3 gap-3'>
+															<div className='min-w-0 flex-1'>
+																<p className='font-medium truncate'>{item?.name}</p>
+																<span className='text-sm text-muted-foreground'>
+																	₹ {orderItem.price} each
+																</span>
+															</div>
+															<div className='flex items-center gap-2 flex-shrink-0'>
+																<Button
+																	type='button'
+																	size='icon'
+																	variant='outline'
+																	onClick={() =>
+																		updateQuantity(
+																			orderItem.itemId,
+																			orderItem.quantity - 1
+																		)
+																	}
+																	className='h-8 w-8'>
+																	<Minus className='h-3 w-3' />
+																</Button>
+																<span className='w-8 text-center font-medium'>
+																	{orderItem.quantity}
+																</span>
+																<Button
+																	type='button'
+																	size='icon'
+																	variant='outline'
+																	onClick={() =>
+																		updateQuantity(
+																			orderItem.itemId,
+																			orderItem.quantity + 1
+																		)
+																	}
+																	className='h-8 w-8'>
+																	<Plus className='h-3 w-3' />
+																</Button>
+															</div>
 														</div>
-														<div className='flex items-center gap-2'>
-															<Button
-																type='button'
-																size='icon'
-																variant='outline'
-																onClick={() =>
-																	updateQuantity(
-																		orderItem.itemId,
-																		orderItem.quantity - 1
-																	)
-																}
-																className='h-8 w-8'>
-																<Minus className='h-3 w-3' />
-															</Button>
-															<span className='w-8 text-center'>
-																{orderItem.quantity}
-															</span>
-															<Button
-																type='button'
-																size='icon'
-																variant='outline'
-																onClick={() =>
-																	updateQuantity(
-																		orderItem.itemId,
-																		orderItem.quantity + 1
-																	)
-																}
-																className='h-8 w-8'>
-																<Plus className='h-3 w-3' />
-															</Button>
-														</div>
-													</div>
-												);
-											})}
-											<div className='p-3 flex justify-between bg-muted/30'>
-												<p className='font-bold'>Total:</p>
-												<p className='font-bold'>₹ {total.toFixed(2)}</p>
+													);
+												})}
+											</div>
+											<div className='p-3 flex justify-between bg-muted/30 font-bold'>
+												<p>Total:</p>
+												<p>₹ {total.toFixed(2)}</p>
 											</div>
 										</div>
 									)}
@@ -311,11 +313,12 @@ export default function CreateOrderPage() {
 					</div>
 
 					{/* Submit Buttons */}
-					<div className='flex justify-end gap-3 mt-4'>
+					<div className='flex flex-col sm:flex-row justify-end gap-3 mt-4'>
 						<Button
 							type='button'
 							variant='outline'
-							onClick={() => router.push('/orders')}>
+							onClick={() => router.push('/orders')}
+							className='w-full sm:w-auto'>
 							Cancel
 						</Button>
 						<Button
@@ -323,7 +326,7 @@ export default function CreateOrderPage() {
 							disabled={
 								!customerName || orderItems.length === 0 || orderLoading
 							}
-							className='min-w-[120px]'>
+							className='w-full sm:w-auto min-w-[120px]'>
 							{orderLoading ? (
 								<div className='flex items-center gap-2'>
 									<div className='animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full'></div>

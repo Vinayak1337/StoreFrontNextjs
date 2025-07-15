@@ -43,6 +43,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
 	try {
 		const data = await req.json();
+		console.log('Received order data:', JSON.stringify(data, null, 2));
 
 		// Validate required fields
 		if (
@@ -50,28 +51,50 @@ export async function POST(req: NextRequest) {
 			!Array.isArray(data.items) ||
 			data.items.length === 0
 		) {
+			console.error('Validation failed:', {
+				customerName: !!data.customerName,
+				items: Array.isArray(data.items),
+				itemsLength: data.items?.length || 0
+			});
 			return NextResponse.json(
 				{ error: 'Customer name and at least one item are required' },
 				{ status: 400 }
 			);
 		}
 
+		console.log(`Processing order with ${data.items.length} items`);
+
 		// Start a transaction
 		const result = await prisma.$transaction(async tx => {
 			// Validate and check items availability
 			for (const item of data.items as OrderItemInput[]) {
+				console.log('Validating item:', item);
+				
 				const foundItem = await tx.item.findUnique({
 					where: { id: item.itemId }
 				});
 
 				if (!foundItem) {
+					console.error(`Item not found: ${item.itemId}`);
 					throw new Error(`Item with ID ${item.itemId} not found`);
 				}
 
 				if (!foundItem.inStock) {
+					console.error(`Item out of stock: ${foundItem.name}`);
 					throw new Error(`Not enough stock for item: ${foundItem.name}`);
 				}
+
+				// Validate item data structure
+				if (!item.quantity || item.quantity <= 0) {
+					throw new Error(`Invalid quantity for item: ${foundItem.name}`);
+				}
+
+				if (!item.price || item.price <= 0) {
+					throw new Error(`Invalid price for item: ${foundItem.name}`);
+				}
 			}
+
+			console.log('All items validated, creating order...');
 
 			// Create new order with order items
 			const newOrder = await tx.order.create({
@@ -98,14 +121,13 @@ export async function POST(req: NextRequest) {
 				}
 			});
 
-			// Remove inventory quantity update since we're only using inStock flag now
-			// No need to decrement quantities
-
+			console.log('Order created successfully:', newOrder.id);
 			return newOrder;
 		});
 
 		return NextResponse.json(result, { status: 201 });
 	} catch (error) {
+		console.error('Error creating order:', error);
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';
 		return NextResponse.json({ error: errorMessage }, { status: 500 });
