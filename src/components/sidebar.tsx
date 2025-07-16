@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Route } from 'next';
 import {
@@ -32,6 +32,7 @@ import { RootState } from '@/lib/redux/store';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
 import { fetchBills } from '@/lib/redux/slices/bills.slice';
+import { useAuth } from '@/hooks/use-auth';
 
 interface NavItemProps {
 	href: Route;
@@ -55,24 +56,24 @@ function NavItem({
 			href={href}
 			onClick={onClick}
 			className={cn(
-				'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-				'hover-scale relative overflow-hidden',
+				'group flex items-center gap-3 rounded-lg px-3 py-2.5 sm:py-3 text-sm font-medium transition-all',
+				'hover-scale relative overflow-hidden min-h-[44px]',
 				isActive
 					? 'bg-primary text-primary-foreground shadow-md'
 					: 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
 			)}>
 			<div
 				className={cn(
-					'flex h-8 w-8 items-center justify-center rounded-md',
+					'flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md flex-shrink-0',
 					isActive
 						? 'text-primary-foreground'
 						: 'text-muted-foreground group-hover:text-foreground'
 				)}>
 				{icon}
 			</div>
-			<span className='flex-1'>{title}</span>
+			<span className='flex-1 text-sm sm:text-base'>{title}</span>
 			{badge !== undefined && badge > 0 && (
-				<Badge variant='secondary' className='animate-pulse-ping ml-auto'>
+				<Badge variant='secondary' className='animate-pulse-ping ml-auto text-xs px-1.5 py-0.5'>
 					{badge}
 				</Badge>
 			)}
@@ -81,7 +82,7 @@ function NavItem({
 			)}
 			<ChevronRight
 				className={cn(
-					'ml-auto h-4 w-4 opacity-0 transition-all',
+					'ml-auto h-4 w-4 opacity-0 transition-all flex-shrink-0',
 					isActive ? 'opacity-100' : 'group-hover:opacity-30'
 				)}
 			/>
@@ -91,7 +92,6 @@ function NavItem({
 
 export function Sidebar() {
 	const pathname = usePathname();
-	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
@@ -159,22 +159,10 @@ export function Sidebar() {
 		}
 	];
 
-	const handleLogout = async () => {
-		try {
-			const response = await fetch('/api/auth/logout', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
+	const { logout } = useAuth();
 
-			if (response.ok) {
-				// Redirect to login page
-				router.push('/');
-			}
-		} catch (error) {
-			console.error('Logout error:', error);
-		}
+	const handleLogout = async () => {
+		await logout();
 	};
 
 	if (!mounted) return null;
@@ -194,23 +182,23 @@ export function Sidebar() {
 				</SheetTrigger>
 				<SheetContent
 					side='left'
-					className='flex flex-col p-0 w-[90%] sm:w-[350px] border-r'>
+					className='flex flex-col p-0 w-[85%] sm:w-[300px] md:w-[350px] border-r'>
 					<SheetHeader className='sr-only'>
 						<SheetTitle>Navigation Menu</SheetTitle>
 						<SheetDescription>Store navigation options</SheetDescription>
 					</SheetHeader>
-					<div className='flex items-center border-b px-6 py-4'>
+					<div className='flex items-center border-b px-4 sm:px-6 py-3 sm:py-4'>
 						<div className='flex items-center gap-2'>
 							<div className='icon-container'>
-								<Store className='h-6 w-6 text-primary' />
+								<Store className='h-5 w-5 sm:h-6 sm:w-6 text-primary' />
 							</div>
-							<h2 className='text-lg font-semibold text-gradient'>
+							<h2 className='text-base sm:text-lg font-semibold text-gradient'>
 								StoreFront
 							</h2>
 						</div>
 					</div>
-					<nav className='flex-1 overflow-auto px-4'>
-						<div className='space-y-2'>
+					<nav className='flex-1 overflow-auto px-3 sm:px-4 py-2'>
+						<div className='space-y-1 sm:space-y-2'>
 							{routes.map(route => (
 								<NavItem
 									key={route.href}
@@ -224,14 +212,14 @@ export function Sidebar() {
 							))}
 						</div>
 					</nav>
-					<div className='p-4 border-t'>
+					<div className='p-3 sm:p-4 border-t'>
 						<div className='flex items-center justify-end'>
 							<Button
 								variant='outline'
 								size='icon'
-								className='hover-rotate'
+								className='hover-rotate h-9 w-9 sm:h-10 sm:w-10'
 								onClick={handleLogout}>
-								<LogOut className='h-5 w-5 text-destructive' />
+								<LogOut className='h-4 w-4 sm:h-5 sm:w-5 text-destructive' />
 								<span className='sr-only'>Log out</span>
 							</Button>
 						</div>

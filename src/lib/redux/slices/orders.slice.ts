@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { OrdersState, OrderStatus } from '@/types';
 import api from '@/lib/services/api';
+import { toast } from 'react-toastify';
 
 // Async thunks
 export const fetchOrders = createAsyncThunk(
@@ -38,9 +39,24 @@ export const createOrder = createAsyncThunk(
 			return response;
 		} catch (error) {
 			if (error instanceof Error) {
+				// Handle specific error types
+				if (error.message.includes('Transaction already closed') || 
+				    error.message.includes('timeout') || 
+				    error.message.includes('Transaction API error')) {
+					return rejectWithValue('Order creation timed out. Please try again with fewer items or check your connection.');
+				}
+				
+				if (error.message.includes('not found')) {
+					return rejectWithValue('One or more selected items are no longer available. Please refresh and try again.');
+				}
+				
+				if (error.message.includes('out of stock')) {
+					return rejectWithValue('One or more selected items are out of stock. Please remove them and try again.');
+				}
+				
 				return rejectWithValue(error.message);
 			}
-			return rejectWithValue('Failed to create order');
+			return rejectWithValue('Failed to create order. Please try again.');
 		}
 	}
 );
@@ -108,6 +124,7 @@ const ordersSlice = createSlice({
 		builder.addCase(fetchOrders.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to fetch orders: ${payload}`);
 		});
 
 		// Create order
@@ -118,10 +135,12 @@ const ordersSlice = createSlice({
 		builder.addCase(createOrder.fulfilled, (state, { payload }) => {
 			state.loading = false;
 			state.orders.push(payload);
+			toast.success('Order created successfully!');
 		});
 		builder.addCase(createOrder.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to create order: ${payload}`);
 		});
 
 		// Update order status
@@ -135,10 +154,12 @@ const ordersSlice = createSlice({
 			if (index !== -1) {
 				state.orders[index] = payload;
 			}
+			toast.success('Order status updated successfully!');
 		});
 		builder.addCase(updateOrderStatus.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to update order status: ${payload}`);
 		});
 
 		// Delete order
@@ -149,10 +170,12 @@ const ordersSlice = createSlice({
 		builder.addCase(deleteOrder.fulfilled, (state, { payload }) => {
 			state.loading = false;
 			state.orders = state.orders.filter(order => order.id !== payload);
+			toast.success('Order deleted successfully!');
 		});
 		builder.addCase(deleteOrder.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to delete order: ${payload}`);
 		});
 	}
 });

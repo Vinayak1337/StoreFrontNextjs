@@ -50,14 +50,14 @@ export default function AnalyticsPage() {
 
 	return (
 		<div className='flex flex-col min-h-screen'>
-			<header className='sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6'>
+			<header className='sticky top-0 z-10 flex h-14 md:h-16 items-center gap-4 border-b bg-background px-4 md:px-6'>
 				<div className='flex flex-1 items-center justify-between'>
-					<h1 className='text-xl font-semibold'>Analytics Dashboard</h1>
+					<h1 className='text-lg md:text-xl font-semibold'>Analytics Dashboard</h1>
 				</div>
 			</header>
-			<main className='flex-1 p-6'>
-				<div className='space-y-6'>
-					<h2 className='text-2xl font-bold tracking-tight'>Overview</h2>
+			<main className='flex-1 p-4 md:p-6'>
+				<div className='space-y-4 md:space-y-6'>
+					<h2 className='text-xl md:text-2xl font-bold tracking-tight'>Overview</h2>
 
 					{error && (
 						<div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md'>
@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
 						</div>
 					)}
 
-					<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+					<div className='grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
 						<MetricsCard
 							title='Total Revenue'
 							value={`₹${totalSales.toFixed(2)}`}
@@ -102,7 +102,10 @@ export default function AnalyticsPage() {
 
 					{loading && (
 						<div className='flex justify-center items-center py-8'>
-							<p className='text-muted-foreground'>Loading analytics data...</p>
+							<div className='flex items-center space-x-2'>
+								<div className='animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full'></div>
+								<p className='text-muted-foreground'>Loading analytics data...</p>
+							</div>
 						</div>
 					)}
 				</div>

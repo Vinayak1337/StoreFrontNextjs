@@ -52,18 +52,19 @@ export default function OrdersPage() {
 
 	return (
 		<div className='flex flex-col min-h-screen'>
-			<header className='sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6'>
+			<header className='sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6'>
 				<div className='flex flex-1 items-center justify-between'>
 					<h1 className='text-xl font-semibold'>Orders Management</h1>
 					<Button
 						onClick={() => router.push('/orders/create')}
-						className='flex items-center gap-2'>
+						className='flex items-center gap-2 text-sm md:text-base'>
 						<Plus className='h-4 w-4' />
-						Create New Order
+						<span className='hidden sm:inline'>Create New Order</span>
+						<span className='sm:hidden'>Create</span>
 					</Button>
 				</div>
 			</header>
-			<main className='flex-1 p-6'>
+			<main className='flex-1 p-4 md:p-6'>
 				<div className='space-y-6'>
 					<h2 className='text-2xl font-bold tracking-tight'>Orders</h2>
 
@@ -83,12 +84,12 @@ export default function OrdersPage() {
 						</div>
 					)}
 
-					<div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+					<div className='grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'>
 						{orders.map(order => (
-							<Card key={order.id}>
+							<Card key={order.id} className='flex flex-col'>
 								<CardHeader className='pb-2'>
 									<div className='flex items-center justify-between'>
-										<CardTitle className='text-lg'>
+										<CardTitle className='text-base md:text-lg'>
 											Order #{order.id.substring(0, 8)}
 										</CardTitle>
 										<Badge
@@ -103,11 +104,11 @@ export default function OrdersPage() {
 										</Badge>
 									</div>
 								</CardHeader>
-								<CardContent>
-									<div className='grid gap-2'>
+								<CardContent className='flex-1 flex flex-col'>
+									<div className='grid gap-2 flex-1'>
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Customer:</span>
-											<span>{order.customerName}</span>
+											<span className='font-medium truncate ml-2'>{order.customerName}</span>
 										</div>
 										<div className='flex items-center justify-between text-sm'>
 											<span className='text-muted-foreground'>Date:</span>
@@ -140,15 +141,15 @@ export default function OrdersPage() {
 												<h4 className='text-sm font-medium mb-1'>
 													Order Items:
 												</h4>
-												<ul className='text-sm space-y-1'>
+												<ul className='text-sm space-y-1 max-h-32 overflow-y-auto'>
 													{order.orderItems.map(item => (
 														<li key={item.id} className='flex justify-between'>
-															<span>
+															<span className='truncate'>
 																{item.quantity}x{' '}
 																{item.item?.name ||
 																	`Item #${item.itemId.substring(0, 6)}`}
 															</span>
-															<div className='ml-auto text-right'>
+															<div className='ml-auto text-right flex-shrink-0'>
 																₹ {(item.price * item.quantity).toFixed(2)}
 															</div>
 														</li>
@@ -156,48 +157,56 @@ export default function OrdersPage() {
 												</ul>
 											</div>
 										)}
+									</div>
 
-										<div className='flex justify-between mt-4'>
+									<div className='flex flex-col gap-2 mt-4 pt-4 border-t'>
+										<Button
+											variant='ghost'
+											size='sm'
+											className='text-red-500 hover:text-red-700 hover:bg-red-50 self-start'
+											onClick={() => handleDeleteOrder(order.id)}>
+											<Trash className='h-4 w-4 mr-1' />
+											Delete
+										</Button>
+
+										<div className='flex flex-col sm:flex-row gap-2'>
 											<Button
-												variant='ghost'
+												variant='outline'
 												size='sm'
-												className='text-red-500 hover:text-red-700 hover:bg-red-50'
-												onClick={() => handleDeleteOrder(order.id)}>
-												<Trash className='h-4 w-4 mr-1' />
-												Delete
-											</Button>
-
-											<div className='flex gap-2'>
-												<Button
-													variant='outline'
-													size='sm'
-													onClick={() => handleViewDetails(order.id)}>
-													{expandedOrders.includes(order.id) ? (
-														<ChevronUp className='h-4 w-4 mr-1' />
-													) : (
-														<Eye className='h-4 w-4 mr-1' />
-													)}
+												onClick={() => handleViewDetails(order.id)}
+												className='flex-1'>
+												{expandedOrders.includes(order.id) ? (
+													<ChevronUp className='h-4 w-4 mr-1' />
+												) : (
+													<Eye className='h-4 w-4 mr-1' />
+												)}
+												<span className='hidden sm:inline'>
 													{expandedOrders.includes(order.id)
 														? 'Hide Details'
 														: 'View Details'}
-												</Button>
+												</span>
+												<span className='sm:hidden'>
+													{expandedOrders.includes(order.id) ? 'Hide' : 'View'}
+												</span>
+											</Button>
 
-												{order.status === OrderStatus.PENDING && (
-													<>
-														<Button
-															variant='outline'
-															size='sm'
-															onClick={() => handleCancelOrder(order.id)}>
-															Cancel
-														</Button>
-														<Button
-															size='sm'
-															onClick={() => handleCompleteOrder(order.id)}>
-															Complete
-														</Button>
-													</>
-												)}
-											</div>
+											{order.status === OrderStatus.PENDING && (
+												<div className='flex gap-2'>
+													<Button
+														variant='outline'
+														size='sm'
+														onClick={() => handleCancelOrder(order.id)}
+														className='flex-1 sm:flex-none'>
+														Cancel
+													</Button>
+													<Button
+														size='sm'
+														onClick={() => handleCompleteOrder(order.id)}
+														className='flex-1 sm:flex-none'>
+														Complete
+													</Button>
+												</div>
+											)}
 										</div>
 									</div>
 								</CardContent>

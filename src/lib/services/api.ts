@@ -98,7 +98,7 @@ export const ordersAPI = {
 			body: JSON.stringify({
 				customerName: order.customerName,
 				status: order.status,
-				items: order.orderItems,
+				items: order.orderItems, // This was causing the issue - backend expects 'items' array
 				customMessage: order.customMessage
 			})
 		}),

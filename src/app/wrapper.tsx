@@ -12,6 +12,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { usePathname } from 'next/navigation';
 import CsrfProvider from '@/components/providers/csrf-provider';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function ClientWrapper({
 	children
@@ -20,6 +21,7 @@ export default function ClientWrapper({
 }) {
 	const [mounted, setMounted] = useState(false);
 	const pathname = usePathname();
+	const { isAuthenticated, isLoading } = useAuth();
 
 	// Check if the current path is the login page
 	const isLoginPage = pathname === '/login';
@@ -79,6 +81,20 @@ export default function ClientWrapper({
 		}
 	}, []);
 
+	// Show loading screen while checking authentication
+	if (!mounted || isLoading) {
+		return (
+			<ThemeProvider attribute='class' defaultTheme='light'>
+				<div className='flex min-h-screen items-center justify-center bg-background'>
+					<div className='flex flex-col items-center space-y-4'>
+						<div className='animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full'></div>
+						<p className='text-muted-foreground'>Loading...</p>
+					</div>
+				</div>
+			</ThemeProvider>
+		);
+	}
+
 	return (
 		<ThemeProvider attribute='class' defaultTheme='light'>
 			<ReactQueryProvider>
@@ -89,20 +105,20 @@ export default function ClientWrapper({
 								'flex min-h-screen overflow-hidden',
 								mounted ? 'animate-fade-in' : 'opacity-0'
 							)}>
-							{/* Sidebar navigation - only show when not on login page */}
-							{!isLoginPage && <Sidebar />}
+							{/* Sidebar navigation - only show when authenticated and not on login page */}
+							{isAuthenticated && !isLoginPage && <Sidebar />}
 
 							{/* Main content area with header and content */}
 							<div className='flex-1 flex flex-col overflow-hidden'>
-								{/* Top navigation bar - only show when not on login page */}
-								{!isLoginPage && <TopNavbar className='z-20' />}
+								{/* Top navigation bar - only show when authenticated and not on login page */}
+								{isAuthenticated && !isLoginPage && <TopNavbar className='z-20' />}
 
 								{/* Main scrollable content */}
 								<main className='flex-1 overflow-auto'>
 									<div
 										className={cn(
 											'h-full animate-slide-in',
-											!isLoginPage ? 'px-4 py-4 md:px-6 md:py-6' : ''
+											isAuthenticated && !isLoginPage ? 'px-4 py-4 md:px-6 md:py-6' : ''
 										)}>
 										{children}
 									</div>

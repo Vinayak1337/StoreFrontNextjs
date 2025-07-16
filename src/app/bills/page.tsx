@@ -691,15 +691,15 @@ export default function BillsPage() {
 
 	return (
 		<div>
-			<main className='container py-8'>
-				<div className='flex justify-between items-center mb-6'>
+			<main className='container py-4 md:py-8'>
+				<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4'>
 					<div>
 						<h1 className='text-2xl font-bold'>Bills</h1>
 						<p className='text-muted-foreground'>
 							Manage and view customer bills
 						</p>
 					</div>
-					<div className='flex items-center gap-2'>
+					<div className='flex flex-col sm:flex-row items-start sm:items-center gap-2'>
 						{unpaidBillsCount > 0 && (
 							<Badge variant='destructive' className='flex items-center gap-1'>
 								<Bell className='h-3 w-3' />
@@ -731,91 +731,97 @@ export default function BillsPage() {
 						</div>
 					)}
 
-					<div className='grid grid-cols-1 gap-4'>
+					<div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
 						{bills.map(bill => (
-							<Card key={bill.id} className='overflow-hidden'>
-								<CardContent className='p-0'>
+							<Card key={bill.id} className='overflow-hidden flex flex-col'>
+								<CardContent className='p-0 flex-1'>
 									<div className='p-4 sm:p-6'>
-										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 bill-header'>
-											<div>
-												<CardTitle className='mb-1'>
-													Bill #{bill.id.substring(0, 8)}
-												</CardTitle>
-												<p className='text-sm text-muted-foreground'>
-													{bill.createdAt
-														? format(new Date(bill.createdAt), 'PPP')
-														: 'N/A'}
-												</p>
-											</div>
-											<div className='flex items-center gap-2 sm:ml-4'>
-												<div className='flex items-center space-x-2 whitespace-nowrap switch-container'>
-													<Switch
-														id={`payment-status-${bill.id}`}
-														checked={bill.isPaid === true}
-														onCheckedChange={() =>
-															handleTogglePayment(bill.id, bill.isPaid === true)
-														}
-														className='medium-device-switch'
-													/>
-													<span
-														className='text-sm min-w-[50px] switch-label'
-														onClick={() =>
-															handleTogglePayment(bill.id, bill.isPaid === true)
-														}>
-														{bill.isPaid ? 'Paid' : 'Unpaid'}
-													</span>
+										<div className='flex flex-col gap-3 mb-4 bill-header'>
+											<div className='flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3'>
+												<div className='flex-1 min-w-0'>
+													<CardTitle className='mb-1 text-lg'>
+														Bill #{bill.id.substring(0, 8)}
+													</CardTitle>
+													<p className='text-sm text-muted-foreground'>
+														{bill.createdAt
+															? format(new Date(bill.createdAt), 'PPP')
+															: 'N/A'}
+													</p>
+												</div>
+												<div className='flex items-center gap-2 flex-shrink-0'>
+													<div className='flex items-center space-x-2 whitespace-nowrap switch-container'>
+														<Switch
+															id={`payment-status-${bill.id}`}
+															checked={bill.isPaid === true}
+															onCheckedChange={() =>
+																handleTogglePayment(bill.id, bill.isPaid === true)
+															}
+															className='medium-device-switch'
+														/>
+														<span
+															className='text-sm min-w-[50px] switch-label cursor-pointer select-none'
+															onClick={() =>
+																handleTogglePayment(bill.id, bill.isPaid === true)
+															}>
+															{bill.isPaid ? 'Paid' : 'Unpaid'}
+														</span>
+													</div>
 												</div>
 											</div>
 										</div>
 
 										<div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4'>
-											<div>
+											<div className='min-w-0'>
 												<span className='text-sm text-muted-foreground block'>
 													Customer
 												</span>
-												<span className='font-medium'>
+												<span className='font-medium block truncate'>
 													{bill.order?.customerName || 'N/A'}
 												</span>
 											</div>
-											<div>
+											<div className='min-w-0'>
 												<span className='text-sm text-muted-foreground block'>
 													Total Amount
 												</span>
-												<span className='font-medium'>
+												<span className='font-medium block'>
 													{settings?.currency || '₹'}{' '}
 													{Number(bill.totalAmount).toFixed(2)}
 												</span>
 											</div>
 										</div>
 
-										<div className='flex flex-col sm:flex-row sm:justify-between sm:items-center pt-4 border-t gap-3'>
-											<Button
-												variant='outline'
-												size='sm'
-												className='text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700'
-												onClick={() => handleDeleteBill(bill.id)}>
-												<Trash className='h-4 w-4 mr-1' />
-												Delete
-											</Button>
-											<div className='flex flex-col xs:flex-row items-center gap-2 button-group'>
+										<div className='flex flex-col gap-3 pt-4 border-t'>
+											<div className='flex justify-between items-center'>
+												<Button
+													variant='outline'
+													size='sm'
+													className='text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700'
+													onClick={() => handleDeleteBill(bill.id)}>
+													<Trash className='h-4 w-4 mr-1' />
+													Delete
+												</Button>
+											</div>
+											<div className='flex flex-col sm:flex-row items-stretch gap-2 button-group'>
 												<Button
 													variant='outline'
 													size='sm'
 													onClick={() => handleViewDetails(bill.id)}
-													className='w-full xs:w-auto responsive-button'>
+													className='flex-1 responsive-button'>
 													<Eye className='h-4 w-4 mr-1' />
-													View Details
+													<span className='hidden sm:inline'>View Details</span>
+													<span className='sm:hidden'>View</span>
 												</Button>
 												<Button
 													variant='outline'
 													size='sm'
 													onClick={() => handlePrintBill(bill.id)}
 													disabled={isAutoConnecting}
-													className='w-full xs:w-auto responsive-button'>
+													className='flex-1 responsive-button'>
 													{isAutoConnecting ? (
 														<>
 															<Loader2 className='h-4 w-4 mr-1 animate-spin' />
-															Connecting...
+															<span className='hidden sm:inline'>Connecting...</span>
+															<span className='sm:hidden'>...</span>
 														</>
 													) : (
 														<>
@@ -845,7 +851,7 @@ export default function BillsPage() {
 					}
 					setIsDialogOpen(val);
 				}}>
-				<DialogContent className='sm:max-w-[500px] max-w-[95vw] overflow-hidden'>
+				<DialogContent className='sm:max-w-[500px] max-w-[95vw] w-[95vw] sm:w-auto mx-auto overflow-hidden'>
 					<DialogHeader>
 						<DialogTitle>Print to Thermal Printer</DialogTitle>
 						<DialogDescription>
@@ -853,12 +859,12 @@ export default function BillsPage() {
 						</DialogDescription>
 					</DialogHeader>
 
-					<div className='py-4 overflow-y-auto'>
+					<div className='py-4 overflow-y-auto max-h-[60vh] sm:max-h-[70vh]'>
 						{!hasBluetoothSupport ? (
 							<div className='flex flex-col space-y-4'>
-								<div className='flex items-center p-4 mb-2 border rounded-md bg-yellow-50 text-yellow-700'>
-									<AlertCircle className='h-5 w-5 mr-2 flex-shrink-0' />
-									<div>
+								<div className='flex items-start p-4 mb-2 border rounded-md bg-yellow-50 text-yellow-700'>
+									<AlertCircle className='h-5 w-5 mr-2 flex-shrink-0 mt-0.5' />
+									<div className='min-w-0 flex-1'>
 										<p className='font-medium'>
 											Bluetooth printing unavailable
 										</p>
@@ -875,7 +881,7 @@ export default function BillsPage() {
 										<li>Make sure you&apos;re using Chrome or Edge</li>
 										<li>
 											Type{' '}
-											<span className='font-mono bg-gray-100 px-1 rounded'>
+											<span className='font-mono bg-gray-100 px-1 rounded text-xs'>
 												chrome://flags
 											</span>{' '}
 											in your address bar
@@ -923,25 +929,25 @@ export default function BillsPage() {
 										<Label className='text-sm font-medium'>
 											Available Printers
 										</Label>
-										<div className='space-y-2'>
+										<div className='space-y-2 max-h-32 overflow-y-auto'>
 											{printers.map(printer => (
 												<div
 													key={printer.device.id}
-													className={`flex items-center justify-between p-3 rounded-md cursor-pointer ${
+													className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${
 														selectedPrinter?.device.id === printer.device.id
 															? 'bg-primary/10 border border-primary/30'
-															: 'border'
+															: 'border hover:bg-muted/50'
 													}`}
 													onClick={() => {
 														console.log('Selecting printer:', printer);
 														setSelectedPrinter(printer);
 													}}>
-													<div className='flex items-center gap-2'>
-														<Printer className='h-4 w-4' />
+													<div className='flex items-center gap-2 min-w-0 flex-1'>
+														<Printer className='h-4 w-4 flex-shrink-0' />
 														<span className='truncate'>{printer.name}</span>
 													</div>
 													{selectedPrinter?.device.id === printer.device.id && (
-														<Check className='h-4 w-4 text-primary' />
+														<Check className='h-4 w-4 text-primary flex-shrink-0' />
 													)}
 												</div>
 											))}
@@ -952,30 +958,24 @@ export default function BillsPage() {
 						)}
 					</div>
 
-					<DialogFooter className='flex flex-col sm:flex-row gap-2 sm:justify-end'>
-						<Button variant='outline' onClick={() => setIsDialogOpen(false)}>
+					<DialogFooter className='flex flex-col gap-2 sm:flex-row sm:gap-2 sm:justify-end'>
+						<Button 
+							variant='outline' 
+							onClick={() => setIsDialogOpen(false)}
+							className='w-full sm:w-auto order-last sm:order-first'>
 							Cancel
 						</Button>
-						{/* {rememberedPrinter && (
-							<Button
-								variant='outline'
-								onClick={() => {
-									// Clear remembered printer
-									Cookies.remove(PRINTER_ID_COOKIE, { path: '/' });
-									Cookies.remove(PRINTER_NAME_COOKIE, { path: '/' });
-									setRememberedPrinter(null);
-									toast.info('Forgotten saved printer');
-								}}>
-								Forget Printer
-							</Button>
-						)} */}
-						<Button variant='outline' onClick={handleStandardPrint}>
+						<Button 
+							variant='outline' 
+							onClick={handleStandardPrint}
+							className='w-full sm:w-auto'>
 							<Printer className='h-4 w-4 mr-2' />
 							Standard Print
 						</Button>
 						<Button
 							onClick={printToBluetooth}
-							disabled={!selectedPrinter || isPrinting || !hasBluetoothSupport}>
+							disabled={!selectedPrinter || isPrinting || !hasBluetoothSupport}
+							className='w-full sm:w-auto'>
 							{isPrinting ? (
 								<>
 									<Loader2 className='h-4 w-4 mr-2 animate-spin' />

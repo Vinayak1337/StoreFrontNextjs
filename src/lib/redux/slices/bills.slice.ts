@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { BillsState } from '@/types';
 import api from '@/lib/services/api';
 import { Bill } from '@/types';
+import { toast } from 'react-toastify';
 
 // Async thunks
 export const fetchBills = createAsyncThunk(
@@ -187,6 +188,7 @@ const billsSlice = createSlice({
 		builder.addCase(fetchBills.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to fetch bills: ${payload}`);
 		});
 
 		// Create bill
@@ -197,10 +199,12 @@ const billsSlice = createSlice({
 		builder.addCase(createBill.fulfilled, (state, { payload }) => {
 			state.loading = false;
 			state.bills.push(payload);
+			toast.success('Bill created successfully!');
 		});
 		builder.addCase(createBill.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to create bill: ${payload}`);
 		});
 
 		// Update bill
@@ -216,10 +220,12 @@ const billsSlice = createSlice({
 			if (state.activeBill?.id === payload.id) {
 				state.activeBill = payload;
 			}
+			toast.success('Bill updated successfully!');
 		});
 		builder.addCase(updateBill.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to update bill: ${payload}`);
 		});
 
 		// Delete bill
@@ -233,10 +239,12 @@ const billsSlice = createSlice({
 			if (state.activeBill?.id === payload) {
 				state.activeBill = null;
 			}
+			toast.success('Bill deleted successfully!');
 		});
 		builder.addCase(deleteBill.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
+			toast.error(`Failed to delete bill: ${payload}`);
 		});
 	}
 });
