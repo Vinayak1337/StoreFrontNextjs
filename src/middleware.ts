@@ -31,35 +31,52 @@ function parseCookies(cookieHeader: string) {
 export function middleware(request: NextRequest) {
 	// Check if the path is public and if so, skip authentication
 	const path = request.nextUrl.pathname;
+	
+	// Create response with optimizations for API routes
+	let response: NextResponse;
+	
 	if (publicPaths.some(publicPath => path === publicPath)) {
-		return NextResponse.next();
-	}
+		response = NextResponse.next();
+	} else {
+		// Get the session cookie
+		const cookieHeader = request.headers.get('cookie') || '';
+		const cookies = parseCookies(cookieHeader);
+		const sessionCookie = cookies[COOKIE_NAME];
 
-	// Get the session cookie
-	const cookieHeader = request.headers.get('cookie') || '';
-	const cookies = parseCookies(cookieHeader);
-	const sessionCookie = cookies[COOKIE_NAME];
-
-	// For homepage - redirect to dashboard if authenticated, redirect to login if not
-	if (path === '/') {
-		if (sessionCookie) {
-			return NextResponse.redirect(new URL('/dashboard', request.url));
+		// For homepage - redirect to dashboard if authenticated, redirect to login if not
+		if (path === '/') {
+			if (sessionCookie) {
+				response = NextResponse.redirect(new URL('/dashboard', request.url));
+			} else {
+				response = NextResponse.redirect(new URL('/login', request.url));
+			}
+		} else if (!sessionCookie) {
+			// Redirect to login for non-API routes
+			if (!path.startsWith('/api/')) {
+				response = NextResponse.redirect(new URL('/login', request.url));
+			} else {
+				// Return 401 for API routes
+				response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+			}
+		} else {
+			// User is authenticated, let them proceed
+			response = NextResponse.next();
 		}
-		return NextResponse.redirect(new URL('/login', request.url));
 	}
 
-	// For all other paths - check for authentication
-	if (!sessionCookie) {
-		// Redirect to login for non-API routes
-		if (!path.startsWith('/api/')) {
-			return NextResponse.redirect(new URL('/login', request.url));
-		}
-		// Return 401 for API routes
-		return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+	// Add timeout and connection optimization headers for API routes
+	if (path.startsWith('/api/')) {
+		response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+		response.headers.set('Connection', 'close');
+		response.headers.set('Keep-Alive', 'timeout=5, max=1000');
+		
+		// Add CORS headers
+		response.headers.set('Access-Control-Allow-Origin', '*');
+		response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+		response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 	}
-
-	// User is authenticated, let them proceed
-	return NextResponse.next();
+	
+	return response;
 }
 
 // Only apply middleware to these paths

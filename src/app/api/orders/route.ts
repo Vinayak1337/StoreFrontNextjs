@@ -13,16 +13,21 @@ interface OrderItemInput {
 export async function GET() {
 	try {
 		const orders = await prisma.order.findMany({
+			take: 100, // Limit to 100 most recent orders
 			include: {
 				orderItems: {
 					include: {
-						item: true
+						item: {
+							select: { id: true, name: true, price: true } // Only necessary fields
+						}
 					},
 					orderBy: {
-						id: 'desc' // Sort by ID descending as proxy for creation date
+						id: 'desc'
 					}
 				},
-				bill: true
+				bill: {
+					select: { id: true, totalAmount: true, isPaid: true } // Only necessary fields
+				}
 			},
 			orderBy: {
 				createdAt: 'desc'
@@ -30,12 +35,14 @@ export async function GET() {
 		});
 
 		return NextResponse.json(orders);
-	} catch (error) {
-		console.error('Error fetching orders:', error);
+	} catch {
 		return NextResponse.json(
 			{ error: 'Failed to fetch orders' },
 			{ status: 500 }
 		);
+	} finally {
+		// Explicitly disconnect to free up connections
+		await prisma.$disconnect();
 	}
 }
 
@@ -43,69 +50,56 @@ export async function GET() {
 export async function POST(req: NextRequest) {
 	try {
 		const data = await req.json();
-		console.log('Received order data:', JSON.stringify(data, null, 2));
-
+		
 		// Validate required fields
 		if (
 			!data.customerName ||
 			!Array.isArray(data.items) ||
 			data.items.length === 0
 		) {
-			console.error('Validation failed:', {
-				customerName: !!data.customerName,
-				items: Array.isArray(data.items),
-				itemsLength: data.items?.length || 0
-			});
 			return NextResponse.json(
 				{ error: 'Customer name and at least one item are required' },
 				{ status: 400 }
 			);
 		}
 
-		console.log(`Processing order with ${data.items.length} items`);
-
 		// Extract item IDs for batch validation
 		const itemIds = (data.items as OrderItemInput[]).map(item => item.itemId);
 		
 		// Validate all items OUTSIDE the transaction first
-		console.log('Validating items:', itemIds);
 		const foundItems = await prisma.item.findMany({
-			where: { id: { in: itemIds } }
+			where: { 
+				id: { in: itemIds },
+				inStock: true // Only get items that are in stock
+			},
+			select: { id: true, name: true, inStock: true } // Only select necessary fields
 		});
 
-		// Check if all items exist and validate data
-		const itemMap = new Map(foundItems.map(item => [item.id, item]));
+		// Quick validation using Set for O(1) lookup
+		const foundItemIds = new Set(foundItems.map(item => item.id));
 		
+		// Validate all items exist and are in stock
 		for (const item of data.items as OrderItemInput[]) {
-			console.log('Validating item:', item);
-			
-			const foundItem = itemMap.get(item.itemId);
-			if (!foundItem) {
-				console.error(`Item not found: ${item.itemId}`);
-				throw new Error(`Item with ID ${item.itemId} not found`);
+			if (!foundItemIds.has(item.itemId)) {
+				return NextResponse.json(
+					{ error: `Item not found or out of stock: ${item.itemId}` },
+					{ status: 400 }
+				);
 			}
 
-			if (!foundItem.inStock) {
-				console.error(`Item out of stock: ${foundItem.name}`);
-				throw new Error(`Item "${foundItem.name}" is out of stock`);
-			}
-
-			// Validate item data structure
-			if (!item.quantity || item.quantity <= 0) {
-				throw new Error(`Invalid quantity for item "${foundItem.name}"`);
-			}
-
-			if (!item.price || item.price <= 0) {
-				throw new Error(`Invalid price for item "${foundItem.name}"`);
+			// Basic validation
+			if (!item.quantity || item.quantity <= 0 || !item.price || item.price <= 0) {
+				return NextResponse.json(
+					{ error: 'Invalid item quantity or price' },
+					{ status: 400 }
+				);
 			}
 		}
 
-		console.log('All items validated successfully, creating order...');
-
-		// Now use a much simpler transaction with increased timeout
+		// Optimized transaction with shorter timeout for Vercel
 		const result = await prisma.$transaction(async tx => {
 			// Create the order with all order items in one operation
-			const newOrder = await tx.order.create({
+			return await tx.order.create({
 				data: {
 					customerName: data.customerName,
 					customMessage: data.customMessage,
@@ -114,34 +108,32 @@ export async function POST(req: NextRequest) {
 						create: (data.items as OrderItemInput[]).map(item => ({
 							quantity: item.quantity,
 							price: item.price,
-							item: {
-								connect: { id: item.itemId }
-							}
+							itemId: item.itemId // Direct foreign key instead of connect
 						}))
 					}
 				},
 				include: {
 					orderItems: {
 						include: {
-							item: true
+							item: {
+								select: { id: true, name: true, price: true } // Only necessary fields
+							}
 						}
 					}
 				}
 			});
-
-			console.log('Order created successfully:', newOrder.id);
-			return newOrder;
 		}, {
-			timeout: 10000, // Increase timeout to 10 seconds
-			maxWait: 5000,  // Maximum time to wait for a transaction slot
+			timeout: 5000, // Reduced timeout for Vercel (5 seconds)
+			maxWait: 2000,  // Reduced max wait time
 		});
 
 		return NextResponse.json(result, { status: 201 });
 	} catch (error) {
-		console.error('Error creating order:', error);
-		const errorMessage =
-			error instanceof Error ? error.message : 'An unknown error occurred';
+		const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
 		return NextResponse.json({ error: errorMessage }, { status: 500 });
+	} finally {
+		// Explicitly disconnect to free up connections
+		await prisma.$disconnect();
 	}
 }
 

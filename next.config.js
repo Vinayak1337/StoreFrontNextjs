@@ -13,6 +13,29 @@ const nextConfig = {
 			ignored: ['**/project-manager-master/**']
 		};
 		return config;
+	},
+	// Vercel-specific optimizations
+	experimental: {
+		// Enable faster builds
+		optimizePackageImports: ['@prisma/client'],
+	},
+	// API route optimizations
+	async headers() {
+		return [
+			{
+				source: '/api/:path*',
+				headers: [
+					{
+						key: 'Cache-Control',
+						value: 'no-cache, no-store, must-revalidate',
+					},
+					{
+						key: 'Connection',
+						value: 'close',
+					}
+				],
+			},
+		];
 	}
 };
 
