@@ -431,7 +431,7 @@ export const formatBillForThermalPrinter = (
 
 	// Footer with thank you message - centered
 	content += CENTER + BOLD_ON;
-	content += 'Thank you for shopping with us!' + LF;
+	content += LF;
 	content += BOLD_OFF;
 	content +=
 		'Visit again' + (settings.footer ? ` - ${settings.footer}` : '') + LF;

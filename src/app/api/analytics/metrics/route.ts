@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { OrderStatus } from '@/types';
 
 // GET /api/analytics/metrics - Get analytics metrics
 export async function GET(req: NextRequest) {
@@ -26,16 +25,26 @@ export async function GET(req: NextRequest) {
 			}
 		});
 
-		// Count total completed orders
-		const completedOrders = await prisma.order.count({
+		// Set default values for status counts (not used in logic)
+		const pendingOrders = 0;
+		const completedOrders = totalOrders;
+		const cancelledOrders = 0;
+
+		// Count printed orders (orders with bills)
+		const printedOrders = await prisma.order.count({
 			where: {
 				createdAt: {
 					gte: startDateTime,
 					lte: endDateTime
 				},
-				status: OrderStatus.COMPLETED
+				bill: {
+					isNot: null
+				}
 			}
 		});
+
+		// Since orders are automatically completed/billed, unpaid bills is always 0
+		const unpaidBills = 0;
 
 		// Get total sales from bills
 		const billsAggregate = await prisma.bill.aggregate({
@@ -52,11 +61,13 @@ export async function GET(req: NextRequest) {
 
 		const totalSales = Number(billsAggregate._sum.totalAmount || 0);
 		const averageOrderValue =
-			totalOrders > 0 ? totalSales / completedOrders : 0;
+			printedOrders > 0 ? totalSales / printedOrders : 0;
 		const conversionRate =
-			totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
+			totalOrders > 0 ? (printedOrders / totalOrders) * 100 : 0;
+		const printRate = 
+			totalOrders > 0 ? (printedOrders / totalOrders) * 100 : 0;
 
-		// Get top selling items
+		// Get top selling items - show ALL orders regardless of status
 		const topSellingItems = await prisma.orderItem.groupBy({
 			by: ['itemId'],
 			where: {
@@ -64,8 +75,7 @@ export async function GET(req: NextRequest) {
 					createdAt: {
 						gte: startDateTime,
 						lte: endDateTime
-					},
-					status: OrderStatus.COMPLETED
+					}
 				}
 			},
 			_sum: {
@@ -121,15 +131,69 @@ export async function GET(req: NextRequest) {
 			}
 		);
 
+		// Calculate trend data (compare with previous period)
+		const periodDays = Math.ceil((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60 * 60 * 24));
+		const previousStartDate = new Date(startDateTime.getTime() - (periodDays * 24 * 60 * 60 * 1000));
+		const previousEndDate = new Date(startDateTime.getTime() - 1);
+
+		// Previous period metrics for comparison
+		const prevTotalOrders = await prisma.order.count({
+			where: {
+				createdAt: {
+					gte: previousStartDate,
+					lte: previousEndDate
+				}
+			}
+		});
+
+		const prevBillsAggregate = await prisma.bill.aggregate({
+			where: {
+				createdAt: {
+					gte: previousStartDate,
+					lte: previousEndDate
+				}
+			},
+			_sum: {
+				totalAmount: true
+			}
+		});
+
+		const prevTotalSales = Number(prevBillsAggregate._sum.totalAmount || 0);
+
+		// Calculate trend percentages
+		const ordersTrend = prevTotalOrders > 0 ? 
+			((totalOrders - prevTotalOrders) / prevTotalOrders) * 100 : 0;
+		const revenueTrend = prevTotalSales > 0 ? 
+			((totalSales - prevTotalSales) / prevTotalSales) * 100 : 0;
+		const conversionTrend = prevTotalOrders > 0 && totalOrders > 0 ?
+			((conversionRate - (prevTotalOrders > 0 ? (completedOrders / prevTotalOrders) * 100 : 0))) : 0;
+
 		// Build metrics object
 		const metrics = {
 			totalOrders,
 			totalSales,
 			averageOrderValue,
+			pendingOrders,
 			completedOrders,
+			cancelledOrders,
+			printedOrders,
+			unpaidBills,
 			conversionRate,
+			printRate,
+			ordersTrend,
+			revenueTrend,
+			conversionTrend,
 			topSellingItems: topItems,
-			paymentMethodDistribution
+			paymentMethodDistribution,
+			orderStatusBreakdown: {
+				pending: pendingOrders,
+				completed: completedOrders,
+				cancelled: cancelledOrders
+			},
+			printStatusBreakdown: {
+				printed: printedOrders,
+				unprinted: totalOrders - printedOrders
+			}
 		};
 
 		return NextResponse.json(metrics);

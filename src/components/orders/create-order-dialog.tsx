@@ -17,7 +17,6 @@ import {
 import { fetchItems } from '@/lib/redux/slices/items.slice';
 import { createOrder } from '@/lib/redux/slices/orders.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
-import { OrderStatus } from '@/types';
 
 interface OrderItem {
 	itemId: string;
@@ -105,7 +104,6 @@ export function CreateOrderDialog() {
 		dispatch(
 			createOrder({
 				customerName,
-				status: OrderStatus.PENDING,
 				orderItems: orderItems,
 				customMessage: customMessage || undefined
 			})

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import {
 	Dialog,
 	DialogContent,
@@ -12,13 +11,13 @@ import {
 } from '@/components/ui/dialog';
 import { ItemForm } from './item-form';
 
-export function AddItemDialog() {
+export function AddItemDialog({ children }: { children: React.ReactNode }) {
 	const [open, setOpen] = useState(false);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>Add New Item</Button>
+				{children}
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>

@@ -5,14 +5,14 @@ import { Provider } from 'react-redux';
 import { store } from '@/lib/redux/store';
 import { Sidebar } from '@/components/sidebar';
 import { ThemeProvider } from '@/components/theme-provider';
-import { ReactQueryProvider } from '@/lib/providers/query-provider';
-import { TopNavbar } from '@/components/layout/top-navbar';
+import ReactQueryProvider from '@/lib/providers/react-query-provider';
 import { cn } from '@/lib/utils';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { usePathname } from 'next/navigation';
 import CsrfProvider from '@/components/providers/csrf-provider';
 import { useAuth } from '@/hooks/use-auth';
+import { autoConnectToSavedPrinter } from '@/lib/utils/printer-utils';
 
 export default function ClientWrapper({
 	children
@@ -30,6 +30,17 @@ export default function ClientWrapper({
 	useEffect(() => {
 		setMounted(true);
 	}, []);
+
+	// Auto-connect to saved thermal printer when user is authenticated
+	useEffect(() => {
+		if (isAuthenticated && !isLoginPage && mounted) {
+			// Try to auto-connect to saved printer
+			autoConnectToSavedPrinter().catch(error => {
+				console.log('Auto-connect to printer failed:', error);
+				// Don't show error to user, just log it
+			});
+		}
+	}, [isAuthenticated, isLoginPage, mounted]);
 
 	// Detect virtual keyboard for tablets
 	useEffect(() => {
@@ -108,17 +119,16 @@ export default function ClientWrapper({
 							{/* Sidebar navigation - only show when authenticated and not on login page */}
 							{isAuthenticated && !isLoginPage && <Sidebar />}
 
-							{/* Main content area with header and content */}
+							{/* Main content area - adjusted for floating sidebar */}
 							<div className='flex-1 flex flex-col overflow-hidden'>
-								{/* Top navigation bar - only show when authenticated and not on login page */}
-								{isAuthenticated && !isLoginPage && <TopNavbar className='z-20' />}
-
 								{/* Main scrollable content */}
-								<main className='flex-1 overflow-auto'>
+								<main className='flex-1 overflow-auto bg-gray-50/30'>
 									<div
 										className={cn(
 											'h-full animate-slide-in',
-											isAuthenticated && !isLoginPage ? 'px-4 py-4 md:px-6 md:py-6' : ''
+											isAuthenticated && !isLoginPage 
+												? 'p-4 md:p-6 md:pb-20 lg:pb-6 lg:pl-[calc(16rem+2rem)] xl:pl-[calc(18rem+2rem)] lg:pr-8' 
+												: ''
 										)}>
 										{children}
 									</div>

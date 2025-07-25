@@ -10,7 +10,7 @@ export function Header() {
 			<div className='container flex h-16 items-center justify-between'>
 				<div className='flex gap-6 md:gap-10 items-center'>
 					<Link href='/' className='flex items-center space-x-2 hover-scale'>
-						<div className='bg-gradient-to-r from-primary to-secondary p-2 rounded-xl shadow-md'>
+						<div className='bg-gradient-to-r from-blue-600 to-blue-700 p-2 rounded-xl shadow-md'>
 							<ShoppingCart className='h-5 w-5 text-white' />
 						</div>
 						<span className='inline-block font-bold text-lg tracking-tight text-gradient'>

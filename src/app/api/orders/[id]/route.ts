@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { OrderStatus } from '@/types';
 
 // GET /api/orders/[id] - Get a specific order
 export async function GET(
@@ -60,54 +59,24 @@ export async function PUT(
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Validate status change
-		if (data.status && Object.values(OrderStatus).includes(data.status)) {
-			// Handle status change
-			if (
-				data.status === OrderStatus.COMPLETED &&
-				order.status === OrderStatus.PENDING
-			) {
-				// Calculate total amount
-				const totalAmount = order.orderItems.reduce(
-					(sum: number, item: { price: unknown; quantity: unknown }) =>
-						sum + Number(item.price) * Number(item.quantity),
-					0
-				);
-
-				// Apply tax rate (e.g., 5%)
-				const taxRate = 0.05;
-				const taxes = totalAmount * taxRate;
-
-				// Create a bill when order is completed
-				await prisma.bill.create({
-					data: {
-						totalAmount,
-						taxes,
-						paymentMethod: data.paymentMethod || 'CASH',
-						orderId: order.id
+		// Update order with allowed fields
+		const updatedOrder = await prisma.order.update({
+			where: { id },
+			data: {
+				customerName: data.customerName || order.customerName,
+				customMessage: data.customMessage || order.customMessage
+			},
+			include: {
+				orderItems: {
+					include: {
+						item: true
 					}
-				});
-			}
-
-			// Update order status
-			const updatedOrder = await prisma.order.update({
-				where: { id },
-				data: {
-					status: data.status
 				},
-				include: {
-					orderItems: {
-						include: {
-							item: true
-						}
-					}
-				}
-			});
+				bill: true
+			}
+		});
 
-			return NextResponse.json(updatedOrder);
-		}
-
-		return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+		return NextResponse.json(updatedOrder);
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';

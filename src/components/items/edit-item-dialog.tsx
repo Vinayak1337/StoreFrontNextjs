@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Item } from '@/types';
-import { Button } from '@/components/ui/button';
 import {
 	Dialog,
 	DialogContent,
@@ -15,17 +14,16 @@ import { ItemForm } from './item-form';
 
 interface EditItemDialogProps {
 	item: Item;
+	children: React.ReactNode;
 }
 
-export function EditItemDialog({ item }: EditItemDialogProps) {
+export function EditItemDialog({ item, children }: EditItemDialogProps) {
 	const [open, setOpen] = useState(false);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button variant='outline' size='sm'>
-					Edit
-				</Button>
+				{children}
 			</DialogTrigger>
 			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>

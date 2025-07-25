@@ -1,4 +1,4 @@
-import { Item, Order, Bill, AnalyticsMetrics } from '@/types';
+import { Item, Order, Bill, AnalyticsMetrics, Category } from '@/types';
 import { fetchWithCsrf } from '@/lib/client/csrf-utils';
 
 // Generic fetch function with error handling
@@ -45,10 +45,35 @@ export const userAPI = {
 		fetchAPI<{ id: string; name: string; email: string }>('/user')
 };
 
+// Pagination interface
+interface PaginatedResponse<T> {
+	items: T[];
+	pagination: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+		hasNext: boolean;
+		hasPrev: boolean;
+	};
+}
+
 // Items API service
 export const itemsAPI = {
-	// Get all items
+	// Get all items (legacy mode)
 	getAllItems: () => fetchAPI<Item[]>('/items'),
+
+	// Get items with pagination
+	getItemsPaginated: (page: number = 1, limit: number = 100) =>
+		fetchAPI<PaginatedResponse<Item>>(`/items?page=${page}&limit=${limit}`),
+
+	// Get uncategorized items with pagination
+	getUncategorizedItems: (page: number = 1, limit: number = 50) =>
+		fetchAPI<PaginatedResponse<Item>>(`/items/uncategorized?page=${page}&limit=${limit}`),
+
+	// Get items by category with pagination
+	getItemsByCategory: (categoryId: string, page: number = 1, limit: number = 50) =>
+		fetchAPI<PaginatedResponse<Item>>(`/categories/${categoryId}/items?page=${page}&limit=${limit}`),
 
 	// Get item by ID
 	getItemById: (id: string) => fetchAPI<Item>(`/items/${id}`),
@@ -71,6 +96,19 @@ export const itemsAPI = {
 	deleteItem: (id: string) =>
 		fetchAPI<{ success: boolean }>(`/items/${id}`, {
 			method: 'DELETE'
+		}),
+
+	// Add item to category
+	addItemToCategory: (categoryId: string, itemId: string) =>
+		fetchAPI<{ id: string; itemId: string; categoryId: string }>(`/categories/${categoryId}/items`, {
+			method: 'POST',
+			body: JSON.stringify({ itemId })
+		}),
+
+	// Remove item from category
+	removeItemFromCategory: (categoryId: string, itemId: string) =>
+		fetchAPI<{ message: string }>(`/categories/${categoryId}/items?itemId=${itemId}`, {
+			method: 'DELETE'
 		})
 };
 
@@ -85,7 +123,6 @@ export const ordersAPI = {
 	// Create a new order
 	createOrder: (order: {
 		customerName: string;
-		status: string;
 		orderItems: Array<{
 			itemId: string;
 			quantity: number;
@@ -97,17 +134,16 @@ export const ordersAPI = {
 			method: 'POST',
 			body: JSON.stringify({
 				customerName: order.customerName,
-				status: order.status,
-				items: order.orderItems, // This was causing the issue - backend expects 'items' array
+				items: order.orderItems, // Backend expects 'items' array
 				customMessage: order.customMessage
 			})
 		}),
 
-	// Update order status
-	updateOrderStatus: (id: string, status: string) =>
+	// Update order
+	updateOrder: (id: string, data: { customerName?: string; customMessage?: string }) =>
 		fetchAPI<Order>(`/orders/${id}`, {
 			method: 'PUT',
-			body: JSON.stringify({ status })
+			body: JSON.stringify(data)
 		}),
 
 	// Delete an order
@@ -164,6 +200,35 @@ export const billsAPI = {
 	}
 };
 
+// Categories API service
+export const categoriesAPI = {
+	// Get all categories
+	getAllCategories: () => fetchAPI<Category[]>('/categories'),
+
+	// Get category by ID
+	getCategoryById: (id: string) => fetchAPI<Category>(`/categories/${id}`),
+
+	// Create a new category
+	createCategory: (category: { name: string; color?: string; order?: number }) =>
+		fetchAPI<Category>('/categories', {
+			method: 'POST',
+			body: JSON.stringify(category)
+		}),
+
+	// Update a category
+	updateCategory: (id: string, data: { name?: string; color?: string; order?: number }) =>
+		fetchAPI<Category>(`/categories/${id}`, {
+			method: 'PUT',
+			body: JSON.stringify(data)
+		}),
+
+	// Delete a category
+	deleteCategory: (id: string) =>
+		fetchAPI<{ message: string }>(`/categories/${id}`, {
+			method: 'DELETE'
+		})
+};
+
 // Analytics API service
 export const analyticsAPI = {
 	// Get daily sales data with optional date range
@@ -197,6 +262,7 @@ const api = {
 	...itemsAPI,
 	...ordersAPI,
 	...billsAPI,
+	...categoriesAPI,
 	...analyticsAPI
 };
 

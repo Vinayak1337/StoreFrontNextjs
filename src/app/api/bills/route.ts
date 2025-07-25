@@ -57,13 +57,7 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Check if order is cancelled
-		if (order.status === 'CANCELLED') {
-			return NextResponse.json(
-				{ error: 'Cannot create bills for cancelled orders' },
-				{ status: 400 }
-			);
-		}
+		// Since we removed status, all orders are valid for billing
 
 		// Check if a bill already exists for this order (including soft-deleted bills)
 		const existingBill = await prisma.bill.findUnique({

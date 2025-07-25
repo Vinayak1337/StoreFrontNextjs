@@ -37,6 +37,17 @@ body {
 	}
 }
 
+@keyframes slideInLeft {
+	from {
+		opacity: 0;
+		transform: translateX(-30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
 .animate-fade-in {
 	animation: fadeIn 0.5s ease-in-out forwards;
 }
@@ -47,6 +58,10 @@ body {
 
 .animate-slide-up {
 	animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-slide-in-left {
+	animation: slideInLeft 0.4s ease-out forwards;
 }
 
 .glass {
@@ -73,13 +88,13 @@ body {
 		--card: #ffffff;
 		--card-foreground: #1f2937;
 
-		--primary: #6d28d9;
+		--primary: #2563eb;
 		--primary-foreground: #f9fafb;
 
 		--secondary: #0ea5e9;
 		--secondary-foreground: #f9fafb;
 
-		--accent: #6d28d9;
+		--accent: #2563eb;
 		--accent-foreground: #1f2937;
 
 		--destructive: #ef4444;
@@ -115,13 +130,13 @@ body {
 		--card: #1f2937;
 		--card-foreground: #f9fafb;
 
-		--primary: #8b5cf6;
+		--primary: #3b82f6;
 		--primary-foreground: #f9fafb;
 
 		--secondary: #38bdf8;
 		--secondary-foreground: #f9fafb;
 
-		--accent: #8b5cf6;
+		--accent: #3b82f6;
 		--accent-foreground: #f9fafb;
 
 		--destructive: #f87171;
@@ -268,11 +283,11 @@ body {
 }
 
 .text-gradient {
-	@apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500;
+	@apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-700;
 }
 
 .icon-gradient {
-	@apply text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary;
+	@apply text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700;
 }
 
 .icon-container {
@@ -345,7 +360,7 @@ body {
 }
 
 .hover-glow:hover {
-	box-shadow: 0 0 15px #7c3aed;
+	box-shadow: 0 0 15px #3b82f6;
 }
 
 /* Custom animations */
@@ -442,7 +457,7 @@ body {
 	right: -5px;
 	bottom: -5px;
 	z-index: -1;
-	background: linear-gradient(to right, #7c3aed, #f1f5f9);
+	background: linear-gradient(to right, #3b82f6, #f1f5f9);
 	border-radius: 0.5rem;
 	opacity: 0;
 	transition: opacity 0.3s ease;
@@ -482,7 +497,7 @@ body {
 
 	/* Gradient backgrounds */
 	.gradient-bg {
-		@apply bg-gradient-to-br from-primary-light to-secondary-light;
+		@apply bg-gradient-to-br from-blue-100 to-blue-200;
 	}
 
 	/* Subtle hover lift effect */

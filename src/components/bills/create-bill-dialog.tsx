@@ -15,7 +15,6 @@ import {
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
 import { createBill } from '@/lib/redux/slices/bills.slice';
 import { RootState, AppDispatch } from '@/lib/redux/store';
-import { OrderStatus } from '@/types';
 import {
 	CreditCard,
 	Check,
@@ -45,7 +44,7 @@ export function CreateBillDialog() {
 
 	// Filter all orders that don't have a bill yet
 	const availableOrders = orders.filter(
-		order => !order.bill && order.status !== 'CANCELLED'
+		order => !order.bill
 	);
 
 	// Get selected order
@@ -161,9 +160,9 @@ export function CreateBillDialog() {
 										className='justify-between hover:shadow-sm transition-all'>
 										<span className='font-medium'>
 											#{order.id.substring(0, 8)} - {order.customerName}
-											{order.status !== OrderStatus.PENDING && (
+											{order.bill && (
 												<span className='ml-2 text-xs uppercase text-muted-foreground'>
-													({order.status})
+													(COMPLETED)
 												</span>
 											)}
 										</span>

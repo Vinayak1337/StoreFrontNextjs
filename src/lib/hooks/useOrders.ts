@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/services/api';
-import { Order, OrderStatus } from '@/types';
 
 // Hook for fetching all orders
 export function useOrders() {
@@ -24,21 +23,28 @@ export function useCreateOrder() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (data: Omit<Order, 'id' | 'createdAt'>) =>
-			api.createOrder(data),
+		mutationFn: (data: {
+			customerName: string;
+			orderItems: Array<{
+				itemId: string;
+				quantity: number;
+				price: number;
+			}>;
+			customMessage?: string;
+		}) => api.createOrder(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['orders'] });
 		}
 	});
 }
 
-// Hook for updating an order status
-export function useUpdateOrderStatus() {
+// Hook for updating an order
+export function useUpdateOrder() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
-			api.updateOrderStatus(id, status),
+		mutationFn: ({ id, data }: { id: string; data: { customerName?: string; customMessage?: string } }) =>
+			api.updateOrder(id, data),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['orders'] });
 			queryClient.invalidateQueries({ queryKey: ['order', variables.id] });

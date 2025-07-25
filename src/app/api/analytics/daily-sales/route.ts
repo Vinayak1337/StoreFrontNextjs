@@ -55,10 +55,32 @@ export async function GET(req: NextRequest) {
 			dailySales[dateString].count += 1;
 		}
 
+		// Fill in missing dates with zero values
+		const currentDate = new Date(startDateTime);
+		const endDateObj = new Date(endDateTime);
+		
+		while (currentDate <= endDateObj) {
+			const dateString = currentDate.toISOString().split('T')[0];
+			if (!dailySales[dateString]) {
+				dailySales[dateString] = {
+					date: dateString,
+					totalAmount: 0,
+					count: 0
+				};
+			}
+			currentDate.setDate(currentDate.getDate() + 1);
+		}
+
 		// Convert to array and sort by date
-		const result = Object.values(dailySales).sort((a, b) =>
-			a.date.localeCompare(b.date)
-		);
+		const result = Object.values(dailySales)
+			.sort((a, b) => a.date.localeCompare(b.date))
+			.map(item => ({
+				date: item.date,
+				totalAmount: item.totalAmount, // Keep this as totalAmount to match existing code
+				count: item.count, // Keep as count to match existing code
+				sales: item.totalAmount, // Also include sales for compatibility
+				orderCount: item.count // Also include orderCount for compatibility
+			}));
 
 		return NextResponse.json(result);
 	} catch (error) {

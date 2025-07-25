@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { OrderStatus } from '@/types';
+import { OrderStatus } from '@prisma/client';
 
 // Define the expected item structure for order creation
 interface OrderItemInput {
@@ -108,8 +108,8 @@ export async function POST(req: NextRequest) {
 			const newOrder = await tx.order.create({
 				data: {
 					customerName: data.customerName,
-					status: OrderStatus.PENDING,
 					customMessage: data.customMessage,
+					status: OrderStatus.COMPLETED,
 					orderItems: {
 						create: (data.items as OrderItemInput[]).map(item => ({
 							quantity: item.quantity,
@@ -168,60 +168,24 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Validate status change
-		if (data.status && Object.values(OrderStatus).includes(data.status)) {
-			// Handle status change
-			if (
-				data.status === OrderStatus.COMPLETED &&
-				order.status === OrderStatus.PENDING
-			) {
-				// Calculate total amount
-				const totalAmount = order.orderItems.reduce(
-					(sum: number, item: { price: unknown; quantity: unknown }) =>
-						sum + Number(item.price) * Number(item.quantity),
-					0
-				);
-
-				// Apply tax rate (e.g., 5%)
-				const taxRate = 0.05;
-				const taxes = totalAmount * taxRate;
-
-				// Create a bill when order is completed
-				await prisma.bill.create({
-					data: {
-						totalAmount,
-						taxes,
-						paymentMethod: data.paymentMethod || 'CASH',
-						orderId: order.id
+		// Update order with allowed fields
+		const updatedOrder = await prisma.order.update({
+			where: { id },
+			data: {
+				customerName: data.customerName || order.customerName,
+				customMessage: data.customMessage || order.customMessage
+			},
+			include: {
+				orderItems: {
+					include: {
+						item: true
 					}
-				});
-			} else if (
-				data.status === OrderStatus.CANCELLED &&
-				order.status === OrderStatus.PENDING
-			) {
-				// No need to return items to inventory since we're only using inStock flag
-				// No inventory quantity changes when canceling orders
-			}
-
-			// Update order status
-			const updatedOrder = await prisma.order.update({
-				where: { id },
-				data: {
-					status: data.status
 				},
-				include: {
-					orderItems: {
-						include: {
-							item: true
-						}
-					}
-				}
-			});
+				bill: true
+			}
+		});
 
-			return NextResponse.json(updatedOrder);
-		}
-
-		return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+		return NextResponse.json(updatedOrder);
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'An unknown error occurred';

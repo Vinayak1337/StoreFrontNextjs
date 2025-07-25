@@ -18,16 +18,85 @@ function parseCookies(cookieHeader: string) {
 	return cookies;
 }
 
-// GET /api/items - Get all items
-export async function GET() {
+// GET /api/items - Get all items with optional pagination
+export async function GET(request: NextRequest) {
 	try {
-		const items = await prisma.item.findMany({
-			orderBy: {
-				createdAt: 'desc'
-			}
-		});
+		const { searchParams } = new URL(request.url);
+		const page = parseInt(searchParams.get('page') || '1');
+		const limit = parseInt(searchParams.get('limit') || '100'); // Default to 100 items per page
+		const skip = (page - 1) * limit;
 
-		return NextResponse.json(items);
+		// For backwards compatibility, if no pagination params, return all items
+		const shouldPaginate = searchParams.has('page') || searchParams.has('limit');
+
+		let items;
+		let totalCount = 0;
+
+		if (shouldPaginate) {
+			// Use transaction for consistent count and data
+			const [itemsData, count] = await prisma.$transaction([
+				prisma.item.findMany({
+					skip,
+					take: limit,
+					orderBy: {
+						createdAt: 'desc'
+					},
+					include: {
+						categories: {
+							select: {
+								categoryId: true,
+								category: {
+									select: {
+										id: true,
+										name: true,
+										color: true
+									}
+								}
+							}
+						}
+					}
+				}),
+				prisma.item.count()
+			]);
+
+			items = itemsData;
+			totalCount = count;
+
+			return NextResponse.json({
+				items,
+				pagination: {
+					page,
+					limit,
+					total: totalCount,
+					totalPages: Math.ceil(totalCount / limit),
+					hasNext: page * limit < totalCount,
+					hasPrev: page > 1
+				}
+			});
+		} else {
+			// Legacy mode: return all items without pagination
+			items = await prisma.item.findMany({
+				orderBy: {
+					createdAt: 'desc'
+				},
+				include: {
+					categories: {
+						select: {
+							categoryId: true,
+							category: {
+								select: {
+									id: true,
+									name: true,
+									color: true
+								}
+							}
+						}
+					}
+				}
+			});
+
+			return NextResponse.json(items);
+		}
 	} catch (error) {
 		console.error('Error fetching items:', error);
 		return NextResponse.json(

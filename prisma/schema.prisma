@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password      String
+  createdAt     DateTime  @default(now()) @map("created_at")
+  last_login_at DateTime? @map("last_login_at")
+  session_id    String?   @map("session_id")
+  session_type  String?   @map("session_type")
+
+  @@map("users")
+}
+
+model Category {
+  id        String         @id @default(uuid())
+  name      String         @unique
+  color     String         @default("#6B7280")
+  order     Int            @default(0)
+  createdAt DateTime       @default(now()) @map("created_at")
+  items     ItemCategory[]
+
+  @@map("categories")
+}
+
+model ItemCategory {
+  id         String   @id @default(uuid())
+  itemId     String   @map("item_id")
+  categoryId String   @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, categoryId])
+  @@map("item_categories")
+}
+
+model Item {
+  id         String         @id @default(uuid())
+  name       String
+  price      Decimal
+  weight     Decimal?
+  weightUnit String?
+  quantity   Int            @default(1)
+  inStock    Boolean        @default(true)
+  metadata   Json?
+  createdAt  DateTime       @default(now()) @map("created_at")
+  categories ItemCategory[]
+  orderItems OrderItem[]
+
+  @@map("items")
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  customerName  String      @map("customer_name")
+  status        OrderStatus
+  createdAt     DateTime    @default(now()) @map("created_at")
+  customMessage String?     @map("custom_message")
+  bill          Bill?
+  orderItems    OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id       String  @id @default(uuid())
+  quantity Int     @default(1)
+  price    Decimal
+  orderId  String  @map("order_id")
+  itemId   String  @map("item_id")
+  item     Item    @relation(fields: [itemId], references: [id])
+  order    Order   @relation(fields: [orderId], references: [id])
+
+  @@map("order_items")
+}
+
+model Bill {
+  id            String   @id @default(uuid())
+  totalAmount   Decimal  @map("total_amount")
+  taxes         Decimal
+  paymentMethod String   @map("payment_method")
+  createdAt     DateTime @default(now()) @map("created_at")
+  orderId       String   @unique @map("order_id")
+  isPaid        Boolean  @default(false) @map("is_paid")
+  order         Order    @relation(fields: [orderId], references: [id])
+
+  @@map("bills")
+}
+
+model Settings {
+  id            String  @id @default(uuid())
+  storeName     String  @map("store_name")
+  address       String
+  phone         String
+  email         String
+  taxRate       Decimal @map("tax_rate")
+  currency      String
+  logo          String?
+  footer        String?
+  notifications Json
+  printer       Json?
+
+  @@map("settings")
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}

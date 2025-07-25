@@ -5,7 +5,6 @@ import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { RootState } from '@/lib/redux/store';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
-import { fetchBills } from '@/lib/redux/slices/bills.slice';
 import {
 	fetchAnalyticsMetrics,
 	fetchDailySales
@@ -15,20 +14,19 @@ import {
 	DollarSign,
 	Package,
 	ShoppingCart,
-	Users,
-	CreditCard,
 	ArrowRight,
 	RefreshCw,
-	Filter
+	Filter,
+	Plus,
+	TrendingUp
 } from 'lucide-react';
 import Link from 'next/link';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
+import { MetricCard } from '@/components/dashboard/metric-card';
 
 export default function DashboardContent() {
 	const dispatch = useAppDispatch();
 	const { items } = useAppSelector((state: RootState) => state.items);
-	const { orders } = useAppSelector((state: RootState) => state.orders);
-	const { bills } = useAppSelector((state: RootState) => state.bills);
 	const { metrics, salesData, loading } = useAppSelector(
 		(state: RootState) => state.analytics
 	);
@@ -49,7 +47,6 @@ export default function DashboardContent() {
 	useEffect(() => {
 		dispatch(fetchItems());
 		dispatch(fetchOrders());
-		dispatch(fetchBills());
 
 		const { startDate, endDate } = getDateRange();
 		dispatch(fetchAnalyticsMetrics());
@@ -63,7 +60,6 @@ export default function DashboardContent() {
 		// Refetch all data
 		dispatch(fetchItems());
 		dispatch(fetchOrders());
-		dispatch(fetchBills());
 
 		const { startDate, endDate } = getDateRange();
 		dispatch(fetchAnalyticsMetrics());
@@ -75,442 +71,273 @@ export default function DashboardContent() {
 		}, 1000);
 	};
 
-	// Calculate metrics
+	// Calculate metrics with proper data
 	const totalRevenue = metrics?.totalSales?.toFixed(2) || '0.00';
-	const totalOrders = orders?.length || 0;
-	const inventoryItems = items?.length || 0;
-	const totalInvoices = bills?.length || 0;
 
-	// Calculate percentages for comparison (defaulting to 0 if not available)
-	const revenueChange = metrics?.conversionRate?.toFixed(1) || 0;
-	const ordersChange =
-		totalOrders > 0 ? ((metrics?.ordersTrend || 0) * 100).toFixed(1) : '0.0';
-	const inventoryChange =
-		items && items.length > 0
-			? (
-					(items.filter(item => item.quantity > 10).length / items.length) *
-						100 -
-					50
-			  ).toFixed(1)
-			: '0.0';
-	const invoicesChange = 7.8; // This could be calculated if we have historical data
+	// Calculate proper trend percentages
+	const revenueChange = metrics?.revenueTrend?.toFixed(1) || '0.0';
+	const ordersChange = metrics?.ordersTrend?.toFixed(1) || '0.0';
+	
+	// Calculate items trend (in stock vs out of stock)
+	const inStockItems = items?.filter(item => item.inStock)?.length || 0;
+	const itemsChange = items && items.length > 0
+		? (((inStockItems / items.length) - 0.85) * 100).toFixed(1) // Compare against 85% target
+		: '0.0';
 
 	return (
-		<div className='flex flex-col space-y-4 md:space-y-6 px-2 sm:px-4 md:px-0'>
+		<div className='space-y-6'>
 			{/* Welcome section */}
-			<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 md:gap-4 animate-slide-up'>
+			<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 animate-slide-up'>
 				<div className='min-w-0 flex-1'>
-					<h1 className='text-2xl md:text-3xl font-bold tracking-tight'>Dashboard</h1>
-					<p className='text-muted-foreground mt-1 md:mt-1.5 text-sm md:text-base'>
-						Welcome back! Here&apos;s what&apos;s happening with your store
-						today.
+					<h1 className='text-2xl md:text-3xl font-bold text-gray-900 tracking-tight'>
+						Dashboard
+					</h1>
+					<p className='text-gray-600 mt-1.5 text-sm md:text-base'>
+						Welcome back! Here&apos;s what&apos;s happening with your store today.
 					</p>
 				</div>
 
-				<div className='flex items-center gap-2 w-full lg:w-auto'>
+				<div className='flex items-center gap-3 w-full lg:w-auto'>
 					<button
-						className='flex-1 lg:flex-none inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background bg-muted hover:bg-muted/80 transition-colors'
 						onClick={handleRefresh}
-						disabled={isRefreshing || loading}>
+						disabled={isRefreshing || loading}
+						className='flex-1 lg:flex-none inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50'
+					>
 						<RefreshCw
 							className={`h-4 w-4 mr-2 ${
 								isRefreshing || loading ? 'animate-spin' : ''
 							}`}
 						/>
-						<span className='hidden sm:inline'>
-							{isRefreshing ? 'Refreshing...' : 'Refresh'}
-						</span>
-						<span className='sm:hidden'>
-							{isRefreshing ? '...' : 'Refresh'}
-						</span>
+						{isRefreshing ? 'Refreshing...' : 'Refresh'}
 					</button>
 
-					<button className='flex-shrink-0 inline-flex items-center justify-center rounded-md w-9 h-9 bg-muted hover:bg-muted/80 transition-colors'>
+					<button className='flex-shrink-0 inline-flex items-center justify-center rounded-lg w-10 h-10 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors'>
 						<Filter className='h-4 w-4' />
 					</button>
 				</div>
 			</div>
 
-			{/* Main metrics grid */}
-			<div className='grid gap-3 sm:gap-4 md:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
-				{/* Revenue Card */}
-				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-4 md:p-6 flex flex-col space-y-2'>
-						<div className='flex justify-between items-start'>
-							<span className='text-sm font-medium text-muted-foreground'>
-								Total Revenue
-							</span>
-							<div className='p-2 rounded-full bg-primary/10'>
-								<DollarSign className='h-4 w-4 text-primary' />
-							</div>
-						</div>
-						<div className='text-xl md:text-2xl font-bold'>
-							{loading ? (
-								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-24 md:w-32'></div>
-							) : (
-								`₹${totalRevenue}`
-							)}
-						</div>
-						<div className='flex items-center text-xs'>
-							<span
-								className={`flex items-center gap-0.5 ${
-									Number(revenueChange) >= 0 ? 'text-green-500' : 'text-red-500'
-								}`}>
-								<svg
-									width='12'
-									height='12'
-									viewBox='0 0 24 24'
-									fill='none'
-									xmlns='http://www.w3.org/2000/svg'>
-									<path
-										d={
-											Number(revenueChange) >= 0
-												? 'M12 19V5M5 12L12 5L19 12'
-												: 'M12 5V19M5 12L12 19L19 12'
-										}
-										stroke='currentColor'
-										strokeWidth='2'
-										strokeLinecap='round'
-										strokeLinejoin='round'
-									/>
-								</svg>
-								{Number(revenueChange) >= 0 ? '+' : ''}
-								{revenueChange}%
-							</span>
-							<span className='text-muted-foreground ml-1.5 hidden sm:inline'>
-								conversion rate
-							</span>
-							<span className='text-muted-foreground ml-1.5 sm:hidden'>
-								conv.
-							</span>
-						</div>
-					</div>
-				</div>
-
-				{/* Orders Card */}
-				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-4 md:p-6 flex flex-col space-y-2'>
-						<div className='flex justify-between items-start'>
-							<span className='text-sm font-medium text-muted-foreground'>
-								Total Orders
-							</span>
-							<div className='p-2 rounded-full bg-blue-500/10'>
-								<ShoppingCart className='h-4 w-4 text-blue-500' />
-							</div>
-						</div>
-						<div className='text-xl md:text-2xl font-bold'>
-							{loading ? (
-								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-12 md:w-16'></div>
-							) : (
-								totalOrders
-							)}
-						</div>
-						<div className='flex items-center text-xs'>
-							<span
-								className={`flex items-center gap-0.5 ${
-									Number(ordersChange) >= 0 ? 'text-green-500' : 'text-red-500'
-								}`}>
-								<svg
-									width='12'
-									height='12'
-									viewBox='0 0 24 24'
-									fill='none'
-									xmlns='http://www.w3.org/2000/svg'>
-									<path
-										d={
-											Number(ordersChange) >= 0
-												? 'M12 19V5M5 12L12 5L19 12'
-												: 'M12 5V19M5 12L12 19L19 12'
-										}
-										stroke='currentColor'
-										strokeWidth='2'
-										strokeLinecap='round'
-										strokeLinejoin='round'
-									/>
-								</svg>
-								{Number(ordersChange) >= 0 ? '+' : ''}
-								{ordersChange}%
-							</span>
-							<span className='text-muted-foreground ml-1.5 hidden sm:inline'>
-								completion rate
-							</span>
-							<span className='text-muted-foreground ml-1.5 sm:hidden'>
-								comp.
-							</span>
-						</div>
-					</div>
-				</div>
-
-				{/* Inventory Card */}
-				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-4 md:p-6 flex flex-col space-y-2'>
-						<div className='flex justify-between items-start'>
-							<span className='text-sm font-medium text-muted-foreground'>
-								Inventory Items
-							</span>
-							<div className='p-2 rounded-full bg-indigo-500/10'>
-								<Package className='h-4 w-4 text-indigo-500' />
-							</div>
-						</div>
-						<div className='text-xl md:text-2xl font-bold'>
-							{loading ? (
-								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-12 md:w-16'></div>
-							) : (
-								inventoryItems
-							)}
-						</div>
-						<div className='flex items-center text-xs'>
-							<span
-								className={`flex items-center gap-0.5 ${
-									Number(inventoryChange) >= 0
-										? 'text-green-500'
-										: 'text-red-500'
-								}`}>
-								<svg
-									width='12'
-									height='12'
-									viewBox='0 0 24 24'
-									fill='none'
-									xmlns='http://www.w3.org/2000/svg'>
-									<path
-										d={
-											Number(inventoryChange) >= 0
-												? 'M12 19V5M5 12L12 5L19 12'
-												: 'M12 5V19M5 12L12 19L19 12'
-										}
-										stroke='currentColor'
-										strokeWidth='2'
-										strokeLinecap='round'
-										strokeLinejoin='round'
-									/>
-								</svg>
-								{Number(inventoryChange) >= 0 ? '+' : ''}
-								{inventoryChange}%
-							</span>
-							<span className='text-muted-foreground ml-1.5'>stock level</span>
-						</div>
-					</div>
-				</div>
-
-				{/* Invoices Card */}
-				<div className='rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all'>
-					<div className='p-4 md:p-6 flex flex-col space-y-2'>
-						<div className='flex justify-between items-start'>
-							<span className='text-sm font-medium text-muted-foreground'>
-								Total Invoices
-							</span>
-							<div className='p-2 rounded-full bg-orange-500/10'>
-								<CreditCard className='h-4 w-4 text-orange-500' />
-							</div>
-						</div>
-						<div className='text-xl md:text-2xl font-bold'>
-							{loading ? (
-								<div className='h-6 md:h-8 bg-muted/50 rounded animate-pulse w-12 md:w-16'></div>
-							) : (
-								totalInvoices
-							)}
-						</div>
-						<div className='flex items-center text-xs'>
-							<span className='text-green-500 flex items-center gap-0.5'>
-								<svg
-									width='12'
-									height='12'
-									viewBox='0 0 24 24'
-									fill='none'
-									xmlns='http://www.w3.org/2000/svg'>
-									<path
-										d='M12 19V5M5 12L12 5L19 12'
-										stroke='currentColor'
-										strokeWidth='2'
-										strokeLinecap='round'
-										strokeLinejoin='round'
-									/>
-								</svg>
-								+{invoicesChange}%
-							</span>
-							<span className='text-muted-foreground ml-1.5 hidden sm:inline'>
-								from last period
-							</span>
-							<span className='text-muted-foreground ml-1.5 sm:hidden'>
-								vs last
-							</span>
-						</div>
-					</div>
-				</div>
+			{/* Main metrics grid - Enhanced responsive design */}
+			<div className='grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 animate-slide-up' style={{ animationDelay: '100ms' }}>
+				<MetricCard
+					title='Total Revenue'
+					value={`₹${totalRevenue}`}
+					change={revenueChange}
+					icon={DollarSign}
+					iconColor='bg-green-100 text-green-600'
+					loading={loading}
+					description='vs last period'
+				/>
+				
+				<MetricCard
+					title='Total Orders'
+					value={metrics?.totalOrders || 0}
+					change={ordersChange}
+					icon={ShoppingCart}
+					iconColor='bg-blue-100 text-blue-600'
+					loading={loading}
+					description='all time orders'
+				/>
+				
+				<MetricCard
+					title='Printed Orders'
+					value={metrics?.printedOrders || 0}
+					change={metrics?.printRate ? `${metrics.printRate.toFixed(1)}%` : '0%'}
+					icon={Package}
+					iconColor='bg-blue-100 text-blue-600'
+					loading={loading}
+					description='print rate'
+				/>
+				
+				<MetricCard
+					title='Items in Stock'
+					value={inStockItems || 0}
+					change={itemsChange}
+					icon={Package}
+					iconColor='bg-orange-100 text-orange-600'
+					loading={loading}
+					description='inventory items'
+				/>
 			</div>
 
-			{/* Recent activity and charts section */}
-			<div className='grid gap-4 md:gap-6 grid-cols-1 xl:grid-cols-7'>
+			{/* Quick actions bar */}
+			<div className='flex flex-wrap gap-3 animate-slide-up' style={{ animationDelay: '200ms' }}>
+				<Link
+					href='/orders/create'
+					className='flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm'
+				>
+					<Plus className='h-4 w-4' />
+					New Order
+				</Link>
+				<Link
+					href='/items/create'
+					className='flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium'
+				>
+					<Package className='h-4 w-4' />
+					Add Item
+				</Link>
+				<Link
+					href='/analytics'
+					className='flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium'
+				>
+					<BarChart3 className='h-4 w-4' />
+					View Analytics
+				</Link>
+			</div>
+
+			{/* Dashboard content grid - Charts and Recent Activity */}
+			<div className='grid gap-6 grid-cols-1 xl:grid-cols-7 animate-slide-up' style={{ animationDelay: '300ms' }}>
 				{/* Chart area */}
-				<div className='xl:col-span-5 rounded-xl border bg-card text-card-foreground shadow-sm'>
-					<div className='p-4 md:p-6'>
-						<div className='flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3'>
-							<h3 className='text-base md:text-lg font-medium'>Sales Overview</h3>
+				<div className='xl:col-span-5'>
+					<div className='bg-white rounded-xl border shadow-sm p-6'>
+						<div className='flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3'>
+							<h3 className='text-lg font-semibold text-gray-900'>Sales Overview</h3>
 							<Link
 								href='/analytics'
-								className='inline-flex items-center text-sm text-blue-500 hover:text-blue-700 transition-colors'>
-								<span className='hidden sm:inline'>View detailed report</span>
-								<span className='sm:hidden'>View report</span>
+								className='inline-flex items-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium'
+							>
+								View detailed report
 								<ArrowRight className='h-4 w-4 ml-1' />
 							</Link>
 						</div>
+						
 						{loading || !salesData?.dailySales ? (
-							<div className='h-[250px] md:h-[300px] flex items-center justify-center bg-muted/30 rounded-lg animate-pulse'>
-								<p className='text-muted-foreground text-sm'>
-									Loading sales data...
-								</p>
+							<div className='h-80 flex items-center justify-center bg-gray-50 rounded-lg'>
+								<div className='text-center'>
+									<div className='animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4'></div>
+									<p className='text-gray-600 text-sm'>Loading sales data...</p>
+								</div>
 							</div>
 						) : salesData.dailySales.length === 0 ? (
-							<div className='h-[250px] md:h-[300px] flex items-center justify-center bg-muted/30 rounded-lg'>
-								<p className='text-muted-foreground text-sm text-center'>
-									No sales data available for the selected period
-								</p>
+							<div className='h-80 flex items-center justify-center bg-gray-50 rounded-lg'>
+								<div className='text-center'>
+									<TrendingUp className='h-12 w-12 text-gray-400 mx-auto mb-4' />
+									<h4 className='text-lg font-medium text-gray-900 mb-2'>No Sales Data</h4>
+									<p className='text-gray-600 text-sm'>
+										No sales data available for the selected period
+									</p>
+								</div>
 							</div>
 						) : (
-							<div className='h-[250px] md:h-[300px] flex items-center justify-center bg-muted/30 rounded-lg'>
-								<p className='text-muted-foreground text-sm text-center'>
-									{salesData.dailySales.length} days of sales data loaded
-								</p>
+							<div className='h-80 flex items-center justify-center bg-gray-50 rounded-lg'>
+								<div className='text-center'>
+									<BarChart3 className='h-12 w-12 text-blue-600 mx-auto mb-4' />
+									<h4 className='text-lg font-medium text-gray-900 mb-2'>Chart Coming Soon</h4>
+									<p className='text-gray-600 text-sm'>
+										{salesData.dailySales.length} days of sales data ready for visualization
+									</p>
+								</div>
 							</div>
 						)}
 					</div>
 				</div>
 
-				{/* Activity stats */}
-				<div className='xl:col-span-2 rounded-xl border bg-card text-card-foreground shadow-sm'>
-					<div className='p-4 md:p-6'>
-						<h3 className='text-base md:text-lg font-medium mb-4'>Activity</h3>
-
-						{loading ? (
-							// Loading skeleton
-							<div className='space-y-4'>
-								{[...Array(4)].map((_, i) => (
-									<div key={i} className='flex items-center justify-between'>
-										<div className='flex items-center gap-2'>
-											<div className='w-2 h-2 rounded-full bg-muted'></div>
-											<div className='h-4 w-20 md:w-24 bg-muted/50 rounded animate-pulse'></div>
+				{/* Activity sidebar */}
+				<div className='xl:col-span-2'>
+					<div className='bg-white rounded-xl border shadow-sm p-6'>
+						<h3 className='text-lg font-semibold text-gray-900 mb-6'>Quick Stats</h3>
+						
+						<div className='space-y-4'>
+							{/* Total Orders Summary */}
+							{metrics && (
+								<div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
+									<div className='flex items-center justify-between mb-2'>
+										<h4 className='text-sm font-medium text-blue-800'>All Orders</h4>
+										<ShoppingCart className='h-5 w-5 text-blue-600' />
+									</div>
+									<div className='space-y-1 text-xs text-blue-600'>
+										<div className='flex justify-between'>
+											<span>Total Orders:</span>
+											<span className='font-medium'>{metrics.totalOrders}</span>
 										</div>
-										<div className='h-4 w-12 md:w-16 bg-muted/50 rounded animate-pulse'></div>
+										<div className='flex justify-between'>
+											<span>Avg Order Value:</span>
+											<span className='font-medium'>₹{metrics.averageOrderValue?.toFixed(2) || '0.00'}</span>
+										</div>
 									</div>
-								))}
+								</div>
+							)}
+
+							{/* Print Status Breakdown */}
+							{metrics?.printStatusBreakdown && (
+								<div className='p-4 bg-cyan-50 border border-cyan-200 rounded-lg'>
+									<div className='flex items-center justify-between mb-2'>
+										<h4 className='text-sm font-medium text-cyan-800'>Print Status</h4>
+										<Package className='h-5 w-5 text-cyan-600' />
+									</div>
+									<div className='space-y-1 text-xs text-cyan-600'>
+										<div className='flex justify-between'>
+											<span>Printed:</span>
+											<span className='font-medium'>{metrics.printStatusBreakdown.printed}</span>
+										</div>
+										<div className='flex justify-between'>
+											<span>Unprinted:</span>
+											<span className='font-medium'>{metrics.printStatusBreakdown.unprinted}</span>
+										</div>
+									</div>
+								</div>
+							)}
+
+							{/* Low Stock Alert */}
+							{items && items.filter(item => !item.inStock).length > 0 && (
+								<div className='p-4 bg-red-50 border border-red-200 rounded-lg'>
+									<div className='flex items-center justify-between'>
+										<div>
+											<h4 className='text-sm font-medium text-red-800'>Low Stock Alert</h4>
+											<p className='text-xs text-red-600 mt-1'>
+												{items.filter(item => !item.inStock).length} items out of stock
+											</p>
+										</div>
+										<Package className='h-5 w-5 text-red-600' />
+									</div>
+								</div>
+							)}
+
+							{/* Revenue Growth */}
+							<div className='p-4 bg-green-50 border border-green-200 rounded-lg'>
+								<div className='flex items-center justify-between'>
+									<div>
+										<h4 className='text-sm font-medium text-green-800'>Revenue Growth</h4>
+										<p className='text-xs text-green-600 mt-1'>
+											{Number(revenueChange) >= 0 ? '+' : ''}{revenueChange}% vs last period
+										</p>
+									</div>
+									<TrendingUp className='h-5 w-5 text-green-600' />
+								</div>
 							</div>
-						) : (
-							<div className='space-y-3 md:space-y-4'>
-								<div className='flex items-center justify-between'>
-									<div className='flex items-center gap-2'>
-										<div className='w-2 h-2 rounded-full bg-primary'></div>
-										<span className='text-sm font-medium'>New Orders</span>
-									</div>
-									<div className='font-bold text-sm md:text-base'>
-										{orders.filter(order => order.status === 'PENDING').length}
-									</div>
-								</div>
+						</div>
 
-								<div className='flex items-center justify-between'>
-									<div className='flex items-center gap-2'>
-										<div className='w-2 h-2 rounded-full bg-blue-500'></div>
-										<span className='text-sm font-medium'>Items Sold</span>
-									</div>
-									<div className='font-bold text-sm md:text-base'>
-										{orders.reduce(
-											(
-												total: number,
-												order: { orderItems: Array<{ quantity: number }> }
-											) =>
-												total +
-												order.orderItems.reduce(
-													(sum: number, item: { quantity: number }) =>
-														sum + item.quantity,
-													0
-												),
-											0
-										)}
-									</div>
-								</div>
-
-								<div className='flex items-center justify-between'>
-									<div className='flex items-center gap-2'>
-										<div className='w-2 h-2 rounded-full bg-green-500'></div>
-										<span className='text-sm font-medium'>Revenue</span>
-									</div>
-									<div className='font-bold text-sm md:text-base'>₹{totalRevenue}</div>
-								</div>
-
-								<div className='flex items-center justify-between'>
-									<div className='flex items-center gap-2'>
-										<div className='w-2 h-2 rounded-full bg-orange-500'></div>
-										<span className='text-sm font-medium'>Out of Stock</span>
-									</div>
-									<div className='font-bold text-sm md:text-base'>
-										{items.filter(item => item.inStock === false).length}
-									</div>
-								</div>
+						{/* Quick Actions */}
+						<div className='mt-6 pt-6 border-t'>
+							<h4 className='text-sm font-medium text-gray-900 mb-3'>Quick Actions</h4>
+							<div className='space-y-2'>
+								<Link
+									href='/orders'
+									className='block text-sm text-gray-600 hover:text-gray-900 transition-colors py-1'
+								>
+									View all orders
+								</Link>
+								<Link
+									href='/items'
+									className='block text-sm text-gray-600 hover:text-gray-900 transition-colors py-1'
+								>
+									Manage inventory
+								</Link>
+								<Link
+									href='/settings'
+									className='block text-sm text-gray-600 hover:text-gray-900 transition-colors py-1'
+								>
+									Store settings
+								</Link>
 							</div>
-						)}
+						</div>
 					</div>
 				</div>
 			</div>
 
 			{/* Recent Orders */}
-			<RecentOrders limit={5} variant='glass' />
-
-			{/* Quick actions */}
-			<div className='grid gap-3 md:gap-5 grid-cols-2 lg:grid-cols-4'>
-				<Link
-					href='/orders/create'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
-					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-2 md:p-3 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors'>
-							<ShoppingCart className='h-5 w-5 md:h-6 md:w-6 text-blue-500' />
-						</div>
-						<h3 className='font-medium text-sm md:text-base'>New Order</h3>
-						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
-							Create a new customer order
-						</p>
-					</div>
-				</Link>
-
-				<Link
-					href='/items'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
-					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-2 md:p-3 bg-indigo-500/10 rounded-full group-hover:bg-indigo-500/20 transition-colors'>
-							<Package className='h-5 w-5 md:h-6 md:w-6 text-indigo-500' />
-						</div>
-						<h3 className='font-medium text-sm md:text-base'>Add Product</h3>
-						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
-							Add a new product to inventory
-						</p>
-					</div>
-				</Link>
-
-				<Link
-					href='/bills'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
-					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-2 md:p-3 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors'>
-							<Users className='h-5 w-5 md:h-6 md:w-6 text-green-500' />
-						</div>
-						<h3 className='font-medium text-sm md:text-base'>Customers</h3>
-						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
-							Manage your customer database
-						</p>
-					</div>
-				</Link>
-
-				<Link
-					href='/settings'
-					className='group rounded-xl border bg-card text-card-foreground shadow-sm p-4 md:p-6 hover:shadow-md transition-all'>
-					<div className='flex flex-col items-center text-center space-y-2'>
-						<div className='p-2 md:p-3 bg-orange-500/10 rounded-full group-hover:bg-orange-500/20 transition-colors'>
-							<BarChart3 className='h-5 w-5 md:h-6 md:w-6 text-orange-500' />
-						</div>
-						<h3 className='font-medium text-sm md:text-base'>Reports</h3>
-						<p className='text-xs md:text-sm text-muted-foreground hidden sm:block'>
-							View analytics and reports
-						</p>
-					</div>
-				</Link>
+			<div className='animate-slide-up' style={{ animationDelay: '400ms' }}>
+				<RecentOrders />
 			</div>
 		</div>
 	);
