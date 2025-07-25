@@ -3,8 +3,8 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { RootState } from '@/lib/redux/store';
-import { 
-	fetchItems, 
+import {
+	fetchItems,
 	fetchCategories,
 	createCategory,
 	addItemToCategory,
@@ -24,7 +24,7 @@ import {
 	Grid3X3,
 	List,
 	ChevronDown,
-	ChevronRight,  
+	ChevronRight,
 	Tag,
 	Trash2,
 	Edit3,
@@ -50,10 +50,26 @@ import { toast } from 'react-toastify';
 
 // Category color palette
 const CATEGORY_COLORS = [
-	'#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
-	'#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
-	'#3b82f6', '#1d4ed8', '#1e40af', '#1e3a8a', '#1e3a8a',
-	'#ec4899', '#f43f5e', '#64748b', '#6b7280', '#374151'
+	'#ef4444',
+	'#f97316',
+	'#f59e0b',
+	'#eab308',
+	'#84cc16',
+	'#22c55e',
+	'#10b981',
+	'#14b8a6',
+	'#06b6d4',
+	'#0ea5e9',
+	'#3b82f6',
+	'#1d4ed8',
+	'#1e40af',
+	'#1e3a8a',
+	'#1e3a8a',
+	'#ec4899',
+	'#f43f5e',
+	'#64748b',
+	'#6b7280',
+	'#374151'
 ];
 
 // Drag types
@@ -62,32 +78,35 @@ const ItemTypes = {
 };
 
 // Draggable Item Component
-function DraggableItem({ 
-	item, 
-	categoryId, 
-	onDragStart, 
-	onDragEnd 
-}: { 
-	item: Item; 
+function DraggableItem({
+	item,
+	categoryId,
+	onDragStart,
+	onDragEnd
+}: {
+	item: Item;
 	categoryId?: string;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
 }) {
 	const ref = useRef<HTMLDivElement>(null);
-	
-	const [{ isDragging }, drag] = useDrag(() => ({
-		type: ItemTypes.ITEM,
-		item: () => {
-			onDragStart?.({ id: item.id, categoryId });
-			return { id: item.id, categoryId };
-		},
-		end: () => {
-			onDragEnd?.();
-		},
-		collect: (monitor) => ({
-			isDragging: monitor.isDragging(),
+
+	const [{ isDragging }, drag] = useDrag(
+		() => ({
+			type: ItemTypes.ITEM,
+			item: () => {
+				onDragStart?.({ id: item.id, categoryId });
+				return { id: item.id, categoryId };
+			},
+			end: () => {
+				onDragEnd?.();
+			},
+			collect: monitor => ({
+				isDragging: monitor.isDragging()
+			})
 		}),
-	}), [item.id, categoryId, onDragStart, onDragEnd]);
+		[item.id, categoryId, onDragStart, onDragEnd]
+	);
 
 	drag(ref);
 
@@ -100,17 +119,19 @@ function DraggableItem({
 		<div
 			ref={ref}
 			className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${
-				isDragging 
-					? 'opacity-40 shadow-lg border-blue-400 transform rotate-2 scale-105 cursor-grabbing' 
+				isDragging
+					? 'opacity-40 shadow-lg border-emerald-400 transform rotate-2 scale-105 cursor-grabbing'
 					: 'cursor-grab hover:cursor-grab'
-			}`}
-		>
+			}`}>
 			<div className='p-4'>
 				<div className='flex items-start justify-between mb-3'>
 					<div className='flex-1 min-w-0'>
-						<h3 className='font-semibold text-gray-900 truncate'>{item.name}</h3>
+						<h3 className='font-semibold text-gray-900 truncate'>
+							{item.name}
+						</h3>
 						<p className='text-sm text-gray-600 mt-1'>
-							Serving: {item.quantity} {item.weightUnit && `• ${item.weight}${item.weightUnit}`}
+							Serving: {item.quantity}{' '}
+							{item.weightUnit && `• ${item.weight}${item.weightUnit}`}
 						</p>
 					</div>
 					<div className='opacity-60 group-hover:opacity-100 transition-opacity p-2 hover:bg-gray-100 rounded-md cursor-grab active:cursor-grabbing'>
@@ -123,11 +144,13 @@ function DraggableItem({
 						<span className='text-lg font-bold text-gray-900'>
 							{formatPrice(item.price)}
 						</span>
-						<Badge variant={item.inStock ? 'default' : 'destructive'} className='text-xs'>
+						<Badge
+							variant={item.inStock ? 'default' : 'destructive'}
+							className='text-xs'>
 							{item.inStock ? 'In Stock' : 'Out of Stock'}
 						</Badge>
 					</div>
-					
+
 					<div className='flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
 						<EditItemDialog item={item}>
 							<Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
@@ -135,7 +158,10 @@ function DraggableItem({
 							</Button>
 						</EditItemDialog>
 						<DeleteItemButton itemId={item.id} itemName={item.name}>
-							<Button variant='ghost' size='sm' className='h-8 w-8 p-0 text-red-600 hover:text-red-700'>
+							<Button
+								variant='ghost'
+								size='sm'
+								className='h-8 w-8 p-0 text-red-600 hover:text-red-700'>
 								<Trash2 className='h-3 w-3' />
 							</Button>
 						</DeleteItemButton>
@@ -147,16 +173,16 @@ function DraggableItem({
 }
 
 // Category Section Component
-function CategorySection({ 
-	category, 
-	items, 
-	collapsed, 
+function CategorySection({
+	category,
+	items,
+	collapsed,
 	onToggleCollapse,
 	onDragStart,
 	onDragEnd
-}: { 
-	category: Category; 
-	items: Item[]; 
+}: {
+	category: Category;
+	items: Item[];
 	collapsed: boolean;
 	onToggleCollapse: () => void;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
@@ -172,17 +198,21 @@ function CategorySection({
 				try {
 					// Remove from current category if it has one
 					if (draggedItem.categoryId) {
-						await dispatch(removeItemFromCategory({ 
-							categoryId: draggedItem.categoryId, 
-							itemId: draggedItem.id 
-						})).unwrap();
+						await dispatch(
+							removeItemFromCategory({
+								categoryId: draggedItem.categoryId,
+								itemId: draggedItem.id
+							})
+						).unwrap();
 					}
 					// Add to new category
-					await dispatch(addItemToCategory({ 
-						categoryId: category.id, 
-						itemId: draggedItem.id 
-					})).unwrap();
-					
+					await dispatch(
+						addItemToCategory({
+							categoryId: category.id,
+							itemId: draggedItem.id
+						})
+					).unwrap();
+
 					// Refresh data only after successful operations
 					dispatch(fetchItems());
 					dispatch(fetchCategories());
@@ -192,9 +222,9 @@ function CategorySection({
 				}
 			}
 		},
-		collect: (monitor) => ({
-			isOver: monitor.isOver(),
-		}),
+		collect: monitor => ({
+			isOver: monitor.isOver()
+		})
 	}));
 
 	drop(ref);
@@ -203,18 +233,19 @@ function CategorySection({
 		<div
 			ref={ref}
 			className={`rounded-xl border-2 transition-all duration-200 ${
-				isOver 
-					? 'border-blue-400 bg-blue-50 shadow-lg' 
+				isOver
+					? 'border-emerald-400 bg-emerald-50 shadow-lg'
 					: 'border-gray-200 bg-white shadow-sm hover:shadow-md'
-			}`}
-		>
+			}`}>
 			{/* Category Header - Always droppable */}
-			<div className={`p-4 ${collapsed ? '' : 'border-b border-gray-100'} ${isOver && collapsed ? 'bg-blue-50' : ''}`}>
+			<div
+				className={`p-4 ${collapsed ? '' : 'border-b border-gray-100'} ${
+					isOver && collapsed ? 'bg-emerald-50' : ''
+				}`}>
 				<div className='flex items-center justify-between'>
 					<button
 						onClick={onToggleCollapse}
-						className='flex items-center gap-3 flex-1 text-left hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors'
-					>
+						className='flex items-center gap-3 flex-1 text-left hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors'>
 						{collapsed ? (
 							<ChevronRight className='h-4 w-4 text-gray-400' />
 						) : (
@@ -231,13 +262,13 @@ function CategorySection({
 							</p>
 						</div>
 					</button>
-					
+
 					<div className='flex items-center gap-2'>
 						<Badge variant='secondary' className='text-xs'>
 							{items.length}
 						</Badge>
 						{isOver && (
-							<Badge variant='default' className='text-xs bg-blue-500'>
+							<Badge variant='default' className='text-xs bg-emerald-500'>
 								Drop here
 							</Badge>
 						)}
@@ -257,9 +288,9 @@ function CategorySection({
 					) : (
 						<div className='grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
 							{items.map(item => (
-								<DraggableItem 
-									key={item.id} 
-									item={item} 
+								<DraggableItem
+									key={item.id}
+									item={item}
 									categoryId={category.id}
 									onDragStart={onDragStart}
 									onDragEnd={onDragEnd}
@@ -274,11 +305,11 @@ function CategorySection({
 }
 
 // Uncategorized Items Section
-function UncategorizedSection({ 
-	items, 
+function UncategorizedSection({
+	items,
 	onDragStart,
 	onDragEnd
-}: { 
+}: {
 	items: Item[];
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
@@ -291,11 +322,13 @@ function UncategorizedSection({
 		drop: async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId) {
 				try {
-					await dispatch(removeItemFromCategory({ 
-						categoryId: draggedItem.categoryId, 
-						itemId: draggedItem.id 
-					})).unwrap();
-					
+					await dispatch(
+						removeItemFromCategory({
+							categoryId: draggedItem.categoryId,
+							itemId: draggedItem.id
+						})
+					).unwrap();
+
 					// Refresh data only after successful operation
 					dispatch(fetchItems());
 					dispatch(fetchCategories());
@@ -305,9 +338,9 @@ function UncategorizedSection({
 				}
 			}
 		},
-		collect: (monitor) => ({
-			isOver: monitor.isOver(),
-		}),
+		collect: monitor => ({
+			isOver: monitor.isOver()
+		})
 	}));
 
 	drop(ref);
@@ -316,11 +349,10 @@ function UncategorizedSection({
 		<div
 			ref={ref}
 			className={`rounded-xl border-2 transition-all duration-300 ${
-				isOver 
-					? 'border-blue-400 bg-blue-50 shadow-lg' 
+				isOver
+					? 'border-emerald-400 bg-emerald-50 shadow-lg'
 					: 'border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100'
-			}`}
-		>
+			}`}>
 			<div className='p-4 border-b border-gray-200'>
 				<div className='flex items-center gap-3'>
 					<Package className='h-5 w-5 text-gray-400' />
@@ -328,17 +360,19 @@ function UncategorizedSection({
 						<h3 className='font-semibold text-gray-700'>Uncategorized Items</h3>
 						<p className='text-sm text-gray-500 mt-0.5'>
 							{items.length} {items.length === 1 ? 'item' : 'items'}
-							{isOver ? ' • Drop zone' : ' • Drop items here to remove from categories'}
+							{isOver
+								? ' • Drop zone'
+								: ' • Drop items here to remove from categories'}
 						</p>
 					</div>
 					{isOver && (
-						<Badge variant='default' className='text-xs bg-blue-500'>
+						<Badge variant='default' className='text-xs bg-emerald-500'>
 							Drop here
 						</Badge>
 					)}
 				</div>
 			</div>
-			
+
 			<div className='p-4'>
 				{items.length === 0 ? (
 					<div className='text-center py-8 text-gray-500'>
@@ -349,9 +383,9 @@ function UncategorizedSection({
 				) : (
 					<div className='grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
 						{items.map(item => (
-							<DraggableItem 
-								key={item.id} 
-								item={item} 
+							<DraggableItem
+								key={item.id}
+								item={item}
 								onDragStart={onDragStart}
 								onDragEnd={onDragEnd}
 							/>
@@ -366,7 +400,7 @@ function UncategorizedSection({
 // Create Category Dialog
 function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
 	const dispatch = useAppDispatch();
-	const { categories } = useAppSelector((state) => state.items);
+	const { categories } = useAppSelector(state => state.items);
 	const [open, setOpen] = useState(false);
 	const [name, setName] = useState('');
 	const [color, setColor] = useState(CATEGORY_COLORS[0]);
@@ -378,7 +412,9 @@ function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
 
 		setLoading(true);
 		try {
-			await dispatch(createCategory({ name: name.trim(), color, order: categories.length }));
+			await dispatch(
+				createCategory({ name: name.trim(), color, order: categories.length })
+			);
 			setName('');
 			setColor(CATEGORY_COLORS[0]);
 			setOpen(false);
@@ -390,9 +426,7 @@ function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				{children}
-			</DialogTrigger>
+			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent className='sm:max-w-md'>
 				<DialogHeader>
 					<DialogTitle>Create New Category</DialogTitle>
@@ -407,7 +441,7 @@ function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
 							<Input
 								id='name'
 								value={name}
-								onChange={(e) => setName(e.target.value)}
+								onChange={e => setName(e.target.value)}
 								placeholder='e.g., Beverages, Snacks, etc.'
 								className='mt-1'
 								autoFocus
@@ -416,13 +450,15 @@ function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
 						<div>
 							<Label>Category Color</Label>
 							<div className='grid grid-cols-10 gap-2 mt-2'>
-								{CATEGORY_COLORS.map((c) => (
+								{CATEGORY_COLORS.map(c => (
 									<button
 										key={c}
 										type='button'
 										onClick={() => setColor(c)}
 										className={`w-6 h-6 rounded-full transition-all ${
-											color === c ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105'
+											color === c
+												? 'ring-2 ring-offset-2 ring-gray-400 scale-110'
+												: 'hover:scale-105'
 										}`}
 										style={{ backgroundColor: c }}
 									/>
@@ -431,7 +467,10 @@ function CreateCategoryDialog({ children }: { children: React.ReactNode }) {
 						</div>
 					</div>
 					<DialogFooter>
-						<Button type='button' variant='outline' onClick={() => setOpen(false)}>
+						<Button
+							type='button'
+							variant='outline'
+							onClick={() => setOpen(false)}>
 							Cancel
 						</Button>
 						<Button type='submit' disabled={!name.trim() || loading}>
@@ -454,7 +493,9 @@ function ItemsPageContent() {
 	// Local state
 	const [searchTerm, setSearchTerm] = useState('');
 	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-	const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+	const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+		new Set()
+	);
 
 	// Load data
 	useEffect(() => {
@@ -463,39 +504,41 @@ function ItemsPageContent() {
 	}, [dispatch]);
 
 	// Filter and organize items with useMemo
-	const { categorizedItems, uncategorizedItems, filteredCategories } = useMemo(() => {
-		// Filter items by search - only search items, not categories
-		const filtered = items.filter(item =>
-			item.name.toLowerCase().includes(searchTerm.toLowerCase())
-		);
+	const { categorizedItems, uncategorizedItems, filteredCategories } =
+		useMemo(() => {
+			// Filter items by search - only search items, not categories
+			const filtered = items.filter(item =>
+				item.name.toLowerCase().includes(searchTerm.toLowerCase())
+			);
 
-		// Group items by category
-		const itemsByCategory: Record<string, Item[]> = {};
-		const uncategorized: Item[] = [];
+			// Group items by category
+			const itemsByCategory: Record<string, Item[]> = {};
+			const uncategorized: Item[] = [];
 
-		filtered.forEach(item => {
-			if (item.categories && item.categories.length > 0) {
-				item.categories.forEach(cat => {
-					if (!itemsByCategory[cat.categoryId]) {
-						itemsByCategory[cat.categoryId] = [];
-					}
-					itemsByCategory[cat.categoryId].push(item);
-				});
-			} else {
-				uncategorized.push(item);
-			}
-		});
+			filtered.forEach(item => {
+				if (item.categories && item.categories.length > 0) {
+					item.categories.forEach(cat => {
+						if (!itemsByCategory[cat.categoryId]) {
+							itemsByCategory[cat.categoryId] = [];
+						}
+						itemsByCategory[cat.categoryId].push(item);
+					});
+				} else {
+					uncategorized.push(item);
+				}
+			});
 
-		// Show all categories, but filter items within them when searching
-		const sortedCategories = categories
-			.sort((a, b) => a.name.localeCompare(b.name));
+			// Show all categories, but filter items within them when searching
+			const sortedCategories = categories.sort((a, b) =>
+				a.name.localeCompare(b.name)
+			);
 
-		return {
-			categorizedItems: itemsByCategory,
-			uncategorizedItems: uncategorized,
-			filteredCategories: sortedCategories
-		};
-	}, [items, categories, searchTerm]);
+			return {
+				categorizedItems: itemsByCategory,
+				uncategorizedItems: uncategorized,
+				filteredCategories: sortedCategories
+			};
+		}, [items, categories, searchTerm]);
 
 	// Toggle category collapse
 	const toggleCategoryCollapse = useCallback((categoryId: string) => {
@@ -512,9 +555,12 @@ function ItemsPageContent() {
 
 	// Drag handlers - keeping empty for compatibility with DraggableItem components
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const handleDragStart = useCallback((_item: { id: string; categoryId?: string }) => {
-		// No longer needed for uncategorized section collapse
-	}, []);
+	const handleDragStart = useCallback(
+		(_item: { id: string; categoryId?: string }) => {
+			// No longer needed for uncategorized section collapse
+		},
+		[]
+	);
 
 	const handleDragEnd = useCallback(() => {
 		// No longer needed for uncategorized section collapse
@@ -524,7 +570,7 @@ function ItemsPageContent() {
 		return (
 			<div className='flex items-center justify-center min-h-[400px]'>
 				<div className='text-center'>
-					<div className='animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4'></div>
+					<div className='animate-spin h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full mx-auto mb-4'></div>
 					<p className='text-gray-600'>Loading items...</p>
 				</div>
 			</div>
@@ -551,7 +597,7 @@ function ItemsPageContent() {
 						<Input
 							placeholder='Search items...'
 							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
+							onChange={e => setSearchTerm(e.target.value)}
 							className='pl-10'
 						/>
 					</div>
@@ -562,16 +608,14 @@ function ItemsPageContent() {
 							variant={viewMode === 'grid' ? 'default' : 'ghost'}
 							size='sm'
 							onClick={() => setViewMode('grid')}
-							className='h-8 px-3'
-						>
+							className='h-8 px-3'>
 							<Grid3X3 className='h-4 w-4' />
 						</Button>
 						<Button
 							variant={viewMode === 'list' ? 'default' : 'ghost'}
 							size='sm'
 							onClick={() => setViewMode('list')}
-							className='h-8 px-3'
-						>
+							className='h-8 px-3'>
 							<List className='h-4 w-4' />
 						</Button>
 					</div>
@@ -600,7 +644,9 @@ function ItemsPageContent() {
 					<div className='text-sm text-gray-600'>Total Items</div>
 				</div>
 				<div className='bg-white rounded-lg border p-4'>
-					<div className='text-2xl font-bold text-gray-900'>{categories.length}</div>
+					<div className='text-2xl font-bold text-gray-900'>
+						{categories.length}
+					</div>
 					<div className='text-sm text-gray-600'>Categories</div>
 				</div>
 				<div className='bg-white rounded-lg border p-4'>
@@ -620,7 +666,7 @@ function ItemsPageContent() {
 			{/* Items with React DnD */}
 			<div className='space-y-6'>
 				{/* Uncategorized Items Section - Always visible at top */}
-				<UncategorizedSection 
+				<UncategorizedSection
 					items={uncategorizedItems}
 					onDragStart={handleDragStart}
 					onDragEnd={handleDragEnd}
@@ -644,7 +690,9 @@ function ItemsPageContent() {
 			{items.length === 0 && !loading && (
 				<div className='text-center py-12'>
 					<Package className='h-16 w-16 mx-auto mb-4 text-gray-400' />
-					<h3 className='text-lg font-medium text-gray-900 mb-2'>No items found</h3>
+					<h3 className='text-lg font-medium text-gray-900 mb-2'>
+						No items found
+					</h3>
 					<p className='text-gray-600 mb-6'>
 						Get started by adding your first item to the inventory.
 					</p>

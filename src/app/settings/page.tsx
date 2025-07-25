@@ -21,19 +21,19 @@ import {
 	updateSettings
 } from '@/lib/redux/slices/settings.slice';
 import { Settings } from '@/types';
-import { 
-	scanForPrinters, 
-	connectToPrinter, 
-	testPrinter, 
+import {
+	scanForPrinters,
+	connectToPrinter,
+	testPrinter,
 	autoConnectPrinter,
 	debugBluetoothSupport,
-	type PrinterDevice 
+	type PrinterDevice
 } from '@/lib/utils/printer-utils';
-import { 
-	Loader2, 
-	Printer, 
-	Wifi, 
-	WifiOff, 
+import {
+	Loader2,
+	Printer,
+	Wifi,
+	WifiOff,
 	Settings as SettingsIcon,
 	Bell,
 	Store,
@@ -75,8 +75,12 @@ export default function SettingsPage() {
 	);
 	const [formState, setFormState] = useState<Settings>(defaultSettings);
 	const [printerLoading, setPrinterLoading] = useState(false);
-	const [availablePrinters, setAvailablePrinters] = useState<PrinterDevice[]>([]);
-	const [printerStatus, setPrinterStatus] = useState<'online' | 'offline' | 'error' | 'checking'>('offline');
+	const [availablePrinters, setAvailablePrinters] = useState<PrinterDevice[]>(
+		[]
+	);
+	const [printerStatus, setPrinterStatus] = useState<
+		'online' | 'offline' | 'error' | 'checking'
+	>('offline');
 
 	// Load settings on component mount
 	useEffect(() => {
@@ -88,7 +92,7 @@ export default function SettingsPage() {
 		if (!settings?.printer?.autoConnect || !settings.printer.deviceId) {
 			return;
 		}
-		
+
 		setPrinterStatus('checking');
 		try {
 			const connected = await autoConnectPrinter();
@@ -100,7 +104,7 @@ export default function SettingsPage() {
 						connected: true
 					}
 				};
-				
+
 				setFormState(prev => ({
 					...prev,
 					printer: {
@@ -109,7 +113,7 @@ export default function SettingsPage() {
 					}
 				}));
 				setPrinterStatus('online');
-				
+
 				// Save the connected state to database
 				try {
 					await dispatch(updateSettings(updatedSettings)).unwrap();
@@ -153,7 +157,7 @@ export default function SettingsPage() {
 				}
 			};
 			setFormState(safeSettings);
-			
+
 			// Set initial printer status
 			if (safeSettings.printer?.connected && safeSettings.printer?.deviceId) {
 				setPrinterStatus('online');
@@ -198,9 +202,12 @@ export default function SettingsPage() {
 			...prev,
 			printer: {
 				...prev.printer,
-				[name]: name === 'port' || name === 'paperWidth' 
-					? isNaN(parseInt(value)) ? 0 : parseInt(value)
-					: value
+				[name]:
+					name === 'port' || name === 'paperWidth'
+						? isNaN(parseInt(value))
+							? 0
+							: parseInt(value)
+						: value
 			}
 		}));
 	};
@@ -220,13 +227,13 @@ export default function SettingsPage() {
 		try {
 			// Debug bluetooth support before scanning
 			debugBluetoothSupport();
-			
+
 			const discoveredPrinters = await scanForPrinters();
 			setAvailablePrinters(discoveredPrinters);
 			toast.success(`Found ${discoveredPrinters.length} available printers`);
 		} catch (error) {
 			console.error('Printer scan failed:', error);
-			
+
 			// Show detailed error message
 			if (error instanceof Error) {
 				toast.error(error.message);
@@ -242,9 +249,9 @@ export default function SettingsPage() {
 		setPrinterLoading(true);
 		try {
 			// Use the printer device directly
-			
+
 			const connected = await connectToPrinter(printer);
-			
+
 			if (connected) {
 				setFormState(prev => ({
 					...prev,
@@ -260,7 +267,9 @@ export default function SettingsPage() {
 			}
 		} catch (error) {
 			console.error('Printer connection failed:', error);
-			toast.error(error instanceof Error ? error.message : 'Failed to connect to printer');
+			toast.error(
+				error instanceof Error ? error.message : 'Failed to connect to printer'
+			);
 		} finally {
 			setPrinterLoading(false);
 		}
@@ -272,13 +281,15 @@ export default function SettingsPage() {
 			if (!formState.printer?.connected || !formState.printer.deviceId) {
 				throw new Error('Printer is not connected');
 			}
-			
+
 			// For testing, we need to create a printer device based on available printers
-			const connectedPrinter = availablePrinters.find(p => p.id === formState.printer?.deviceId);
+			const connectedPrinter = availablePrinters.find(
+				p => p.id === formState.printer?.deviceId
+			);
 			if (!connectedPrinter) {
 				throw new Error('Connected printer not found in available printers');
 			}
-			
+
 			await testPrinter(connectedPrinter);
 			toast.success('Test print sent successfully');
 		} catch (error) {
@@ -293,9 +304,13 @@ export default function SettingsPage() {
 		try {
 			await dispatch(updateSettings(formState)).unwrap();
 			toast.success('Settings saved successfully');
-			
+
 			// If auto-connect is enabled and we have printer settings, try to connect
-			if (formState.printer?.autoConnect && formState.printer?.deviceId && !formState.printer?.connected) {
+			if (
+				formState.printer?.autoConnect &&
+				formState.printer?.deviceId &&
+				!formState.printer?.connected
+			) {
 				handleAutoConnect();
 			}
 		} catch (err) {
@@ -309,15 +324,18 @@ export default function SettingsPage() {
 			{/* Header */}
 			<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4'>
 				<div>
-					<h1 className='text-2xl md:text-3xl font-bold text-gray-900'>Settings</h1>
-					<p className='text-gray-600 mt-1'>Configure your store, printers, and preferences</p>
+					<h1 className='text-2xl md:text-3xl font-bold text-gray-900'>
+						Settings
+					</h1>
+					<p className='text-gray-600 mt-1'>
+						Configure your store, printers, and preferences
+					</p>
 				</div>
 				<div className='flex items-center gap-3'>
-					<Button 
-						onClick={handleSaveSettings} 
+					<Button
+						onClick={handleSaveSettings}
 						disabled={loading}
-						className='gap-2'
-					>
+						className='gap-2'>
 						{loading ? (
 							<>
 								<Loader2 className='h-4 w-4 animate-spin' />
@@ -335,15 +353,21 @@ export default function SettingsPage() {
 
 			<Tabs defaultValue='store' className='w-full'>
 				<TabsList className='grid w-full grid-cols-3 mb-4 md:mb-6'>
-					<TabsTrigger value='store' className='text-xs md:text-sm gap-1 md:gap-2'>
+					<TabsTrigger
+						value='store'
+						className='text-xs md:text-sm gap-1 md:gap-2'>
 						<Store className='h-3 w-3 md:h-4 md:w-4' />
 						<span className='hidden sm:inline'>Store</span>
 					</TabsTrigger>
-					<TabsTrigger value='printer' className='text-xs md:text-sm gap-1 md:gap-2'>
+					<TabsTrigger
+						value='printer'
+						className='text-xs md:text-sm gap-1 md:gap-2'>
 						<Printer className='h-3 w-3 md:h-4 md:w-4' />
 						<span className='hidden sm:inline'>Printer</span>
 					</TabsTrigger>
-					<TabsTrigger value='notifications' className='text-xs md:text-sm gap-1 md:gap-2'>
+					<TabsTrigger
+						value='notifications'
+						className='text-xs md:text-sm gap-1 md:gap-2'>
 						<Bell className='h-3 w-3 md:h-4 md:w-4' />
 						<span className='hidden sm:inline'>Notifications</span>
 					</TabsTrigger>
@@ -354,7 +378,7 @@ export default function SettingsPage() {
 					<Card className='border-gray-200'>
 						<CardHeader className='border-b border-gray-100'>
 							<CardTitle className='text-lg lg:text-xl flex items-center gap-2'>
-								<Store className='h-5 w-5 text-blue-600' />
+								<Store className='h-5 w-5 text-emerald-600' />
 								Store Information
 							</CardTitle>
 							<CardDescription>
@@ -366,7 +390,9 @@ export default function SettingsPage() {
 								{/* Store Name & Currency */}
 								<div className='grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6'>
 									<div className='space-y-2'>
-										<Label htmlFor='storeName' className='text-sm font-medium'>Store Name *</Label>
+										<Label htmlFor='storeName' className='text-sm font-medium'>
+											Store Name *
+										</Label>
 										<Input
 											id='storeName'
 											name='storeName'
@@ -377,7 +403,9 @@ export default function SettingsPage() {
 										/>
 									</div>
 									<div className='space-y-2'>
-										<Label htmlFor='currency' className='text-sm font-medium'>Currency</Label>
+										<Label htmlFor='currency' className='text-sm font-medium'>
+											Currency
+										</Label>
 										<Input
 											id='currency'
 											name='currency'
@@ -391,7 +419,9 @@ export default function SettingsPage() {
 
 								{/* Address */}
 								<div className='space-y-2'>
-									<Label htmlFor='address' className='text-sm font-medium'>Business Address</Label>
+									<Label htmlFor='address' className='text-sm font-medium'>
+										Business Address
+									</Label>
 									<Input
 										id='address'
 										name='address'
@@ -405,7 +435,9 @@ export default function SettingsPage() {
 								{/* Contact Info */}
 								<div className='grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6'>
 									<div className='space-y-2'>
-										<Label htmlFor='phone' className='text-sm font-medium'>Phone Number</Label>
+										<Label htmlFor='phone' className='text-sm font-medium'>
+											Phone Number
+										</Label>
 										<Input
 											id='phone'
 											name='phone'
@@ -416,7 +448,9 @@ export default function SettingsPage() {
 										/>
 									</div>
 									<div className='space-y-2'>
-										<Label htmlFor='email' className='text-sm font-medium'>Email Address</Label>
+										<Label htmlFor='email' className='text-sm font-medium'>
+											Email Address
+										</Label>
 										<Input
 											id='email'
 											name='email'
@@ -432,7 +466,9 @@ export default function SettingsPage() {
 								{/* Tax & Footer */}
 								<div className='grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6'>
 									<div className='space-y-2'>
-										<Label htmlFor='taxRate' className='text-sm font-medium'>Default Tax Rate (%)</Label>
+										<Label htmlFor='taxRate' className='text-sm font-medium'>
+											Default Tax Rate (%)
+										</Label>
 										<Input
 											id='taxRate'
 											name='taxRate'
@@ -452,7 +488,9 @@ export default function SettingsPage() {
 										/>
 									</div>
 									<div className='space-y-2'>
-										<Label htmlFor='footer' className='text-sm font-medium'>Receipt Footer Message</Label>
+										<Label htmlFor='footer' className='text-sm font-medium'>
+											Receipt Footer Message
+										</Label>
 										<Input
 											id='footer'
 											name='footer'
@@ -515,12 +553,11 @@ export default function SettingsPage() {
 											</p>
 										</div>
 										<div className='flex items-center gap-2'>
-											<Button 
-												variant='outline' 
-												size='sm' 
+											<Button
+												variant='outline'
+												size='sm'
 												onClick={handleTestPrint}
-												disabled={printerLoading}
-											>
+												disabled={printerLoading}>
 												{printerLoading ? (
 													<Loader2 className='h-4 w-4 animate-spin' />
 												) : (
@@ -534,7 +571,9 @@ export default function SettingsPage() {
 								<div className='bg-gray-50 border border-gray-200 rounded-lg p-4'>
 									<div className='text-center'>
 										<Printer className='h-12 w-12 mx-auto text-gray-400 mb-3' />
-										<h3 className='font-medium text-gray-900 mb-1'>No Printer Connected</h3>
+										<h3 className='font-medium text-gray-900 mb-1'>
+											No Printer Connected
+										</h3>
 										<p className='text-sm text-gray-600'>
 											Scan for available thermal printers on your network
 										</p>
@@ -548,7 +587,7 @@ export default function SettingsPage() {
 					<Card className='border-gray-200'>
 						<CardHeader className='border-b border-gray-100'>
 							<CardTitle className='text-lg lg:text-xl flex items-center gap-2'>
-								<Search className='h-5 w-5 text-blue-600' />
+								<Search className='h-5 w-5 text-emerald-600' />
 								Discover Printers
 							</CardTitle>
 							<CardDescription>
@@ -557,11 +596,10 @@ export default function SettingsPage() {
 						</CardHeader>
 						<CardContent className='p-4 lg:p-6'>
 							<div className='space-y-4'>
-								<Button 
-									onClick={handleScanPrinters} 
+								<Button
+									onClick={handleScanPrinters}
 									disabled={printerLoading}
-									className='w-full sm:w-auto gap-2'
-								>
+									className='w-full sm:w-auto gap-2'>
 									{printerLoading ? (
 										<>
 											<Loader2 className='h-4 w-4 animate-spin' />
@@ -577,9 +615,13 @@ export default function SettingsPage() {
 
 								{availablePrinters.length > 0 && (
 									<div className='space-y-3'>
-										<h4 className='font-medium text-gray-900'>Available Printers:</h4>
+										<h4 className='font-medium text-gray-900'>
+											Available Printers:
+										</h4>
 										{availablePrinters.map((printer, index) => (
-											<div key={index} className='flex items-center justify-between p-3 border border-gray-200 rounded-lg'>
+											<div
+												key={index}
+												className='flex items-center justify-between p-3 border border-gray-200 rounded-lg'>
 												<div className='flex items-center gap-3'>
 													{printer.status === 'online' ? (
 														<Wifi className='h-4 w-4 text-green-500' />
@@ -587,21 +629,29 @@ export default function SettingsPage() {
 														<WifiOff className='h-4 w-4 text-red-500' />
 													)}
 													<div>
-														<p className='font-medium text-gray-900'>{printer.name}</p>
-														<p className='text-sm text-gray-600'>{printer.id}</p>
+														<p className='font-medium text-gray-900'>
+															{printer.name}
+														</p>
+														<p className='text-sm text-gray-600'>
+															{printer.id}
+														</p>
 													</div>
-													<Badge 
-														variant={printer.status === 'online' ? 'default' : 'destructive'}
-														className='text-xs'
-													>
+													<Badge
+														variant={
+															printer.status === 'online'
+																? 'default'
+																: 'destructive'
+														}
+														className='text-xs'>
 														{printer.status}
 													</Badge>
 												</div>
-												<Button 
-													size='sm' 
+												<Button
+													size='sm'
 													onClick={() => handleConnectPrinter(printer)}
-													disabled={printer.status === 'offline' || printerLoading}
-												>
+													disabled={
+														printer.status === 'offline' || printerLoading
+													}>
 													Connect
 												</Button>
 											</div>
@@ -616,7 +666,7 @@ export default function SettingsPage() {
 					<Card className='border-gray-200'>
 						<CardHeader className='border-b border-gray-100'>
 							<CardTitle className='text-lg lg:text-xl flex items-center gap-2'>
-								<SettingsIcon className='h-5 w-5 text-cyan-600' />
+								<SettingsIcon className='h-5 w-5 text-emerald-600' />
 								Manual Configuration
 							</CardTitle>
 							<CardDescription>
@@ -628,7 +678,11 @@ export default function SettingsPage() {
 								{/* Printer Name & IP */}
 								<div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
 									<div className='space-y-2'>
-										<Label htmlFor='printerName' className='text-sm font-medium'>Printer Name</Label>
+										<Label
+											htmlFor='printerName'
+											className='text-sm font-medium'>
+											Printer Name
+										</Label>
 										<Input
 											id='printerName'
 											name='name'
@@ -639,7 +693,11 @@ export default function SettingsPage() {
 										/>
 									</div>
 									<div className='space-y-2'>
-										<Label htmlFor='printerDeviceId' className='text-sm font-medium'>Printer Device ID</Label>
+										<Label
+											htmlFor='printerDeviceId'
+											className='text-sm font-medium'>
+											Printer Device ID
+										</Label>
 										<Input
 											id='printerDeviceId'
 											name='deviceId'
@@ -649,14 +707,19 @@ export default function SettingsPage() {
 											className='h-10'
 											readOnly
 										/>
-										<p className='text-xs text-gray-500'>Device ID is automatically set when you connect to a Bluetooth printer above.</p>
+										<p className='text-xs text-gray-500'>
+											Device ID is automatically set when you connect to a
+											emeraldtooth printer above.
+										</p>
 									</div>
 								</div>
 
 								{/* Paper Width */}
 								<div className='grid grid-cols-1 gap-4'>
 									<div className='space-y-2'>
-										<Label htmlFor='paperWidth' className='text-sm font-medium'>Paper Width (mm)</Label>
+										<Label htmlFor='paperWidth' className='text-sm font-medium'>
+											Paper Width (mm)
+										</Label>
 										<Input
 											id='paperWidth'
 											name='paperWidth'
@@ -672,7 +735,11 @@ export default function SettingsPage() {
 								{/* Auto Connect */}
 								<div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
 									<div className='space-y-0.5'>
-										<Label htmlFor='autoConnect' className='text-sm font-medium'>Auto-Connect on Startup</Label>
+										<Label
+											htmlFor='autoConnect'
+											className='text-sm font-medium'>
+											Auto-Connect on Startup
+										</Label>
 										<p className='text-xs text-gray-600'>
 											Automatically connect to this printer when the app starts
 										</p>
@@ -697,7 +764,8 @@ export default function SettingsPage() {
 								Notification Preferences
 							</CardTitle>
 							<CardDescription>
-								Configure when and how you want to be notified about store events
+								Configure when and how you want to be notified about store
+								events
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='p-4 lg:p-6'>
@@ -705,22 +773,29 @@ export default function SettingsPage() {
 								{/* Out of Stock Alerts */}
 								<div className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
 									<div className='space-y-0.5 flex-1 pr-4'>
-										<Label htmlFor='outOfStock' className='text-sm font-medium'>Out of Stock Alerts</Label>
+										<Label htmlFor='outOfStock' className='text-sm font-medium'>
+											Out of Stock Alerts
+										</Label>
 										<p className='text-xs text-gray-600'>
-											Receive notifications when items are running low or out of stock
+											Receive notifications when items are running low or out of
+											stock
 										</p>
 									</div>
 									<Switch
 										id='outOfStock'
 										checked={!!formState.notifications?.outOfStock}
-										onCheckedChange={() => handleNotificationChange('outOfStock')}
+										onCheckedChange={() =>
+											handleNotificationChange('outOfStock')
+										}
 									/>
 								</div>
 
 								{/* New Order Notifications */}
 								<div className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
 									<div className='space-y-0.5 flex-1 pr-4'>
-										<Label htmlFor='newOrders' className='text-sm font-medium'>New Order Notifications</Label>
+										<Label htmlFor='newOrders' className='text-sm font-medium'>
+											New Order Notifications
+										</Label>
 										<p className='text-xs text-gray-600'>
 											Get notified immediately when new orders are placed
 										</p>
@@ -728,37 +803,53 @@ export default function SettingsPage() {
 									<Switch
 										id='newOrders'
 										checked={!!formState.notifications?.newOrders}
-										onCheckedChange={() => handleNotificationChange('newOrders')}
+										onCheckedChange={() =>
+											handleNotificationChange('newOrders')
+										}
 									/>
 								</div>
 
 								{/* Order Status Updates */}
 								<div className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
 									<div className='space-y-0.5 flex-1 pr-4'>
-										<Label htmlFor='orderStatus' className='text-sm font-medium'>Order Status Updates</Label>
+										<Label
+											htmlFor='orderStatus'
+											className='text-sm font-medium'>
+											Order Status Updates
+										</Label>
 										<p className='text-xs text-gray-600'>
-											Receive notifications when order status changes (completed, cancelled, etc.)
+											Receive notifications when order status changes
+											(completed, cancelled, etc.)
 										</p>
 									</div>
 									<Switch
 										id='orderStatus'
 										checked={!!formState.notifications?.orderStatus}
-										onCheckedChange={() => handleNotificationChange('orderStatus')}
+										onCheckedChange={() =>
+											handleNotificationChange('orderStatus')
+										}
 									/>
 								</div>
 
 								{/* Daily Sales Reports */}
 								<div className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
 									<div className='space-y-0.5 flex-1 pr-4'>
-										<Label htmlFor='dailyReports' className='text-sm font-medium'>Daily Sales Reports</Label>
+										<Label
+											htmlFor='dailyReports'
+											className='text-sm font-medium'>
+											Daily Sales Reports
+										</Label>
 										<p className='text-xs text-gray-600'>
-											Receive daily summary reports of sales performance and analytics
+											Receive daily summary reports of sales performance and
+											analytics
 										</p>
 									</div>
 									<Switch
 										id='dailyReports'
 										checked={!!formState.notifications?.dailyReports}
-										onCheckedChange={() => handleNotificationChange('dailyReports')}
+										onCheckedChange={() =>
+											handleNotificationChange('dailyReports')
+										}
 									/>
 								</div>
 							</div>

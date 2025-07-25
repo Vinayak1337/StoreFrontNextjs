@@ -57,7 +57,7 @@ function NavItem({
 				'group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200',
 				'relative overflow-hidden min-h-[48px] hover:scale-[1.02] active:scale-[0.98]',
 				isActive
-					? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25'
+					? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-600/25'
 					: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
 			)}>
 			<div
@@ -82,9 +82,6 @@ function NavItem({
 				>
 					{badge}
 				</Badge>
-			)}
-			{isActive && (
-				<div className='absolute inset-y-0 left-0 w-1 bg-white rounded-full'></div>
 			)}
 		</Link>
 	);
@@ -183,10 +180,10 @@ export function Sidebar() {
 					</SheetHeader>
 					<div className='flex items-center border-b px-6 py-4'>
 						<div className='flex items-center gap-3'>
-							<div className='flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg'>
+							<div className='flex items-center justify-center w-8 h-8 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg shadow-lg'>
 								<Store className='h-5 w-5 text-white' />
 							</div>
-							<h2 className='text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent'>
+							<h2 className='text-lg font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent'>
 								StoreFront
 							</h2>
 						</div>
@@ -237,12 +234,12 @@ export function Sidebar() {
 							className={cn(
 								'flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[64px] relative transition-all duration-200',
 								pathname === route.href
-									? 'text-blue-600 bg-blue-50'
+									? 'text-emerald-600 bg-emerald-50'
 									: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
 							)}>
 							<div className={cn(
 								'flex items-center justify-center w-6 h-6 relative',
-								pathname === route.href ? 'text-blue-600' : 'text-gray-500'
+								pathname === route.href ? 'text-emerald-600' : 'text-gray-500'
 							)}>
 								{route.icon}
 								{route.badge > 0 && (
@@ -272,10 +269,10 @@ export function Sidebar() {
 			<aside className='hidden lg:flex flex-col w-64 xl:w-72 h-[calc(100vh-2rem)] m-4 rounded-2xl bg-white shadow-lg border border-gray-100 fixed top-0 left-0 z-40'>
 				<div className='flex h-16 xl:h-20 items-center border-b px-6'>
 					<div className='flex items-center gap-3'>
-						<div className='flex items-center justify-center w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg'>
+						<div className='flex items-center justify-center w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg shadow-lg'>
 							<Store className='h-5 w-5 xl:h-6 xl:w-6 text-white' />
 						</div>
-						<h2 className='text-xl xl:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent'>
+						<h2 className='text-xl xl:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent'>
 							StoreFront
 						</h2>
 					</div>

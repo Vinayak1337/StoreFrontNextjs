@@ -88,13 +88,13 @@ body {
 		--card: #ffffff;
 		--card-foreground: #1f2937;
 
-		--primary: #2563eb;
+		--primary: #10b981;
 		--primary-foreground: #f9fafb;
 
-		--secondary: #0ea5e9;
+		--secondary: #065f46;
 		--secondary-foreground: #f9fafb;
 
-		--accent: #2563eb;
+		--accent: #10b981;
 		--accent-foreground: #1f2937;
 
 		--destructive: #ef4444;
@@ -106,7 +106,7 @@ body {
 		--warning: #f59e0b;
 		--warning-foreground: #f9fafb;
 
-		--info: #3b82f6;
+		--info: #10b981;
 		--info-foreground: #f9fafb;
 
 		--ring: #9ca3af;
@@ -130,13 +130,13 @@ body {
 		--card: #1f2937;
 		--card-foreground: #f9fafb;
 
-		--primary: #3b82f6;
+		--primary: #10b981;
 		--primary-foreground: #f9fafb;
 
-		--secondary: #38bdf8;
+		--secondary: #065f46;
 		--secondary-foreground: #f9fafb;
 
-		--accent: #3b82f6;
+		--accent: #10b981;
 		--accent-foreground: #f9fafb;
 
 		--destructive: #f87171;
@@ -148,7 +148,7 @@ body {
 		--warning: #fbbf24;
 		--warning-foreground: #f9fafb;
 
-		--info: #60a5fa;
+		--info: #10b981;
 		--info-foreground: #f9fafb;
 
 		--ring: #6b7280;
@@ -283,11 +283,11 @@ body {
 }
 
 .text-gradient {
-	@apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-700;
+	@apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-emerald-700;
 }
 
 .icon-gradient {
-	@apply text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-700;
+	@apply text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-700;
 }
 
 .icon-container {
@@ -360,7 +360,7 @@ body {
 }
 
 .hover-glow:hover {
-	box-shadow: 0 0 15px #3b82f6;
+	box-shadow: 0 0 15px #10b981;
 }
 
 /* Custom animations */
@@ -457,7 +457,7 @@ body {
 	right: -5px;
 	bottom: -5px;
 	z-index: -1;
-	background: linear-gradient(to right, #3b82f6, #f1f5f9);
+	background: linear-gradient(to right, #10b981, #f1f5f9);
 	border-radius: 0.5rem;
 	opacity: 0;
 	transition: opacity 0.3s ease;
@@ -497,7 +497,7 @@ body {
 
 	/* Gradient backgrounds */
 	.gradient-bg {
-		@apply bg-gradient-to-br from-blue-100 to-blue-200;
+		@apply bg-gradient-to-br from-emerald-100 to-emerald-200;
 	}
 
 	/* Subtle hover lift effect */
@@ -612,319 +612,336 @@ body {
 
 /* Base touch target sizes for better accessibility */
 @media (max-width: 1023px) {
-  .min-touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Improved button and interactive element sizes */
-  button, [role="button"], input[type="button"], input[type="submit"] {
-    min-height: 44px;
-  }
-  
-  /* Better form input sizing */
-  input, textarea, select {
-    min-height: 44px;
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  /* Improved card and dialog sizing */
-  .card, [role="dialog"] {
-    padding: 16px;
-  }
-  
-  /* Better spacing for mobile */
-  .space-y-1 > * + * {
-    margin-top: 0.25rem;
-  }
-  
-  .space-y-2 > * + * {
-    margin-top: 0.5rem;
-  }
-  
-  .gap-1 {
-    gap: 0.25rem;
-  }
-  
-  .gap-2 {
-    gap: 0.5rem;
-  }
+	.min-touch-target {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	/* Improved button and interactive element sizes */
+	button,
+	[role='button'],
+	input[type='button'],
+	input[type='submit'] {
+		min-height: 44px;
+	}
+
+	/* Better form input sizing */
+	input,
+	textarea,
+	select {
+		min-height: 44px;
+		font-size: 16px; /* Prevents zoom on iOS */
+	}
+
+	/* Improved card and dialog sizing */
+	.card,
+	[role='dialog'] {
+		padding: 16px;
+	}
+
+	/* Better spacing for mobile */
+	.space-y-1 > * + * {
+		margin-top: 0.25rem;
+	}
+
+	.space-y-2 > * + * {
+		margin-top: 0.5rem;
+	}
+
+	.gap-1 {
+		gap: 0.25rem;
+	}
+
+	.gap-2 {
+		gap: 0.5rem;
+	}
 }
 
 /* Tablet Portrait Optimizations (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  
-  /* Better grid layouts for tablets */
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  
-  /* Dashboard grid optimizations */
-  .dashboard-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-  }
-  
-  /* Card sizing for tablets */
-  .card {
-    padding: 1.5rem;
-  }
-  
-  /* Better typography scaling */
-  h1 {
-    font-size: 1.875rem; /* 30px */
-  }
-  
-  h2 {
-    font-size: 1.5rem; /* 24px */
-  }
-  
-  h3 {
-    font-size: 1.25rem; /* 20px */
-  }
-  
-  /* Navigation improvements */
-  .nav-item {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-  
-  /* Form improvements */
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  /* Better modal and dialog sizing */
-  .modal, .dialog {
-    margin: 1rem;
-    max-width: calc(100vw - 2rem);
-  }
+	.container {
+		padding-left: 1rem;
+		padding-right: 1rem;
+	}
+
+	/* Better grid layouts for tablets */
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	/* Dashboard grid optimizations */
+	.dashboard-metrics {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
+	/* Card sizing for tablets */
+	.card {
+		padding: 1.5rem;
+	}
+
+	/* Better typography scaling */
+	h1 {
+		font-size: 1.875rem; /* 30px */
+	}
+
+	h2 {
+		font-size: 1.5rem; /* 24px */
+	}
+
+	h3 {
+		font-size: 1.25rem; /* 20px */
+	}
+
+	/* Navigation improvements */
+	.nav-item {
+		padding: 0.75rem 1rem;
+		font-size: 0.875rem;
+	}
+
+	/* Form improvements */
+	.form-grid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	/* Better modal and dialog sizing */
+	.modal,
+	.dialog {
+		margin: 1rem;
+		max-width: calc(100vw - 2rem);
+	}
 }
 
 /* Tablet Landscape Optimizations (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
-  /* Better use of horizontal space */
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  
-  /* Dashboard optimizations */
-  .dashboard-metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-  
-  /* Sidebar adjustments */
-  .sidebar {
-    width: 200px; /* Narrower sidebar for landscape tablets */
-  }
-  
-  /* Header height adjustments */
-  .header {
-    height: 3.5rem; /* 56px */
-  }
-  
-  /* Content area adjustments */
-  .main-content {
-    padding: 1rem 1.5rem;
-  }
+	/* Better use of horizontal space */
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	/* Dashboard optimizations */
+	.dashboard-metrics {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 0.75rem;
+	}
+
+	/* Sidebar adjustments */
+	.sidebar {
+		width: 200px; /* Narrower sidebar for landscape tablets */
+	}
+
+	/* Header height adjustments */
+	.header {
+		height: 3.5rem; /* 56px */
+	}
+
+	/* Content area adjustments */
+	.main-content {
+		padding: 1rem 1.5rem;
+	}
 }
 
 /* Small Mobile Optimizations (up to 480px) */
 @media (max-width: 480px) {
-  .container {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-  
-  /* Force single column layouts */
-  .grid-cols-1.sm\:grid-cols-2,
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3,
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4,
-  .grid-cols-2.lg\:grid-cols-4 {
-    grid-template-columns: 1fr !important;
-  }
-  
-  /* Compact spacing */
-  .space-y-4 > * + * {
-    margin-top: 0.75rem;
-  }
-  
-  .space-y-6 > * + * {
-    margin-top: 1rem;
-  }
-  
-  /* Smaller text on very small screens */
-  h1 {
-    font-size: 1.5rem; /* 24px */
-  }
-  
-  h2 {
-    font-size: 1.25rem; /* 20px */
-  }
-  
-  /* Compact cards */
-  .card {
-    padding: 0.75rem;
-  }
-  
-  /* Full-width buttons */
-  .button-group button {
-    width: 100%;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Hide less important elements */
-  .hide-on-mobile {
-    display: none !important;
-  }
-  
-  /* Truncate long text */
-  .truncate-mobile {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 150px;
-  }
+	.container {
+		padding-left: 0.75rem;
+		padding-right: 0.75rem;
+	}
+
+	/* Force single column layouts */
+	.grid-cols-1.sm\:grid-cols-2,
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3,
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-4,
+	.grid-cols-2.lg\:grid-cols-4 {
+		grid-template-columns: 1fr !important;
+	}
+
+	/* Compact spacing */
+	.space-y-4 > * + * {
+		margin-top: 0.75rem;
+	}
+
+	.space-y-6 > * + * {
+		margin-top: 1rem;
+	}
+
+	/* Smaller text on very small screens */
+	h1 {
+		font-size: 1.5rem; /* 24px */
+	}
+
+	h2 {
+		font-size: 1.25rem; /* 20px */
+	}
+
+	/* Compact cards */
+	.card {
+		padding: 0.75rem;
+	}
+
+	/* Full-width buttons */
+	.button-group button {
+		width: 100%;
+		margin-bottom: 0.5rem;
+	}
+
+	/* Hide less important elements */
+	.hide-on-mobile {
+		display: none !important;
+	}
+
+	/* Truncate long text */
+	.truncate-mobile {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 150px;
+	}
 }
 
 /* Large Tablet and Small Desktop (1024px - 1280px) */
 @media (min-width: 1024px) and (max-width: 1280px) {
-  .container {
-    max-width: 1200px;
-  }
-  
-  /* Better grid utilization */
-  .grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  
-  /* Dashboard optimizations */
-  .dashboard-metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-  
-  /* Sidebar width */
-  .sidebar {
-    width: 240px;
-  }
+	.container {
+		max-width: 1200px;
+	}
+
+	/* Better grid utilization */
+	.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	/* Dashboard optimizations */
+	.dashboard-metrics {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1.25rem;
+	}
+
+	/* Sidebar width */
+	.sidebar {
+		width: 240px;
+	}
 }
 
 /* High DPI displays */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  /* Sharper borders and shadows */
-  .border {
-    border-width: 0.5px;
-  }
-  
-  .shadow-sm {
-    box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.05);
-  }
-  
-  .shadow {
-    box-shadow: 0 0.5px 2px 0 rgba(0, 0, 0, 0.1);
-  }
+	/* Sharper borders and shadows */
+	.border {
+		border-width: 0.5px;
+	}
+
+	.shadow-sm {
+		box-shadow: 0 0.5px 1px 0 rgba(0, 0, 0, 0.05);
+	}
+
+	.shadow {
+		box-shadow: 0 0.5px 2px 0 rgba(0, 0, 0, 0.1);
+	}
 }
 
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
-  /* Larger touch targets */
-  button, [role="button"], a, input, select, textarea {
-    min-height: 48px;
-    min-width: 48px;
-  }
-  
-  /* Remove hover effects */
-  .hover\:bg-accent:hover {
-    background-color: transparent;
-  }
-  
-  .hover\:text-accent-foreground:hover {
-    color: inherit;
-  }
-  
-  /* Focus styles for accessibility */
-  button:focus, [role="button"]:focus, a:focus, input:focus, select:focus, textarea:focus {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
+	/* Larger touch targets */
+	button,
+	[role='button'],
+	a,
+	input,
+	select,
+	textarea {
+		min-height: 48px;
+		min-width: 48px;
+	}
+
+	/* Remove hover effects */
+	.hover\:bg-accent:hover {
+		background-color: transparent;
+	}
+
+	.hover\:text-accent-foreground:hover {
+		color: inherit;
+	}
+
+	/* Focus styles for accessibility */
+	button:focus,
+	[role='button']:focus,
+	a:focus,
+	input:focus,
+	select:focus,
+	textarea:focus {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+	}
 }
 
 /* Animation preferences */
 @media (prefers-reduced-motion: reduce) {
-  .animate-spin,
-  .animate-pulse,
-  .animate-bounce,
-  .animate-fade-in,
-  .animate-slide-in,
-  .animate-slide-up {
-    animation: none !important;
-  }
-  
-  .transition-all,
-  .transition-colors,
-  .transition-transform {
-    transition: none !important;
-  }
+	.animate-spin,
+	.animate-pulse,
+	.animate-bounce,
+	.animate-fade-in,
+	.animate-slide-in,
+	.animate-slide-up {
+		animation: none !important;
+	}
+
+	.transition-all,
+	.transition-colors,
+	.transition-transform {
+		transition: none !important;
+	}
 }
 
 /* Dark mode tablet optimizations */
 @media (prefers-color-scheme: dark) {
-  @media (max-width: 1023px) {
-    /* Better contrast for mobile dark mode */
-    .card {
-      background-color: hsl(var(--card));
-      border: 1px solid hsl(var(--border));
-    }
-    
-    /* Improved text contrast */
-    .text-muted-foreground {
-      color: hsl(var(--muted-foreground) / 0.8);
-    }
-  }
+	@media (max-width: 1023px) {
+		/* Better contrast for mobile dark mode */
+		.card {
+			background-color: hsl(var(--card));
+			border: 1px solid hsl(var(--border));
+		}
+
+		/* Improved text contrast */
+		.text-muted-foreground {
+			color: hsl(var(--muted-foreground) / 0.8);
+		}
+	}
 }
 
 /* Keyboard navigation improvements */
 .focus-visible:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 2px;
+	outline: 2px solid hsl(var(--ring));
+	outline-offset: 2px;
 }
 
 /* Better scroll behavior on mobile */
 .overflow-auto {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+	-webkit-overflow-scrolling: touch;
+	scroll-behavior: smooth;
 }
 
 /* Safe area handling for devices with notches */
 @supports (padding: max(0px)) {
-  .safe-area-inset-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-  
-  .safe-area-inset-bottom {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-  
-  .safe-area-inset-left {
-    padding-left: max(1rem, env(safe-area-inset-left));
-  }
-  
-  .safe-area-inset-right {
-    padding-right: max(1rem, env(safe-area-inset-right));
-  }
+	.safe-area-inset-top {
+		padding-top: max(1rem, env(safe-area-inset-top));
+	}
+
+	.safe-area-inset-bottom {
+		padding-bottom: max(1rem, env(safe-area-inset-bottom));
+	}
+
+	.safe-area-inset-left {
+		padding-left: max(1rem, env(safe-area-inset-left));
+	}
+
+	.safe-area-inset-right {
+		padding-right: max(1rem, env(safe-area-inset-right));
+	}
 }

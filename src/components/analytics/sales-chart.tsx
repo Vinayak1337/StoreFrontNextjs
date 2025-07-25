@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
 	BarChart,
@@ -73,6 +73,8 @@ export function SalesChart() {
 		(state: RootState) => state.analytics
 	);
 
+	// Note: Initial data loading is handled by the parent AnalyticsPage component
+
 	// Handle view mode change and reload data
 	const handleViewModeChange = (newMode: 'daily' | 'weekly' | 'monthly') => {
 		setViewMode(newMode);
@@ -82,71 +84,107 @@ export function SalesChart() {
 		if (newMode === 'weekly') days = 84; // 12 weeks
 		if (newMode === 'monthly') days = 365; // 12 months
 		
-		const endDate = new Date().toISOString();
-		const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+		const endDate = new Date().toISOString().split('T')[0];
+		const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 		
 		dispatch(fetchDailySales({ startDate, endDate }));
 	};
 
 	// Format data for the chart based on view mode
 	const formatChartData = () => {
-		if (!salesData || !salesData.dailySales) return [];
+		if (!salesData || !salesData.dailySales) {
+			console.log('No sales data available');
+			return [];
+		}
 
-		let data = salesData.dailySales;
+		let data = [...salesData.dailySales]; // Create a copy to avoid mutating Redux state
+		console.log(`Formatting data for ${viewMode} view, got ${data.length} data points`);
 
 		// Group data based on view mode
 		if (viewMode === 'weekly') {
 			// Group by week
 			const weeklyData: { [key: string]: { totalAmount: number; count: number } } = {};
 			data.forEach(item => {
-				const date = new Date(item.date);
-				const weekStart = new Date(date);
-				weekStart.setDate(date.getDate() - date.getDay()); // Get start of week (Sunday)
-				const weekKey = weekStart.toISOString().split('T')[0];
-				
-				if (!weeklyData[weekKey]) {
-					weeklyData[weekKey] = { totalAmount: 0, count: 0 };
+				try {
+					const date = new Date(item.date + 'T00:00:00.000Z'); // Ensure UTC
+					const weekStart = new Date(date);
+					weekStart.setDate(date.getDate() - date.getDay()); // Get start of week (Sunday)
+					const weekKey = weekStart.toISOString().split('T')[0];
+					
+					if (!weeklyData[weekKey]) {
+						weeklyData[weekKey] = { totalAmount: 0, count: 0 };
+					}
+					weeklyData[weekKey].totalAmount += Number(item.totalAmount || 0);
+					weeklyData[weekKey].count += Number(item.count || 0);
+				} catch (error) {
+					console.error('Error processing weekly data for item:', item, error);
 				}
-				weeklyData[weekKey].totalAmount += Number(item.totalAmount || 0);
-				weeklyData[weekKey].count += Number(item.count || 0);
 			});
 			
-			data = Object.entries(weeklyData).map(([date, values]) => ({
-				date,
-				totalAmount: values.totalAmount,
-				count: values.count
-			}));
+			data = Object.entries(weeklyData)
+				.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+				.map(([date, values]) => ({
+					date,
+					totalAmount: values.totalAmount,
+					count: values.count
+				}));
+			console.log(`Weekly grouping resulted in ${data.length} data points`);
 		} else if (viewMode === 'monthly') {
 			// Group by month
 			const monthlyData: { [key: string]: { totalAmount: number; count: number } } = {};
 			data.forEach(item => {
-				const date = new Date(item.date);
-				const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
-				
-				if (!monthlyData[monthKey]) {
-					monthlyData[monthKey] = { totalAmount: 0, count: 0 };
+				try {
+					const date = new Date(item.date + 'T00:00:00.000Z'); // Ensure UTC
+					const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+					
+					if (!monthlyData[monthKey]) {
+						monthlyData[monthKey] = { totalAmount: 0, count: 0 };
+					}
+					monthlyData[monthKey].totalAmount += Number(item.totalAmount || 0);
+					monthlyData[monthKey].count += Number(item.count || 0);
+				} catch (error) {
+					console.error('Error processing monthly data for item:', item, error);
 				}
-				monthlyData[monthKey].totalAmount += Number(item.totalAmount || 0);
-				monthlyData[monthKey].count += Number(item.count || 0);
 			});
 			
-			data = Object.entries(monthlyData).map(([date, values]) => ({
-				date,
-				totalAmount: values.totalAmount,
-				count: values.count
-			}));
+			data = Object.entries(monthlyData)
+				.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+				.map(([date, values]) => ({
+					date,
+					totalAmount: values.totalAmount,
+					count: values.count
+				}));
+			console.log(`Monthly grouping resulted in ${data.length} data points`);
+		} else {
+			// Sort daily data by date
+			data = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 		}
 
 		// Format the data for chart display
-		return data.map(item => ({
-			date: viewMode === 'monthly' 
-				? format(new Date(item.date), 'MMM yyyy')
-				: viewMode === 'weekly'
-				? format(new Date(item.date), 'MMM dd')
-				: format(new Date(item.date), 'MMM dd'),
-			sales: Number(item.totalAmount || 0),
-			profit: Number(item.totalAmount || 0) * 0.1 // 10% estimated profit margin
-		}));
+		const formattedData = data.map(item => {
+			try {
+				const dateObj = new Date(item.date + 'T00:00:00.000Z');
+				return {
+					date: viewMode === 'monthly' 
+						? format(dateObj, 'MMM yyyy')
+						: viewMode === 'weekly'
+						? `Week of ${format(dateObj, 'MMM dd')}`
+						: format(dateObj, 'MMM dd'),
+					sales: Number(item.totalAmount || 0),
+					profit: Number(item.totalAmount || 0) * 0.1 // 10% estimated profit margin
+				};
+			} catch (error) {
+				console.error('Error formatting chart data for item:', item, error);
+				return {
+					date: item.date,
+					sales: Number(item.totalAmount || 0),
+					profit: Number(item.totalAmount || 0) * 0.1
+				};
+			}
+		});
+		
+		console.log(`Final formatted data has ${formattedData.length} points`);
+		return formattedData;
 	};
 
 	const chartData = formatChartData();
@@ -171,8 +209,8 @@ export function SalesChart() {
 
 	// Chart colors
 	const colorPalette = {
-		revenue: '#0891b2', // cyan-600
-		profit: '#06b6d4', // cyan-500
+		revenue: '#059669', // emerald-600
+		profit: '#10b981', // emerald-500
 		grid: 'rgba(148, 163, 184, 0.1)' // slate-400 with opacity
 	};
 
@@ -223,7 +261,10 @@ export function SalesChart() {
 						size='sm'
 						variant={viewMode === 'daily' ? 'default' : 'outline'}
 						onClick={() => handleViewModeChange('daily')}
-						className='shadow-sm rounded-lg gap-1'>
+						disabled={loading}
+						className={`shadow-sm rounded-lg gap-1 ${
+							viewMode === 'daily' ? 'bg-emerald-600 text-white' : ''
+						}`}>
 						<Calendar className='h-4 w-4' />
 						Daily
 					</Button>
@@ -231,14 +272,20 @@ export function SalesChart() {
 						size='sm'
 						variant={viewMode === 'weekly' ? 'default' : 'outline'}
 						onClick={() => handleViewModeChange('weekly')}
-						className='shadow-sm rounded-lg'>
+						disabled={loading}
+						className={`shadow-sm rounded-lg ${
+							viewMode === 'weekly' ? 'bg-emerald-600 text-white' : ''
+						}`}>
 						Weekly
 					</Button>
 					<Button
 						size='sm'
 						variant={viewMode === 'monthly' ? 'default' : 'outline'}
 						onClick={() => handleViewModeChange('monthly')}
-						className='shadow-sm rounded-lg'>
+						disabled={loading}
+						className={`shadow-sm rounded-lg ${
+							viewMode === 'monthly' ? 'bg-emerald-600 text-white' : ''
+						}`}>
 						Monthly
 					</Button>
 				</div>

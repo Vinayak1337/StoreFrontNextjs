@@ -100,7 +100,11 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 			onClose();
 		} catch (error) {
 			console.error('Error saving item:', error);
-			toast.error(error instanceof Error ? error.message : 'Failed to save item. Please try again.');
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Failed to save item. Please try again.'
+			);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -160,7 +164,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				<Label
 					htmlFor='weight'
 					className='text-sm font-medium flex items-center gap-2'>
-					<Scale className='h-4 w-4 text-blue-500' />
+					<Scale className='h-4 w-4 text-emerald-500' />
 					Weight
 				</Label>
 				<div className='flex gap-2'>
@@ -172,7 +176,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 						min='0'
 						value={formData.weight}
 						onChange={handleChange}
-						className='transition-all focus:border-blue-500 flex-1'
+						className='transition-all focus:border-emerald-500 flex-1'
 						placeholder='Enter weight'
 					/>
 					<Select
@@ -197,7 +201,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				<Label
 					htmlFor='quantity'
 					className='text-sm font-medium flex items-center gap-2'>
-					<ShoppingBag className='h-4 w-4 text-cyan-500' />
+					<ShoppingBag className='h-4 w-4 text-emerald-500' />
 					Serving Quantity
 				</Label>
 				<Input
@@ -208,11 +212,12 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					value={formData.quantity}
 					onChange={handleChange}
 					required
-					className='transition-all focus:border-cyan-500'
+					className='transition-all focus:border-emerald-500'
 					placeholder='e.g., 1 piece, 2 cups, 500 grams'
 				/>
 				<p className='text-xs text-gray-600 mt-1'>
-					How much the customer gets per order (for description only, not inventory tracking)
+					How much the customer gets per order (for description only, not
+					inventory tracking)
 				</p>
 			</div>
 
