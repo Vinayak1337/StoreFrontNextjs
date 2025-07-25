@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 import { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +13,8 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select';
-import { createItem, updateItem } from '@/lib/redux/slices/items.slice';
-import { AppDispatch } from '@/lib/redux/store';
+import { useCreateItem, useUpdateItem } from '@/lib/hooks/useItems';
+import { toast } from 'react-toastify';
 import {
 	Package,
 	IndianRupee,
@@ -33,7 +32,8 @@ interface ItemFormProps {
 type WeightUnit = 'kg' | 'g' | 'l' | 'ml';
 
 export function ItemForm({ item, onClose }: ItemFormProps) {
-	const dispatch = useDispatch<AppDispatch>();
+	const createItemMutation = useCreateItem();
+	const updateItemMutation = useUpdateItem();
 	const [formData, setFormData] = useState({
 		name: '',
 		price: '',
@@ -87,19 +87,20 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 		try {
 			if (item) {
 				// Update existing item
-				await dispatch(
-					updateItem({
-						id: item.id,
-						item: itemData
-					})
-				);
+				await updateItemMutation.mutateAsync({
+					id: item.id,
+					data: itemData
+				});
+				toast.success('Item updated successfully!');
 			} else {
 				// Create new item
-				await dispatch(createItem(itemData));
+				await createItemMutation.mutateAsync(itemData);
+				toast.success('Item created successfully!');
 			}
 			onClose();
 		} catch (error) {
 			console.error('Error saving item:', error);
+			toast.error(error instanceof Error ? error.message : 'Failed to save item. Please try again.');
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -196,20 +197,23 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				<Label
 					htmlFor='quantity'
 					className='text-sm font-medium flex items-center gap-2'>
-					<ShoppingBag className='h-4 w-4 text-purple-500' />
-					Quantity
+					<ShoppingBag className='h-4 w-4 text-cyan-500' />
+					Serving Quantity
 				</Label>
 				<Input
 					id='quantity'
 					name='quantity'
 					type='number'
-					min='1'
+					min='0'
 					value={formData.quantity}
 					onChange={handleChange}
 					required
-					className='transition-all focus:border-purple-500'
-					placeholder='Enter quantity'
+					className='transition-all focus:border-cyan-500'
+					placeholder='e.g., 1 piece, 2 cups, 500 grams'
 				/>
+				<p className='text-xs text-gray-600 mt-1'>
+					How much the customer gets per order (for description only, not inventory tracking)
+				</p>
 			</div>
 
 			<div

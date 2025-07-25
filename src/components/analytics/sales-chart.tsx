@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import {
 	BarChart,
 	Bar,
@@ -16,7 +16,8 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RootState } from '@/lib/redux/store';
+import { RootState, AppDispatch } from '@/lib/redux/store';
+import { fetchDailySales } from '@/lib/redux/slices/analytics.slice';
 import { format } from 'date-fns';
 import {
 	BarChart3,
@@ -48,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 								style={{ backgroundColor: entry.stroke }}
 							/>
 							<span className='text-sm'>
-								{entry.dataKey === 'sales' ? 'Revenue' : 'Profit'}:
+								{entry.dataKey === 'sales' ? 'Revenue' : 'Est. Profit'}:
 							</span>
 						</div>
 						<span className='text-sm font-semibold'>
@@ -63,6 +64,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 };
 
 export function SalesChart() {
+	const dispatch = useDispatch<AppDispatch>();
 	const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>(
 		'daily'
 	);
@@ -71,14 +73,79 @@ export function SalesChart() {
 		(state: RootState) => state.analytics
 	);
 
-	// Format data for the chart
+	// Handle view mode change and reload data
+	const handleViewModeChange = (newMode: 'daily' | 'weekly' | 'monthly') => {
+		setViewMode(newMode);
+		
+		// Determine date range based on view mode
+		let days = 30; // default for daily
+		if (newMode === 'weekly') days = 84; // 12 weeks
+		if (newMode === 'monthly') days = 365; // 12 months
+		
+		const endDate = new Date().toISOString();
+		const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+		
+		dispatch(fetchDailySales({ startDate, endDate }));
+	};
+
+	// Format data for the chart based on view mode
 	const formatChartData = () => {
 		if (!salesData || !salesData.dailySales) return [];
 
-		return salesData.dailySales.map(item => ({
-			date: format(new Date(item.date), 'MMM dd'),
-			sales: Number(item.totalAmount),
-			profit: Number(item.totalAmount) * 0.3 // Assuming 30% profit margin for visualization
+		let data = salesData.dailySales;
+
+		// Group data based on view mode
+		if (viewMode === 'weekly') {
+			// Group by week
+			const weeklyData: { [key: string]: { totalAmount: number; count: number } } = {};
+			data.forEach(item => {
+				const date = new Date(item.date);
+				const weekStart = new Date(date);
+				weekStart.setDate(date.getDate() - date.getDay()); // Get start of week (Sunday)
+				const weekKey = weekStart.toISOString().split('T')[0];
+				
+				if (!weeklyData[weekKey]) {
+					weeklyData[weekKey] = { totalAmount: 0, count: 0 };
+				}
+				weeklyData[weekKey].totalAmount += Number(item.totalAmount || 0);
+				weeklyData[weekKey].count += Number(item.count || 0);
+			});
+			
+			data = Object.entries(weeklyData).map(([date, values]) => ({
+				date,
+				totalAmount: values.totalAmount,
+				count: values.count
+			}));
+		} else if (viewMode === 'monthly') {
+			// Group by month
+			const monthlyData: { [key: string]: { totalAmount: number; count: number } } = {};
+			data.forEach(item => {
+				const date = new Date(item.date);
+				const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
+				
+				if (!monthlyData[monthKey]) {
+					monthlyData[monthKey] = { totalAmount: 0, count: 0 };
+				}
+				monthlyData[monthKey].totalAmount += Number(item.totalAmount || 0);
+				monthlyData[monthKey].count += Number(item.count || 0);
+			});
+			
+			data = Object.entries(monthlyData).map(([date, values]) => ({
+				date,
+				totalAmount: values.totalAmount,
+				count: values.count
+			}));
+		}
+
+		// Format the data for chart display
+		return data.map(item => ({
+			date: viewMode === 'monthly' 
+				? format(new Date(item.date), 'MMM yyyy')
+				: viewMode === 'weekly'
+				? format(new Date(item.date), 'MMM dd')
+				: format(new Date(item.date), 'MMM dd'),
+			sales: Number(item.totalAmount || 0),
+			profit: Number(item.totalAmount || 0) * 0.1 // 10% estimated profit margin
 		}));
 	};
 
@@ -104,7 +171,7 @@ export function SalesChart() {
 
 	// Chart colors
 	const colorPalette = {
-		revenue: '#8b5cf6', // purple-500
+		revenue: '#0891b2', // cyan-600
 		profit: '#06b6d4', // cyan-500
 		grid: 'rgba(148, 163, 184, 0.1)' // slate-400 with opacity
 	};
@@ -154,23 +221,23 @@ export function SalesChart() {
 					</div>
 					<Button
 						size='sm'
-						variant={viewMode === 'daily' ? 'gradient' : 'outline'}
-						onClick={() => setViewMode('daily')}
+						variant={viewMode === 'daily' ? 'default' : 'outline'}
+						onClick={() => handleViewModeChange('daily')}
 						className='shadow-sm rounded-lg gap-1'>
 						<Calendar className='h-4 w-4' />
 						Daily
 					</Button>
 					<Button
 						size='sm'
-						variant={viewMode === 'weekly' ? 'gradient' : 'outline'}
-						onClick={() => setViewMode('weekly')}
+						variant={viewMode === 'weekly' ? 'default' : 'outline'}
+						onClick={() => handleViewModeChange('weekly')}
 						className='shadow-sm rounded-lg'>
 						Weekly
 					</Button>
 					<Button
 						size='sm'
-						variant={viewMode === 'monthly' ? 'gradient' : 'outline'}
-						onClick={() => setViewMode('monthly')}
+						variant={viewMode === 'monthly' ? 'default' : 'outline'}
+						onClick={() => handleViewModeChange('monthly')}
 						className='shadow-sm rounded-lg'>
 						Monthly
 					</Button>
@@ -233,7 +300,7 @@ export function SalesChart() {
 									/>
 									<Bar
 										dataKey='profit'
-										name='Profit'
+										name='Est. Profit'
 										fill={colorPalette.profit}
 										radius={[4, 4, 0, 0]}
 										animationDuration={1000}
@@ -316,7 +383,7 @@ export function SalesChart() {
 									<Area
 										type='monotone'
 										dataKey='profit'
-										name='Profit'
+										name='Est. Profit'
 										stroke={colorPalette.profit}
 										fillOpacity={1}
 										fill='url(#profitGradient)'

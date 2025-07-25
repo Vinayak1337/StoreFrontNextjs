@@ -24,6 +24,14 @@ export async function GET() {
 						newOrders: true,
 						orderStatus: true,
 						dailyReports: false
+					},
+					printer: {
+						name: '',
+						deviceId: '',
+						type: 'bluetooth',
+						autoConnect: false,
+						connected: false,
+						paperWidth: 80
 					}
 				}
 			});

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { ItemsState, Item } from '@/types';
+import { ItemsState, Item, Category } from '@/types';
 import api from '@/lib/services/api';
 
 // Async thunks
@@ -66,12 +66,150 @@ export const deleteItem = createAsyncThunk(
 	}
 );
 
+// Category async thunks
+export const fetchCategories = createAsyncThunk(
+	'items/fetchCategories',
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await fetch('/api/categories');
+			const data = await response.json();
+			
+			if (!response.ok) {
+				return rejectWithValue(data.error || 'Failed to fetch categories');
+			}
+			
+			return data;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to fetch categories');
+		}
+	}
+);
+
+export const createCategory = createAsyncThunk(
+	'items/createCategory',
+	async (category: Omit<Category, 'id' | 'createdAt' | '_count'>, { rejectWithValue }) => {
+		try {
+			const response = await fetch('/api/categories', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(category)
+			});
+			const data = await response.json();
+			
+			if (!response.ok) {
+				return rejectWithValue(data.error || 'Failed to create category');
+			}
+			
+			return data;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to create category');
+		}
+	}
+);
+
+export const updateCategory = createAsyncThunk(
+	'items/updateCategory',
+	async (
+		{ id, category }: { id: string; category: Partial<Category> },
+		{ rejectWithValue }
+	) => {
+		try {
+			const response = await fetch(`/api/categories/${id}`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(category)
+			});
+			const data = await response.json();
+			
+			if (!response.ok) {
+				return rejectWithValue(data.error || 'Failed to update category');
+			}
+			
+			return data;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to update category');
+		}
+	}
+);
+
+export const deleteCategory = createAsyncThunk(
+	'items/deleteCategory',
+	async (id: string, { rejectWithValue }) => {
+		try {
+			const response = await fetch(`/api/categories/${id}`, {
+				method: 'DELETE'
+			});
+			const data = await response.json();
+			
+			if (!response.ok) {
+				return rejectWithValue(data.error || 'Failed to delete category');
+			}
+			
+			return id;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to delete category');
+		}
+	}
+);
+
+export const addItemToCategory = createAsyncThunk(
+	'items/addItemToCategory',
+	async (
+		{ categoryId, itemId }: { categoryId: string; itemId: string },
+		{ rejectWithValue }
+	) => {
+		try {
+			const response = await api.addItemToCategory(categoryId, itemId);
+			return response;
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to add item to category');
+		}
+	}
+);
+
+export const removeItemFromCategory = createAsyncThunk(
+	'items/removeItemFromCategory',
+	async (
+		{ categoryId, itemId }: { categoryId: string; itemId: string },
+		{ rejectWithValue }
+	) => {
+		try {
+			await api.removeItemFromCategory(categoryId, itemId);
+			return { categoryId, itemId };
+		} catch (error) {
+			if (error instanceof Error) {
+				return rejectWithValue(error.message);
+			}
+			return rejectWithValue('Failed to remove item from category');
+		}
+	}
+);
+
 // Initial state
 const initialState: ItemsState = {
 	items: [],
+	categories: [],
 	activeItem: null,
+	activeCategory: null,
 	loading: false,
-	error: null
+	categoryLoading: false,
+	error: null,
+	categoryError: null
 };
 
 // Create the slice
@@ -161,9 +299,15 @@ const itemsSlice = createSlice({
 			state.activeItem = payload;
 		},
 
+		// Set active category
+		setActiveCategory: (state, { payload }) => {
+			state.activeCategory = payload;
+		},
+
 		// Clear error
 		clearError: state => {
 			state.error = null;
+			state.categoryError = null;
 		}
 	},
 	extraReducers: builder => {
@@ -225,6 +369,112 @@ const itemsSlice = createSlice({
 			state.loading = false;
 			state.error = payload as string;
 		});
+
+		// Fetch categories
+		builder.addCase(fetchCategories.pending, state => {
+			state.categoryLoading = true;
+			state.categoryError = null;
+		});
+		builder.addCase(fetchCategories.fulfilled, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categories = payload;
+		});
+		builder.addCase(fetchCategories.rejected, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categoryError = payload as string;
+		});
+
+		// Create category
+		builder.addCase(createCategory.pending, state => {
+			state.categoryLoading = true;
+			state.categoryError = null;
+		});
+		builder.addCase(createCategory.fulfilled, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categories = [...state.categories, payload];
+		});
+		builder.addCase(createCategory.rejected, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categoryError = payload as string;
+		});
+
+		// Update category
+		builder.addCase(updateCategory.pending, state => {
+			state.categoryLoading = true;
+			state.categoryError = null;
+		});
+		builder.addCase(updateCategory.fulfilled, (state, { payload }) => {
+			state.categoryLoading = false;
+			const index = state.categories.findIndex(cat => cat.id === payload.id);
+			if (index !== -1) {
+				state.categories[index] = payload;
+			}
+		});
+		builder.addCase(updateCategory.rejected, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categoryError = payload as string;
+		});
+
+		// Delete category
+		builder.addCase(deleteCategory.pending, state => {
+			state.categoryLoading = true;
+			state.categoryError = null;
+		});
+		builder.addCase(deleteCategory.fulfilled, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categories = state.categories.filter(cat => cat.id !== payload);
+		});
+		builder.addCase(deleteCategory.rejected, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categoryError = payload as string;
+		});
+
+		// Add item to category
+		builder.addCase(addItemToCategory.pending, state => {
+			state.categoryLoading = true;
+			state.categoryError = null;
+		});
+		builder.addCase(addItemToCategory.fulfilled, (state, { meta }) => {
+			state.categoryLoading = false;
+			// Update the items state directly
+			const { categoryId, itemId } = meta.arg;
+			const item = state.items.find(item => item.id === itemId);
+			if (item) {
+				// Remove from any existing categories first
+				item.categories = item.categories?.filter(cat => cat.categoryId !== categoryId) || [];
+				// Add to the new category (create a proper ItemCategory object)
+				item.categories.push({
+					id: `temp_${Date.now()}`, // Temporary ID - real data will come from fetch
+					itemId: itemId,
+					categoryId: categoryId,
+					createdAt: new Date().toISOString()
+				});
+			}
+		});
+		builder.addCase(addItemToCategory.rejected, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categoryError = payload as string;
+		});
+
+		// Remove item from category
+		builder.addCase(removeItemFromCategory.pending, state => {
+			state.categoryLoading = true;
+			state.categoryError = null;
+		});
+		builder.addCase(removeItemFromCategory.fulfilled, (state, { meta }) => {
+			state.categoryLoading = false;
+			// Update the items state directly
+			const { categoryId, itemId } = meta.arg;
+			const item = state.items.find(item => item.id === itemId);
+			if (item) {
+				// Remove from the specified category
+				item.categories = item.categories?.filter(cat => cat.categoryId !== categoryId) || [];
+			}
+		});
+		builder.addCase(removeItemFromCategory.rejected, (state, { payload }) => {
+			state.categoryLoading = false;
+			state.categoryError = payload as string;
+		});
 	}
 });
 
@@ -242,9 +492,10 @@ export const {
 	updateItemSuccess,
 	updateItemFailure,
 	deleteItemStart,
-	deleteItemSuccess,
+	deleteItemSuccess,  
 	deleteItemFailure,
 	setActiveItem,
+	setActiveCategory,
 	clearError
 } = itemsSlice.actions;
 

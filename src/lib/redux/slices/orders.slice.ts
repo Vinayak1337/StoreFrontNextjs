@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { OrdersState, OrderStatus } from '@/types';
+import { OrdersState } from '@/types';
 import api from '@/lib/services/api';
 import { toast } from 'react-toastify';
 
@@ -24,7 +24,6 @@ export const createOrder = createAsyncThunk(
 	async (
 		data: {
 			customerName: string;
-			status: OrderStatus;
 			orderItems: Array<{
 				itemId: string;
 				quantity: number;
@@ -61,20 +60,20 @@ export const createOrder = createAsyncThunk(
 	}
 );
 
-export const updateOrderStatus = createAsyncThunk(
-	'orders/updateOrderStatus',
+export const updateOrder = createAsyncThunk(
+	'orders/updateOrder',
 	async (
-		{ id, status }: { id: string; status: OrderStatus },
+		{ id, data }: { id: string; data: { customerName?: string; customMessage?: string } },
 		{ rejectWithValue }
 	) => {
 		try {
-			const response = await api.updateOrderStatus(id, status);
+			const response = await api.updateOrder(id, data);
 			return response;
 		} catch (error) {
 			if (error instanceof Error) {
 				return rejectWithValue(error.message);
 			}
-			return rejectWithValue('Failed to update order status');
+			return rejectWithValue('Failed to update order');
 		}
 	}
 );
@@ -143,23 +142,23 @@ const ordersSlice = createSlice({
 			toast.error(`Failed to create order: ${payload}`);
 		});
 
-		// Update order status
-		builder.addCase(updateOrderStatus.pending, state => {
+		// Update order
+		builder.addCase(updateOrder.pending, state => {
 			state.loading = true;
 			state.error = null;
 		});
-		builder.addCase(updateOrderStatus.fulfilled, (state, { payload }) => {
+		builder.addCase(updateOrder.fulfilled, (state, { payload }) => {
 			state.loading = false;
 			const index = state.orders.findIndex(order => order.id === payload.id);
 			if (index !== -1) {
 				state.orders[index] = payload;
 			}
-			toast.success('Order status updated successfully!');
+			toast.success('Order updated successfully!');
 		});
-		builder.addCase(updateOrderStatus.rejected, (state, { payload }) => {
+		builder.addCase(updateOrder.rejected, (state, { payload }) => {
 			state.loading = false;
 			state.error = payload as string;
-			toast.error(`Failed to update order status: ${payload}`);
+			toast.error(`Failed to update order: ${payload}`);
 		});
 
 		// Delete order

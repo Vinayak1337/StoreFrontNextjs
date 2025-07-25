@@ -1,8 +1,25 @@
-// Enum for order status
-export enum OrderStatus {
-	PENDING = 'PENDING',
-	COMPLETED = 'COMPLETED',
-	CANCELLED = 'CANCELLED'
+
+// Category/Label model
+export interface Category {
+	id: string;
+	name: string;
+	color: string;
+	order: number;
+	createdAt: string;
+	items?: ItemCategory[];
+	_count?: {
+		items: number;
+	};
+}
+
+// ItemCategory relationship model
+export interface ItemCategory {
+	id: string;
+	itemId: string;
+	categoryId: string;
+	createdAt: string;
+	item?: Item;
+	category?: Category;
 }
 
 // Item model
@@ -15,6 +32,7 @@ export interface Item {
 	weight?: number;
 	weightUnit?: 'kg' | 'g' | 'l' | 'ml';
 	createdAt: string;
+	categories?: ItemCategory[];
 }
 
 // Order item model
@@ -27,13 +45,20 @@ export interface OrderItem {
 	item?: Item;
 }
 
+// Order status enum
+export enum OrderStatus {
+	PENDING = 'PENDING',
+	COMPLETED = 'COMPLETED',
+	CANCELLED = 'CANCELLED'
+}
+
 // Order model
 export interface Order {
 	id: string;
 	customerName: string;
-	status: OrderStatus;
 	orderItems: OrderItem[];
 	createdAt: string;
+	status: OrderStatus;
 	bill?: Bill;
 	customMessage?: string;
 }
@@ -85,7 +110,13 @@ export interface AnalyticsMetrics {
 	totalOrders: number;
 	totalSales: number;
 	averageOrderValue: number;
+	pendingOrders: number;
+	completedOrders: number;
+	cancelledOrders: number;
+	printedOrders: number;
+	unpaidBills: number;
 	conversionRate: number;
+	printRate: number;
 	revenueTrend: number;
 	ordersTrend: number;
 	conversionTrend: number;
@@ -96,14 +127,27 @@ export interface AnalyticsMetrics {
 		revenue: number;
 	}>;
 	paymentMethodDistribution: Record<string, number>;
+	orderStatusBreakdown: {
+		pending: number;
+		completed: number;
+		cancelled: number;
+	};
+	printStatusBreakdown: {
+		printed: number;
+		unprinted: number;
+	};
 }
 
 // State types for Redux
 export interface ItemsState {
 	items: Item[];
+	categories: Category[];
 	activeItem: Item | null;
+	activeCategory: Category | null;
 	loading: boolean;
+	categoryLoading: boolean;
 	error: string | null;
+	categoryError: string | null;
 }
 
 export interface OrdersState {
@@ -147,6 +191,14 @@ export interface Settings {
 		newOrders: boolean;
 		orderStatus: boolean;
 		dailyReports: boolean;
+	};
+	printer: {
+		name: string;
+		deviceId: string;
+		type: 'bluetooth';
+		autoConnect: boolean;
+		connected: boolean;
+		paperWidth: number;
 	};
 }
 

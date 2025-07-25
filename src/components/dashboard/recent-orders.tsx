@@ -9,7 +9,6 @@ import {
 	ArrowUpRight,
 	Clock,
 	CheckCircle2,
-	AlertCircle,
 	Search,
 	Filter,
 	FileDown,
@@ -33,7 +32,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Order, OrderStatus } from '@/types';
+import { Order } from '@/types';
 import { RootState } from '@/lib/redux/store';
 
 interface RecentOrdersProps {
@@ -54,31 +53,14 @@ export function RecentOrders({
 	const isGlass = variant === 'glass';
 	const isGradient = variant === 'gradient';
 
-	const getStatusColor = (status: OrderStatus) => {
-		switch (status) {
-			case OrderStatus.COMPLETED:
-				return 'success';
-			case OrderStatus.PENDING:
-				return 'secondary';
-			case OrderStatus.CANCELLED:
-				return 'destructive';
-			default:
-				return 'default';
-		}
+	const getStatusColor = (order: Order) => {
+		return order.bill ? 'default' : 'secondary';
 	};
 
-	const getStatusIcon = (status: OrderStatus) => {
-		switch (status) {
-			case OrderStatus.COMPLETED:
-				return <CheckCircle2 className='h-3.5 w-3.5' />;
-			case OrderStatus.PENDING:
-				return <Clock className='h-3.5 w-3.5' />;
-			case OrderStatus.CANCELLED:
-				return <AlertCircle className='h-3.5 w-3.5' />;
-			default:
-				return null;
-		}
+	const getStatusIcon = (order: Order) => {
+		return order.bill ? <CheckCircle2 className='h-3.5 w-3.5' /> : <Clock className='h-3.5 w-3.5' />;
 	};
+
 
 	// Filter and limit orders
 	const recentOrders = orders
@@ -203,10 +185,10 @@ export function RecentOrders({
 
 								<div className='flex items-center gap-3 mt-2 sm:mt-0 w-full sm:w-auto justify-between sm:justify-end'>
 									<Badge
-										variant={getStatusColor(order.status)}
+										variant={getStatusColor(order)}
 										className='capitalize flex items-center gap-1'>
-										{getStatusIcon(order.status)}
-										{order.status.toLowerCase()}
+										{getStatusIcon(order)}
+										{order.bill ? 'completed' : 'pending'}
 									</Badge>
 
 									<p className='text-sm font-medium'>

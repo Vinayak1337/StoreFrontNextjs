@@ -15,24 +15,34 @@ import { Label } from '@/components/ui/label';
 import { Printer, Bluetooth, AlertCircle, Check, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Bill, Settings } from '@/types';
-import { formatBillForThermalPrinter } from '@/lib/utils/bill-utils';
-
-// Define printer device interface
-interface PrinterDevice {
-	device: BluetoothDevice;
-	name: string;
-}
+import { formatBillForThermalPrinter, printBill } from '@/lib/utils/bill-utils';
+import { 
+	scanForPrinters, 
+	isBluetoothSupported, 
+	printToBluetooth,
+	debugBluetoothSupport,
+	PrinterDevice,
+	savePrinterForDirectUse 
+} from '@/lib/utils/printer-utils';
 
 interface ThermalPrinterDialogProps {
 	bill: Bill;
 	settings: Settings;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
 export function ThermalPrinterDialog({
 	bill,
-	settings
+	settings,
+	open,
+	onOpenChange
 }: ThermalPrinterDialogProps) {
 	const [isOpen, setIsOpen] = useState(false);
+	
+	// Use external control if provided, otherwise use internal state
+	const dialogOpen = open !== undefined ? open : isOpen;
+	const setDialogOpen = onOpenChange !== undefined ? onOpenChange : setIsOpen;
 	const [isScanning, setIsScanning] = useState(false);
 	const [printers, setPrinters] = useState<PrinterDevice[]>([]);
 	const [selectedPrinter, setSelectedPrinter] = useState<PrinterDevice | null>(
@@ -43,19 +53,11 @@ export function ThermalPrinterDialog({
 
 	// Check if Web Bluetooth is supported
 	useEffect(() => {
-		if (typeof navigator !== 'undefined') {
-			try {
-				// Try to check if bluetooth is available and not disabled
-				setHasBluetoothSupport('bluetooth' in navigator);
-			} catch (error) {
-				console.error('Bluetooth API check error:', error);
-				setHasBluetoothSupport(false);
-			}
-		}
+		setHasBluetoothSupport(isBluetoothSupported());
 	}, []);
 
-	// Scan for Bluetooth printers
-	const scanForPrinters = async () => {
+	// Scan for Bluetooth printers using the utility function
+	const handleScanForPrinters = async () => {
 		if (!hasBluetoothSupport) {
 			toast.error('Bluetooth is not supported or is disabled in this browser');
 			return;
@@ -65,59 +67,40 @@ export function ThermalPrinterDialog({
 			setIsScanning(true);
 			setPrinters([]);
 
-			// Request Bluetooth device with printer service
-			const device = await navigator.bluetooth?.requestDevice({
-				// To see all available printers, we don't filter by services
-				// Some printers might not advertise standard services
-				acceptAllDevices: true,
-				optionalServices: ['generic_access']
-			});
+			// Debug bluetooth support
+			debugBluetoothSupport();
 
-			if (!device) {
-				throw new Error('No device selected');
+			const discoveredPrinters = await scanForPrinters();
+			
+			if (discoveredPrinters.length === 0) {
+				toast.info('No printer was selected or found. Please try again.');
+				return;
 			}
 
-			// Add the discovered printer
-			setPrinters(prev => [
-				...prev,
-				{ device, name: device.name || 'Unknown Printer' }
-			]);
-			setSelectedPrinter({ device, name: device.name || 'Unknown Printer' });
+			setPrinters(discoveredPrinters);
+			// Auto-select the first printer if only one is found
+			if (discoveredPrinters.length === 1) {
+				setSelectedPrinter(discoveredPrinters[0]);
+				// Automatically save the printer for direct use
+				savePrinterForDirectUse(discoveredPrinters[0]);
+			}
 
-			toast.success(`Found printer: ${device.name || 'Unknown Printer'}`);
+			toast.success(`Found ${discoveredPrinters.length} printer(s)`);
 		} catch (error: unknown) {
 			console.error('Error scanning for printers:', error);
-
-			// Show more specific error messages
+			
 			if (error instanceof Error) {
-				if (
-					error.name === 'NotFoundError' &&
-					error.message.includes('globally disabled')
-				) {
-					toast.error(
-						'Web Bluetooth API is disabled. Please enable it in your browser settings.'
-					);
-				} else if (error.name === 'NotFoundError') {
-					toast.info('No printer was selected or found. Please try again.');
-				} else if (error.name === 'SecurityError') {
-					toast.error(
-						'Bluetooth permission denied. Please allow Bluetooth access.'
-					);
-				} else {
-					toast.error(`Failed to scan for printers: ${error.message}`);
-				}
+				toast.error(error.message);
 			} else {
-				toast.error(
-					'Failed to scan for printers. Make sure Bluetooth is enabled.'
-				);
+				toast.error('Failed to scan for printers. Make sure Bluetooth is enabled.');
 			}
 		} finally {
 			setIsScanning(false);
 		}
 	};
 
-	// Print to the selected printer
-	const printToBluetooth = async () => {
+	// Print to the selected printer using the utility function
+	const handlePrintToBluetooth = async () => {
 		if (!selectedPrinter) {
 			toast.error('Please select a printer first');
 			return;
@@ -125,15 +108,7 @@ export function ThermalPrinterDialog({
 
 		try {
 			setIsPrinting(true);
-			const device = selectedPrinter.device;
-
 			toast.info('Connecting to printer...');
-
-			// Connect to the printer
-			const server = await device.gatt?.connect();
-			if (!server) {
-				throw new Error('Could not connect to printer');
-			}
 
 			// Format the bill data for printing
 			const content = formatBillForThermalPrinter(bill, settings);
@@ -141,87 +116,68 @@ export function ThermalPrinterDialog({
 				throw new Error('Could not format bill data');
 			}
 
-			// Convert the content to bytes that the printer can understand
-			const printData = generatePrintData(content);
-
-			// Try to find a service for sending data
-			// Different printers might use different services, this is a generic approach
-			// Discovering available services
-			const services = await server.getPrimaryServices();
-
-			let success = false;
-			for (const service of services) {
-				try {
-					const characteristics = await service.getCharacteristics();
-
-					// Find a writable characteristic
-					for (const characteristic of characteristics) {
-						if (
-							characteristic.properties.write ||
-							characteristic.properties.writeWithoutResponse
-						) {
-							// Send the print data
-							await characteristic.writeValue(printData);
-							success = true;
-							break;
-						}
-					}
-
-					if (success) break;
-				} catch (e) {
-					console.log('Error with service:', e);
-					// Continue trying other services
-				}
-			}
-
+			// Use the utility function to print
+			const success = await printToBluetooth(selectedPrinter, content);
+			
 			if (success) {
 				toast.success('Print sent to thermal printer successfully');
-			} else {
-				toast.error('Could not find a way to send data to this printer');
+				setDialogOpen(false);
 			}
-
-			// Disconnect from the device
-			if (device.gatt?.connected) {
-				device.gatt.disconnect();
-			}
-
-			setIsOpen(false);
 		} catch (error) {
 			console.error('Error printing to Bluetooth printer:', error);
-			toast.error('Failed to print. Please check printer connection.');
+			
+			if (error instanceof Error) {
+				toast.error(error.message);
+			} else {
+				toast.error('Failed to print. Please check printer connection.');
+			}
 		} finally {
 			setIsPrinting(false);
 		}
 	};
 
-	// Generate print data using ESC/POS commands
-	const generatePrintData = (content: string) => {
+	// Fall back to standard printing
+	const handleStandardPrint = () => {
 		try {
-			// This is where you'd use the escpos-browser library
-			// For now, we'll create a simple text representation of the bill
-			const encoder = new TextEncoder();
+			// Show a notification that print is being prepared
+			toast.info('Using standard printing...', { autoClose: 2000 });
 
-			// Convert content to bytes
-			return encoder.encode(content);
+			// Detect Samsung browser for customized message
+			const isSamsungBrowser = /SamsungBrowser/i.test(navigator.userAgent);
+			if (isSamsungBrowser) {
+				// Show Samsung-specific instructions after a short delay
+				setTimeout(() => {
+					toast.info(
+						"Samsung tablet detected. If print doesn't appear, check your notification panel for print options.",
+						{ autoClose: 5000 }
+					);
+				}, 2500);
+			}
+
+			printBill(bill, settings);
+			setDialogOpen(false);
 		} catch (error) {
-			console.error('Error generating print data:', error);
-			throw new Error('Failed to generate print data');
+			console.error('Print error:', error);
+			toast.error('There was an error printing the bill. Please try again.');
 		}
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={setIsOpen}>
-			<DialogTrigger asChild>
-				<Button
-					variant='default'
-					size='sm'
-					className='flex items-center gap-2'
-					onClick={() => setIsOpen(true)}
-					disabled={!hasBluetoothSupport}>
-					<Printer className='h-4 w-4' />
-					Thermal Print
-				</Button>
-			</DialogTrigger>
+		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+			{/* Only show trigger button if not controlled externally */}
+			{open === undefined && (
+				<DialogTrigger asChild>
+					<Button
+						variant='default'
+						size='sm'
+						className='flex items-center gap-2'
+						onClick={() => setDialogOpen(true)}
+						disabled={!hasBluetoothSupport}>
+						<Printer className='h-4 w-4' />
+						Thermal Print
+					</Button>
+				</DialogTrigger>
+			)}
 
 			<DialogContent className='sm:max-w-[425px]'>
 				<DialogHeader>
@@ -231,20 +187,49 @@ export function ThermalPrinterDialog({
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className='py-4'>
+				<div className='py-4 overflow-y-auto max-h-[60vh] sm:max-h-[70vh]'>
 					{!hasBluetoothSupport ? (
-						<div className='flex items-center p-4 mb-4 border rounded-md bg-yellow-50 text-yellow-700'>
-							<AlertCircle className='h-5 w-5 mr-2' />
-							<p>
-								Web Bluetooth is not supported in this browser. Try Chrome or
-								Edge.
-							</p>
+						<div className='flex flex-col space-y-4'>
+							<div className='flex items-start p-4 mb-2 border rounded-md bg-yellow-50 text-yellow-700'>
+								<AlertCircle className='h-5 w-5 mr-2 flex-shrink-0 mt-0.5' />
+								<div className='min-w-0 flex-1'>
+									<p className='font-medium'>
+										Bluetooth printing unavailable
+									</p>
+									<p className='text-sm mt-1'>
+										Web Bluetooth API is disabled or not supported in this
+										browser.
+									</p>
+								</div>
+							</div>
+
+							<div className='text-sm space-y-3 p-4 border rounded-md'>
+								<p className='font-medium'>To enable Web Bluetooth:</p>
+								<ol className='list-decimal pl-5 space-y-2'>
+									<li>Make sure you&apos;re using Chrome or Edge</li>
+									<li>
+										Type{' '}
+										<span className='font-mono bg-gray-100 px-1 rounded text-xs'>
+											chrome://flags
+										</span>{' '}
+										in your address bar
+									</li>
+									<li>
+										Search for &quot;Bluetooth&quot; and enable &quot;Web
+										Bluetooth&quot;
+									</li>
+									<li>Restart your browser</li>
+								</ol>
+								<p className='italic mt-2 text-muted-foreground'>
+									You can use Standard Print as an alternative method.
+								</p>
+							</div>
 						</div>
 					) : (
 						<>
 							<div className='mb-4'>
 								<Button
-									onClick={scanForPrinters}
+									onClick={handleScanForPrinters}
 									className='w-full mb-4'
 									disabled={isScanning}>
 									{isScanning ? (
@@ -275,9 +260,9 @@ export function ThermalPrinterDialog({
 									<div className='space-y-2'>
 										{printers.map(printer => (
 											<div
-												key={printer.device.id}
+												key={printer.id}
 												className={`flex items-center justify-between p-3 rounded-md cursor-pointer ${
-													selectedPrinter?.device.id === printer.device.id
+													selectedPrinter?.id === printer.id
 														? 'bg-primary/10 border border-primary/30'
 														: 'border'
 												}`}
@@ -285,8 +270,19 @@ export function ThermalPrinterDialog({
 												<div className='flex items-center gap-2'>
 													<Printer className='h-4 w-4' />
 													<span>{printer.name}</span>
+													{printer.status && (
+														<span className={`text-xs px-2 py-1 rounded ${
+															printer.status === 'online' 
+																? 'bg-green-100 text-green-600' 
+																: printer.status === 'offline'
+																? 'bg-red-100 text-red-600'
+																: 'bg-gray-100 text-gray-600'
+														}`}>
+															{printer.status}
+														</span>
+													)}
 												</div>
-												{selectedPrinter?.device.id === printer.device.id && (
+												{selectedPrinter?.id === printer.id && (
 													<Check className='h-4 w-4 text-primary' />
 												)}
 											</div>
@@ -298,13 +294,24 @@ export function ThermalPrinterDialog({
 					)}
 				</div>
 
-				<DialogFooter>
-					<Button variant='outline' onClick={() => setIsOpen(false)}>
+				<DialogFooter className='flex flex-col gap-2 sm:flex-row sm:gap-2 sm:justify-end'>
+					<Button 
+						variant='outline' 
+						onClick={() => setDialogOpen(false)}
+						className='w-full sm:w-auto order-last sm:order-first'>
 						Cancel
 					</Button>
+					<Button 
+						variant='outline' 
+						onClick={handleStandardPrint}
+						className='w-full sm:w-auto'>
+						<Printer className='h-4 w-4 mr-2' />
+						Standard Print
+					</Button>
 					<Button
-						onClick={printToBluetooth}
-						disabled={!selectedPrinter || isPrinting || !hasBluetoothSupport}>
+						onClick={handlePrintToBluetooth}
+						disabled={!selectedPrinter || isPrinting || !hasBluetoothSupport}
+						className='w-full sm:w-auto'>
 						{isPrinting ? (
 							<>
 								<Loader2 className='h-4 w-4 mr-2 animate-spin' />
@@ -313,7 +320,7 @@ export function ThermalPrinterDialog({
 						) : (
 							<>
 								<Printer className='h-4 w-4 mr-2' />
-								Print
+								Thermal Print
 							</>
 						)}
 					</Button>

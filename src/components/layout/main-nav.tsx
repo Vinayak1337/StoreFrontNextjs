@@ -52,7 +52,7 @@ export function MainNav() {
 
 	// Calculate notification counts with null checks
 	const pendingOrdersCount =
-		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
+		orders?.filter(order => !order?.bill)?.length || 0;
 	const lowStockCount =
 		items?.filter(item => item?.inStock === false)?.length || 0;
 	const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
@@ -146,7 +146,7 @@ export function MainNav() {
 							className='rounded-full p-0 hover-scale'>
 							<Avatar className='h-9 w-9 shadow-sm border-2 border-border'>
 								<AvatarImage src='' alt={user?.name || 'Store Manager'} />
-								<AvatarFallback className='bg-gradient-to-r from-primary to-secondary text-primary-foreground'>
+								<AvatarFallback className='bg-gradient-to-r from-blue-600 to-blue-700 text-white'>
 									{user?.name?.split(' ')?.[0]?.charAt(0) || 'S'}
 								</AvatarFallback>
 							</Avatar>

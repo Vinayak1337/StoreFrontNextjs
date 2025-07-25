@@ -9,11 +9,9 @@ import {
 	LayoutDashboard,
 	ShoppingBag,
 	ShoppingCart,
-	Receipt,
 	BarChart3,
 	Settings,
 	Menu,
-	ChevronRight,
 	Store,
 	LogOut
 } from 'lucide-react';
@@ -31,7 +29,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { RootState } from '@/lib/redux/store';
 import { fetchItems } from '@/lib/redux/slices/items.slice';
 import { fetchOrders } from '@/lib/redux/slices/orders.slice';
-import { fetchBills } from '@/lib/redux/slices/bills.slice';
+// import { fetchBills } from '@/lib/redux/slices/bills.slice';
 import { useAuth } from '@/hooks/use-auth';
 
 interface NavItemProps {
@@ -56,36 +54,38 @@ function NavItem({
 			href={href}
 			onClick={onClick}
 			className={cn(
-				'group flex items-center gap-3 rounded-lg px-3 py-2.5 sm:py-3 text-sm font-medium transition-all',
-				'hover-scale relative overflow-hidden min-h-[44px]',
+				'group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200',
+				'relative overflow-hidden min-h-[48px] hover:scale-[1.02] active:scale-[0.98]',
 				isActive
-					? 'bg-primary text-primary-foreground shadow-md'
-					: 'text-muted-foreground hover:text-foreground hover:bg-primary/10'
+					? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-600/25'
+					: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
 			)}>
 			<div
 				className={cn(
-					'flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md flex-shrink-0',
+					'flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0 transition-colors',
 					isActive
-						? 'text-primary-foreground'
-						: 'text-muted-foreground group-hover:text-foreground'
+						? 'text-white bg-white/20'
+						: 'text-gray-500 group-hover:text-gray-700 group-hover:bg-gray-200'
 				)}>
 				{icon}
 			</div>
-			<span className='flex-1 text-sm sm:text-base'>{title}</span>
+			<span className='flex-1 text-sm font-medium'>{title}</span>
 			{badge !== undefined && badge > 0 && (
-				<Badge variant='secondary' className='animate-pulse-ping ml-auto text-xs px-1.5 py-0.5'>
+				<Badge 
+					variant={isActive ? 'secondary' : 'default'} 
+					className={cn(
+						'ml-auto text-xs px-2 py-0.5 min-w-[20px] h-5 flex items-center justify-center',
+						isActive 
+							? 'bg-white/20 text-white border-white/30' 
+							: 'bg-red-100 text-red-700 border-red-200'
+					)}
+				>
 					{badge}
 				</Badge>
 			)}
 			{isActive && (
-				<div className='absolute inset-y-0 left-0 w-1 bg-primary-foreground rounded-full'></div>
+				<div className='absolute inset-y-0 left-0 w-1 bg-white rounded-full'></div>
 			)}
-			<ChevronRight
-				className={cn(
-					'ml-auto h-4 w-4 opacity-0 transition-all flex-shrink-0',
-					isActive ? 'opacity-100' : 'group-hover:opacity-30'
-				)}
-			/>
 		</Link>
 	);
 }
@@ -99,7 +99,7 @@ export function Sidebar() {
 	const dispatch = useAppDispatch();
 	const { items } = useAppSelector((state: RootState) => state.items);
 	const { orders } = useAppSelector((state: RootState) => state.orders);
-	const { bills } = useAppSelector((state: RootState) => state.bills);
+	// const { bills } = useAppSelector((state: RootState) => state.bills);
 
 	// Fix for hydration
 	useEffect(() => {
@@ -110,15 +110,15 @@ export function Sidebar() {
 	useEffect(() => {
 		dispatch(fetchItems());
 		dispatch(fetchOrders());
-		dispatch(fetchBills());
+		// dispatch(fetchBills());
 	}, [dispatch]);
 
 	// Calculate notification counts with null checks
 	const pendingOrdersCount =
-		orders?.filter(order => order?.status === 'PENDING')?.length || 0;
+		orders?.filter(order => !order?.bill)?.length || 0;
 	const lowStockCount =
 		items?.filter(item => item?.inStock === false)?.length || 0;
-	const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
+	// const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
 
 	const routes = [
 		{
@@ -130,7 +130,7 @@ export function Sidebar() {
 		{
 			href: '/items' as Route,
 			icon: <ShoppingBag className='h-5 w-5' />,
-			title: 'Inventory',
+			title: 'Items',
 			badge: lowStockCount
 		},
 		{
@@ -138,12 +138,6 @@ export function Sidebar() {
 			icon: <ShoppingCart className='h-5 w-5' />,
 			title: 'Orders',
 			badge: pendingOrdersCount
-		},
-		{
-			href: '/bills' as Route,
-			icon: <Receipt className='h-5 w-5' />,
-			title: 'Invoices',
-			badge: unpaidBillsCount
 		},
 		{
 			href: '/analytics' as Route,
@@ -169,101 +163,153 @@ export function Sidebar() {
 
 	return (
 		<>
-			{/* Mobile Navigation */}
+			{/* Mobile Navigation - Small screens */}
 			<Sheet open={open} onOpenChange={setOpen}>
 				<SheetTrigger asChild>
 					<Button
 						variant='outline'
 						size='icon'
-						className='lg:hidden fixed top-[0.5%] left-4 z-50 glassmorphism hover-glow p-0'>
+						className='md:hidden fixed top-4 left-4 z-50 shadow-lg bg-white hover:bg-gray-50 border-gray-200'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>
 				</SheetTrigger>
 				<SheetContent
 					side='left'
-					className='flex flex-col p-0 w-[85%] sm:w-[300px] md:w-[350px] border-r'>
+					className='flex flex-col p-0 w-[85%] sm:w-[300px] border-r bg-white'>
 					<SheetHeader className='sr-only'>
 						<SheetTitle>Navigation Menu</SheetTitle>
 						<SheetDescription>Store navigation options</SheetDescription>
 					</SheetHeader>
-					<div className='flex items-center border-b px-4 sm:px-6 py-3 sm:py-4'>
-						<div className='flex items-center gap-2'>
-							<div className='icon-container'>
-								<Store className='h-5 w-5 sm:h-6 sm:w-6 text-primary' />
+					<div className='flex items-center border-b px-6 py-4'>
+						<div className='flex items-center gap-3'>
+							<div className='flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg'>
+								<Store className='h-5 w-5 text-white' />
 							</div>
-							<h2 className='text-base sm:text-lg font-semibold text-gradient'>
+							<h2 className='text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent'>
 								StoreFront
 							</h2>
 						</div>
 					</div>
-					<nav className='flex-1 overflow-auto px-3 sm:px-4 py-2'>
-						<div className='space-y-1 sm:space-y-2'>
-							{routes.map(route => (
-								<NavItem
+					<nav className='flex-1 overflow-auto px-4 py-6'>
+						<div className='space-y-2'>
+							{routes.map((route, index) => (
+								<div
 									key={route.href}
+									style={{ animationDelay: `${index * 50}ms` }}
+									className='animate-slide-in-left'
+								>
+									<NavItem
+										href={route.href}
+										icon={route.icon}
+										title={route.title}
+										isActive={pathname === route.href}
+										badge={route.badge}
+										onClick={() => setOpen(false)}
+									/>
+								</div>
+							))}
+						</div>
+					</nav>
+					<div className='border-t bg-gray-50/50 p-4'>
+						<Button
+							variant='ghost'
+							size='sm'
+							className='w-full justify-start gap-3 hover:bg-red-50 hover:text-red-600 text-gray-600'
+							onClick={() => {
+								handleLogout();
+								setOpen(false);
+							}}>
+							<LogOut className='h-4 w-4' />
+							<span className='font-medium'>Sign Out</span>
+						</Button>
+					</div>
+				</SheetContent>
+			</Sheet>
+
+			{/* Tablet Navigation - Bottom Navbar (Portrait/vertical tablet) */}
+			<nav className='hidden md:flex lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg'>
+				<div className='flex items-center justify-around w-full px-2 py-3'>
+					{routes.map((route) => (
+						<Link
+							key={route.href}
+							href={route.href}
+							className={cn(
+								'flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[64px] relative transition-all duration-200',
+								pathname === route.href
+									? 'text-blue-600 bg-blue-50'
+									: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+							)}>
+							<div className={cn(
+								'flex items-center justify-center w-6 h-6 relative',
+								pathname === route.href ? 'text-blue-600' : 'text-gray-500'
+							)}>
+								{route.icon}
+								{route.badge > 0 && (
+									<Badge 
+										className='absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 text-white border-white flex items-center justify-center'
+									>
+										{route.badge > 9 ? '9+' : route.badge}
+									</Badge>
+								)}
+							</div>
+							<span className='text-xs font-medium truncate max-w-[48px]'>
+								{route.title}
+							</span>
+						</Link>
+					))}
+					{/* Logout button for tablet */}
+					<button
+						onClick={handleLogout}
+						className='flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[64px] text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200'>
+						<LogOut className='w-6 h-6' />
+						<span className='text-xs font-medium'>Logout</span>
+					</button>
+				</div>
+			</nav>
+
+			{/* Desktop Navigation - Floating Sidebar (Landscape tablet and desktop) */}
+			<aside className='hidden lg:flex flex-col w-64 xl:w-72 h-[calc(100vh-2rem)] m-4 rounded-2xl bg-white shadow-lg border border-gray-100 fixed top-0 left-0 z-40'>
+				<div className='flex h-16 xl:h-20 items-center border-b px-6'>
+					<div className='flex items-center gap-3'>
+						<div className='flex items-center justify-center w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg'>
+							<Store className='h-5 w-5 xl:h-6 xl:w-6 text-white' />
+						</div>
+						<h2 className='text-xl xl:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent'>
+							StoreFront
+						</h2>
+					</div>
+				</div>
+
+				<nav className='flex-1 px-4 py-6 overflow-y-auto'>
+					<div className='space-y-2'>
+						{routes.map((route, index) => (
+							<div 
+								key={route.href}
+								style={{ animationDelay: `${index * 50}ms` }}
+								className='animate-slide-in-left'
+							>
+								<NavItem
 									href={route.href}
 									icon={route.icon}
 									title={route.title}
 									isActive={pathname === route.href}
 									badge={route.badge}
-									onClick={() => setOpen(false)}
 								/>
-							))}
-						</div>
-					</nav>
-					<div className='p-3 sm:p-4 border-t'>
-						<div className='flex items-center justify-end'>
-							<Button
-								variant='outline'
-								size='icon'
-								className='hover-rotate h-9 w-9 sm:h-10 sm:w-10'
-								onClick={handleLogout}>
-								<LogOut className='h-4 w-4 sm:h-5 sm:w-5 text-destructive' />
-								<span className='sr-only'>Log out</span>
-							</Button>
-						</div>
-					</div>
-				</SheetContent>
-			</Sheet>
-
-			{/* Desktop Navigation */}
-			<aside className='hidden lg:flex flex-col w-64 h-screen border-r animate-slide-in glassmorphism'>
-				<div className='flex h-16 items-center border-b px-6'>
-					<div className='flex items-center gap-2'>
-						<div className='icon-container animate-pulse-ping'>
-							<Store className='h-6 w-6 text-primary' />
-						</div>
-						<h2 className='text-xl font-bold text-gradient'>StoreFront</h2>
-					</div>
-				</div>
-
-				<nav className='flex-1 px-3 py-2 overflow-y-auto'>
-					<div className='space-y-1.5'>
-						{routes.map(route => (
-							<NavItem
-								key={route.href}
-								href={route.href}
-								icon={route.icon}
-								title={route.title}
-								isActive={pathname === route.href}
-								badge={route.badge}
-							/>
+							</div>
 						))}
 					</div>
 				</nav>
 
-				<div className='border-t p-4'>
-					<div className='flex items-center justify-end'>
-						<Button
-							variant='ghost'
-							size='icon'
-							className='hover-rotate'
-							onClick={handleLogout}>
-							<LogOut className='h-4 w-4 text-muted-foreground' />
-							<span className='sr-only'>Log out</span>
-						</Button>
-					</div>
+				<div className='border-t bg-gray-50/50 p-4'>
+					<Button
+						variant='ghost'
+						size='sm'
+						className='w-full justify-start gap-3 hover:bg-red-50 hover:text-red-600 text-gray-600'
+						onClick={handleLogout}>
+						<LogOut className='h-4 w-4' />
+						<span className='font-medium'>Sign Out</span>
+					</Button>
 				</div>
 			</aside>
 		</>

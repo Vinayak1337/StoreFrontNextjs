@@ -10,12 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import {
 	fetchOrders,
-	updateOrderStatus,
 	deleteOrder
 } from '@/lib/redux/slices/orders.slice';
 import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import { createBill } from '@/lib/redux/slices/bills.slice';
-import { OrderStatus } from '@/types';
 import { ArrowLeft, Check, XCircle, Trash } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -41,21 +39,13 @@ export default function OrderDetailsPage() {
 		if (!order) return;
 
 		try {
-			// First update the status to completed
-			await dispatch(
-				updateOrderStatus({
-					id: order.id,
-					status: OrderStatus.COMPLETED
-				})
-			);
-
 			// Calculate total for creating bill
 			const total = order.orderItems.reduce(
 				(sum, item) => sum + Number(item.price) * item.quantity,
 				0
 			);
 
-			// Create a bill for the completed order
+			// Create a bill for the order (marks it as completed)
 			const billResult = await dispatch(
 				createBill({
 					orderId: order.id,
@@ -80,10 +70,15 @@ export default function OrderDetailsPage() {
 
 	const handleCancelOrder = () => {
 		if (!order) return;
-		dispatch(
-			updateOrderStatus({ id: order.id, status: OrderStatus.CANCELLED })
-		);
-		toast.success('Order marked as cancelled');
+		// Since we removed status, we'll just delete cancelled orders
+		if (
+			confirm(
+				'Are you sure you want to cancel this order? This will delete it permanently.'
+			)
+		) {
+			dispatch(deleteOrder(order.id));
+			router.push('/orders');
+		}
 	};
 
 	const handleDeleteOrder = () => {
@@ -148,18 +143,12 @@ export default function OrderDetailsPage() {
 
 				<Badge
 					className='ml-4'
-					variant={
-						order.status === OrderStatus.COMPLETED
-							? 'success'
-							: order.status === OrderStatus.CANCELLED
-							? 'destructive'
-							: 'default'
-					}>
-					{order.status}
+					variant={order.bill ? 'default' : 'secondary'}>
+					{order.bill ? 'COMPLETED' : 'PENDING'}
 				</Badge>
 
 				<div className='ml-auto'>
-					{order.status === OrderStatus.PENDING && (
+					{!order.bill && (
 						<div className='flex gap-2'>
 							<Button
 								variant='outline'
@@ -198,7 +187,7 @@ export default function OrderDetailsPage() {
 							</span>
 
 							<span className='text-muted-foreground'>Status:</span>
-							<span className='font-medium'>{order.status}</span>
+							<span className='font-medium'>{order.bill ? 'COMPLETED' : 'PENDING'}</span>
 
 							{order.customMessage && (
 								<>
