@@ -13,6 +13,34 @@ const nextConfig = {
 			ignored: ['**/project-manager-master/**']
 		};
 		return config;
+	},
+	// Configure Turbopack to match webpack settings
+	turbo: {
+		rules: {
+			'**/project-manager-master/**': {
+				loaders: [],
+			}
+		}
+	},
+	// Ensure Prisma works on Vercel
+	serverExternalPackages: ['@prisma/client', 'prisma'],
+	// API route optimizations
+	async headers() {
+		return [
+			{
+				source: '/api/:path*',
+				headers: [
+					{
+						key: 'Cache-Control',
+						value: 'no-cache, no-store, must-revalidate',
+					},
+					{
+						key: 'Connection',
+						value: 'close',
+					}
+				],
+			},
+		];
 	}
 };
 
