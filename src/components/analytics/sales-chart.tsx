@@ -80,7 +80,8 @@ export function SalesChart() {
 			const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 			dispatch(fetchDailySales({ startDate, endDate }));
 		}
-	}, [dispatch]); // Remove salesData from dependencies to prevent infinite loop
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [dispatch]); // Intentionally excluding salesData to prevent infinite loop
 
 	// Handle view mode change and reload data
 	const handleViewModeChange = (newMode: 'daily' | 'weekly' | 'monthly') => {
@@ -121,7 +122,7 @@ export function SalesChart() {
 					}
 					weeklyData[weekKey].totalAmount += Number(item.totalAmount || 0);
 					weeklyData[weekKey].count += Number(item.count || 0);
-				} catch (error) {
+				} catch {
 					// Skip invalid data
 				}
 			});
@@ -146,7 +147,7 @@ export function SalesChart() {
 					}
 					monthlyData[monthKey].totalAmount += Number(item.totalAmount || 0);
 					monthlyData[monthKey].count += Number(item.count || 0);
-				} catch (error) {
+				} catch {
 					// Skip invalid data
 				}
 			});
@@ -176,7 +177,7 @@ export function SalesChart() {
 					sales: Number(item.totalAmount || 0),
 					profit: Number(item.totalAmount || 0) * 0.1 // 10% estimated profit margin
 				};
-			} catch (error) {
+			} catch {
 				// Skip invalid data
 				return {
 					date: item.date,

@@ -554,8 +554,8 @@ function ItemsPageContent() {
 	}, []);
 
 	// Drag handlers - keeping empty for compatibility with DraggableItem components
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const handleDragStart = useCallback(
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		(_item: { id: string; categoryId?: string }) => {
 			// No longer needed for uncategorized section collapse
 		},
