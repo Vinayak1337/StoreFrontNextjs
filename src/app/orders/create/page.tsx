@@ -456,6 +456,15 @@ export default function CreateOrderPage() {
 						</p>
 					</div>
 				</div>
+				{/* Create Bill button - only show on tablet vertical and mobile */}
+				<Button
+					onClick={handleDirectPrint}
+					disabled={!customerName.trim() || orderItems.length === 0}
+					className='lg:hidden flex items-center gap-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white'>
+					<Receipt className='h-4 w-4' />
+					<span className='hidden sm:inline'>Create Order</span>
+					<span className='sm:hidden'>Order</span>
+				</Button>
 			</div>
 
 			<div className='grid grid-cols-1 xl:grid-cols-4 gap-6'>

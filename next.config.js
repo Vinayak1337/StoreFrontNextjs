@@ -14,6 +14,14 @@ const nextConfig = {
 		};
 		return config;
 	},
+	// Configure Turbopack to match webpack settings
+	turbo: {
+		rules: {
+			'**/project-manager-master/**': {
+				loaders: [],
+			}
+		}
+	},
 	// Ensure Prisma works on Vercel
 	serverExternalPackages: ['@prisma/client', 'prisma'],
 	// API route optimizations
