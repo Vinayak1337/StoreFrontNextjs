@@ -39,9 +39,7 @@ export async function GET() {
 			{ error: 'Failed to fetch bills' },
 			{ status: 500 }
 		);
-	} finally {
-		await prisma.$disconnect();
-	}
+	} 
 }
 
 // POST /api/bills - Create a new bill
@@ -118,8 +116,6 @@ export async function POST(request: Request) {
 			{ error: errorMessage },
 			{ status: errorMessage.includes('not found') ? 404 : errorMessage.includes('already exists') ? 400 : 500 }
 		);
-	} finally {
-		await prisma.$disconnect();
 	}
 }
 
@@ -155,7 +151,5 @@ export async function DELETE(request: Request) {
 			{ error: errorMessage },
 			{ status: errorMessage.includes('not found') ? 404 : 500 }
 		);
-	} finally {
-		await prisma.$disconnect();
 	}
 }

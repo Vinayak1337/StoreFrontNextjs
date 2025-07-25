@@ -40,9 +40,6 @@ export async function GET() {
 			{ error: 'Failed to fetch orders' },
 			{ status: 500 }
 		);
-	} finally {
-		// Explicitly disconnect to free up connections
-		await prisma.$disconnect();
 	}
 }
 
@@ -131,9 +128,6 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
 		return NextResponse.json({ error: errorMessage }, { status: 500 });
-	} finally {
-		// Explicitly disconnect to free up connections
-		await prisma.$disconnect();
 	}
 }
 

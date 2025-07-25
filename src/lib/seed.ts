@@ -32,8 +32,6 @@ export async function seed() {
 		console.log('Seed completed successfully');
 	} catch (error) {
 		console.error('Error during seed:', error);
-	} finally {
-		await prisma.$disconnect();
 	}
 }
 
