@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "prebuild": "npx prisma generate",
+    "postinstall": "prisma generate",
+    "prebuild": "prisma generate",
     "build": "next build",
     "build:static": "next build && next export",
     "build:prod": "cross-env NODE_ENV=production DISABLE_ESLINT_PLUGIN=true next build",

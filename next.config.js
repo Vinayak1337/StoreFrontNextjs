@@ -14,11 +14,8 @@ const nextConfig = {
 		};
 		return config;
 	},
-	// Vercel-specific optimizations
-	experimental: {
-		// Enable faster builds
-		optimizePackageImports: ['@prisma/client'],
-	},
+	// Ensure Prisma works on Vercel
+	serverExternalPackages: ['@prisma/client', 'prisma'],
 	// API route optimizations
 	async headers() {
 		return [
