@@ -15,7 +15,7 @@ const Card = React.forwardRef<
 		className={cn(
 			'rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200',
 			glass && 'glassmorphism backdrop-blur-md bg-card/50',
-			gradient && 'bg-gradient-to-br from-blue-600/5 to-blue-700/5',
+			gradient && 'bg-gradient-to-br from-emerald-600/5 to-emerald-700/5',
 			hover === 'scale' && 'hover:scale-[1.02]',
 			hover === 'glow' && 'hover-glow',
 			hover === 'raise' && 'hover-raise',

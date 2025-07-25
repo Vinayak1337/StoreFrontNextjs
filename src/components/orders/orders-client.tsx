@@ -12,22 +12,38 @@ import { RootState, AppDispatch } from '@/lib/redux/store';
 import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import { Order } from '@/types';
 import api from '@/lib/services/api';
-import { Plus, Eye, ChevronUp, Trash, Printer, Loader2, Bluetooth } from 'lucide-react';
+import {
+	Plus,
+	Eye,
+	ChevronUp,
+	Trash,
+	Printer,
+	Loader2,
+	Bluetooth
+} from 'lucide-react';
 import { FullScreenLoader } from '@/components/ui/full-screen-loader';
 import { printDirectlyToThermalPrinter } from '@/lib/utils/direct-thermal-print';
-import { scanForPrinters, isBluetoothSupported, savePrinterForDirectUse } from '@/lib/utils/printer-utils';
+import {
+	scanForPrinters,
+	isBluetoothSupported,
+	savePrinterForDirectUse
+} from '@/lib/utils/printer-utils';
 
 interface OrdersClientProps {
 	initialOrders: Order[];
 }
 
-export default function OrdersClient({ }: OrdersClientProps) {
+export default function OrdersClient({}: OrdersClientProps) {
 	const router = useRouter();
 	const dispatch = useDispatch<AppDispatch>();
 	const queryClient = useQueryClient();
-	const { settings } = useSelector((state: RootState) => state.settings || { settings: null });
+	const { settings } = useSelector(
+		(state: RootState) => state.settings || { settings: null }
+	);
 	const [expandedOrders] = useState<string[]>([]);
-	const [isPrintingThermal, setIsPrintingThermal] = useState<string | null>(null);
+	const [isPrintingThermal, setIsPrintingThermal] = useState<string | null>(
+		null
+	);
 	const [isPairingPrinter, setIsPairingPrinter] = useState(false);
 
 	// Use React Query hooks for data fetching
@@ -38,44 +54,46 @@ export default function OrdersClient({ }: OrdersClientProps) {
 		dispatch(fetchSettings());
 	}, [dispatch]);
 
-
 	// Handle printer pairing with success state
 	const [printerSaved, setPrinterSaved] = useState(false);
-	
+
 	const handlePairPrinter = async () => {
 		try {
 			setIsPairingPrinter(true);
 			setPrinterSaved(false);
-			
+
 			if (!isBluetoothSupported()) {
-				alert('Bluetooth is not supported in this browser. Please use Chrome or Edge.');
+				alert(
+					'Bluetooth is not supported in this browser. Please use Chrome or Edge.'
+				);
 				return;
 			}
-			
+
 			// Scan for printers
 			const printers = await scanForPrinters();
-			
+
 			if (printers.length === 0) {
 				alert('No printer was selected or found. Please try again.');
 				return;
 			}
-			
+
 			// Get the first (and likely only) printer
 			const printer = printers[0];
-			
+
 			// Save it for direct use
 			savePrinterForDirectUse(printer);
-			
+
 			// Set success state
 			setPrinterSaved(true);
-			
+
 			// Reset success state after 3 seconds
 			setTimeout(() => {
 				setPrinterSaved(false);
 			}, 3000);
-			
-			alert(`Thermal printer "${printer.name}" paired successfully! You can now print orders directly.`);
-			
+
+			alert(
+				`Thermal printer "${printer.name}" paired successfully! You can now print orders directly.`
+			);
 		} catch (error) {
 			console.error('Error pairing printer:', error);
 			alert('Failed to pair printer. Please try again.');
@@ -88,7 +106,7 @@ export default function OrdersClient({ }: OrdersClientProps) {
 	const handleThermalPrint = async (orderId: string) => {
 		try {
 			setIsPrintingThermal(orderId);
-			
+
 			const order = orders?.find(o => o.id === orderId);
 			if (!order) return;
 
@@ -108,7 +126,6 @@ export default function OrdersClient({ }: OrdersClientProps) {
 					taxes: 0,
 					paymentMethod: 'Cash'
 				});
-
 
 				if (billResult) {
 					billToUse = billResult;
@@ -149,7 +166,7 @@ export default function OrdersClient({ }: OrdersClientProps) {
 					paperWidth: 58
 				}
 			};
-			
+
 			if (billToUse) {
 				// Call direct print function that uses auto-connected printer
 				await printDirectlyToThermalPrinter(billToUse, settingsToUse);
@@ -181,7 +198,7 @@ export default function OrdersClient({ }: OrdersClientProps) {
 	};
 
 	if (isLoading) {
-		return <FullScreenLoader message="Loading orders..." />;
+		return <FullScreenLoader message='Loading orders...' />;
 	}
 
 	if (error) {
@@ -210,9 +227,7 @@ export default function OrdersClient({ }: OrdersClientProps) {
 							onClick={handlePairPrinter}
 							disabled={isPairingPrinter}
 							className={`flex items-center gap-2 text-sm md:text-base ${
-								printerSaved 
-									? 'bg-green-600 hover:bg-green-700 text-white' 
-									: ''
+								printerSaved ? 'bg-green-600 hover:bg-green-700 text-white' : ''
 							}`}>
 							{isPairingPrinter ? (
 								<Loader2 className='h-4 w-4 animate-spin' />
@@ -256,7 +271,9 @@ export default function OrdersClient({ }: OrdersClientProps) {
 										<div className='grid gap-2 flex-1'>
 											<div className='flex items-center justify-between text-sm'>
 												<span className='text-muted-foreground'>Customer:</span>
-												<span className='font-medium truncate ml-2'>{order.customerName}</span>
+												<span className='font-medium truncate ml-2'>
+													{order.customerName}
+												</span>
 											</div>
 											<div className='flex items-center justify-between text-sm'>
 												<span className='text-muted-foreground'>Date:</span>
@@ -291,7 +308,9 @@ export default function OrdersClient({ }: OrdersClientProps) {
 													</h4>
 													<ul className='text-sm space-y-1 max-h-32 overflow-y-auto'>
 														{order.orderItems.map(item => (
-															<li key={item.id} className='flex justify-between'>
+															<li
+																key={item.id}
+																className='flex justify-between'>
 																<span className='truncate'>
 																	{item.quantity}x{' '}
 																	{item.item?.name ||
@@ -334,7 +353,9 @@ export default function OrdersClient({ }: OrdersClientProps) {
 															: 'View Details'}
 													</span>
 													<span className='sm:hidden'>
-														{expandedOrders.includes(order.id) ? 'Hide' : 'View'}
+														{expandedOrders.includes(order.id)
+															? 'Hide'
+															: 'View'}
 													</span>
 												</Button>
 
@@ -342,16 +363,20 @@ export default function OrdersClient({ }: OrdersClientProps) {
 													size='sm'
 													onClick={() => handleThermalPrint(order.id)}
 													disabled={isPrintingThermal === order.id}
-													className='flex-1 sm:flex-none gap-1 bg-blue-600 hover:bg-blue-700 text-white'>
+													className='flex-1 sm:flex-none gap-1 bg-emerald-600 hover:bg-emerald-700 text-white'>
 													{isPrintingThermal === order.id ? (
 														<>
 															<Loader2 className='h-3 w-3 animate-spin' />
-															<span className='hidden sm:inline'>Printing...</span>
+															<span className='hidden sm:inline'>
+																Printing...
+															</span>
 														</>
 													) : (
 														<>
 															<Printer className='h-3 w-3' />
-															<span className='hidden sm:inline'>Thermal Print</span>
+															<span className='hidden sm:inline'>
+																Thermal Print
+															</span>
 														</>
 													)}
 												</Button>

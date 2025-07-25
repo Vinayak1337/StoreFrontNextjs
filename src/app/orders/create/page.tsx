@@ -37,13 +37,13 @@ interface OrderItem {
 }
 
 // Redesigned Order Item Component
-function OrderItemCard({ 
-	item, 
-	orderQuantity, 
-	onAdd, 
+function OrderItemCard({
+	item,
+	orderQuantity,
+	onAdd,
 	onUpdateQuantity,
 	onRemove,
-	isSelected 
+	isSelected
 }: {
 	item: Item;
 	orderQuantity?: number;
@@ -58,19 +58,29 @@ function OrderItemCard({
 	};
 
 	return (
-		<div className={`group bg-white rounded-xl border transition-all duration-200 ${
-			isSelected ? 'border-blue-500 shadow-md bg-blue-50/30' : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-		}`}>
+		<div
+			className={`group bg-white rounded-xl border transition-all duration-200 ${
+				isSelected
+					? 'border-emerald-500 shadow-md bg-emerald-50/30'
+					: 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+			}`}>
 			<div className='p-4'>
 				<div className='flex items-start justify-between mb-3'>
 					<div className='flex-1 min-w-0'>
-						<h3 className='font-semibold text-gray-900 truncate'>{item.name}</h3>
+						<h3 className='font-semibold text-gray-900 truncate'>
+							{item.name}
+						</h3>
 						<p className='text-sm text-gray-600 mt-1'>
-							Serving: {item.quantity} {item.weightUnit && `• ${item.weight}${item.weightUnit}`}
+							Serving: {item.quantity}{' '}
+							{item.weightUnit && `• ${item.weight}${item.weightUnit}`}
 						</p>
 						<div className='flex items-center gap-2 mt-2'>
-							<span className='text-lg font-bold text-gray-900'>{formatPrice(item.price)}</span>
-							<Badge variant={item.inStock ? 'default' : 'destructive'} className='text-xs'>
+							<span className='text-lg font-bold text-gray-900'>
+								{formatPrice(item.price)}
+							</span>
+							<Badge
+								variant={item.inStock ? 'default' : 'destructive'}
+								className='text-xs'>
 								{item.inStock ? 'Available' : 'Unavailable'}
 							</Badge>
 						</div>
@@ -82,8 +92,7 @@ function OrderItemCard({
 						onClick={onAdd}
 						disabled={!item.inStock}
 						className='w-full gap-2'
-						size='sm'
-					>
+						size='sm'>
 						<Plus className='h-4 w-4' />
 						Add to Order
 					</Button>
@@ -94,9 +103,10 @@ function OrderItemCard({
 							<Button
 								variant='outline'
 								size='sm'
-								onClick={() => onUpdateQuantity?.(Math.max(1, (orderQuantity || 1) - 1))}
-								className='h-8 w-8 p-0'
-							>
+								onClick={() =>
+									onUpdateQuantity?.(Math.max(1, (orderQuantity || 1) - 1))
+								}
+								className='h-8 w-8 p-0'>
 								<Minus className='h-3 w-3' />
 							</Button>
 							<div className='text-center min-w-[3rem]'>
@@ -107,16 +117,15 @@ function OrderItemCard({
 								variant='outline'
 								size='sm'
 								onClick={() => onUpdateQuantity?.((orderQuantity || 1) + 1)}
-								className='h-8 w-8 p-0'
-							>
+								className='h-8 w-8 p-0'>
 								<Plus className='h-3 w-3' />
 							</Button>
 						</div>
 
 						{/* Total Price */}
-						<div className='text-center p-2 bg-blue-100 rounded-lg'>
+						<div className='text-center p-2 bg-emerald-100 rounded-lg'>
 							<div className='text-sm text-gray-600'>Total</div>
-							<div className='text-lg font-bold text-blue-600'>
+							<div className='text-lg font-bold text-emerald-600'>
 								{formatPrice(Number(item.price) * (orderQuantity || 1))}
 							</div>
 						</div>
@@ -126,8 +135,7 @@ function OrderItemCard({
 							variant='outline'
 							size='sm'
 							onClick={onRemove}
-							className='w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50'
-						>
+							className='w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50'>
 							<Trash2 className='h-4 w-4' />
 							Remove
 						</Button>
@@ -154,8 +162,7 @@ function CategoryFilter({
 				variant={selectedCategory === null ? 'default' : 'outline'}
 				size='sm'
 				onClick={() => onSelectCategory(null)}
-				className='gap-2'
-			>
+				className='gap-2'>
 				<Package className='h-4 w-4' />
 				All Items
 			</Button>
@@ -165,8 +172,7 @@ function CategoryFilter({
 					variant={selectedCategory === category.id ? 'default' : 'outline'}
 					size='sm'
 					onClick={() => onSelectCategory(category.id)}
-					className='gap-2'
-				>
+					className='gap-2'>
 					<div
 						className='w-3 h-3 rounded-full'
 						style={{ backgroundColor: category.color }}
@@ -214,11 +220,14 @@ function OrderSummary({
 							if (!item) return null;
 
 							return (
-								<div key={orderItem.itemId} className='flex justify-between items-center p-2 bg-gray-50 rounded-lg'>
+								<div
+									key={orderItem.itemId}
+									className='flex justify-between items-center p-2 bg-gray-50 rounded-lg'>
 									<div className='flex-1 min-w-0'>
 										<div className='font-medium truncate'>{item.name}</div>
 										<div className='text-sm text-gray-600'>
-											{orderItem.quantity} servings × {formatPrice(orderItem.price)}
+											{orderItem.quantity} servings ×{' '}
+											{formatPrice(orderItem.price)}
 										</div>
 									</div>
 									<div className='font-bold text-gray-900'>
@@ -241,8 +250,7 @@ function OrderSummary({
 					<Button
 						variant='outline'
 						onClick={onDirectPrint}
-						className='w-full gap-2 mt-4'
-					>
+						className='w-full gap-2 mt-4'>
 						<Printer className='h-4 w-4' />
 						Print Order Directly
 					</Button>
@@ -258,13 +266,15 @@ export default function CreateOrderPage() {
 	const { data: items = [], isLoading: itemsLoading } = useItems();
 	const { data: categories = [] } = useCategories();
 	const createOrderMutation = useCreateOrder();
-	const { settings } = useSelector((state: RootState) => state.settings || { settings: null });
+	const { settings } = useSelector(
+		(state: RootState) => state.settings || { settings: null }
+	);
 
 	// Form state
 	const [customerName, setCustomerName] = useState('');
 	const [customMessage, setCustomMessage] = useState('');
 	const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-	
+
 	// UI state
 	const [searchTerm, setSearchTerm] = useState('');
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -274,15 +284,18 @@ export default function CreateOrderPage() {
 	// Filter items
 	const filteredItems = items.filter(item => {
 		// Search filter
-		if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+		if (
+			searchTerm &&
+			!item.name.toLowerCase().includes(searchTerm.toLowerCase())
+		) {
 			return false;
 		}
-		
+
 		// Category filter
 		if (selectedCategory) {
 			return item.categories?.some(cat => cat.categoryId === selectedCategory);
 		}
-		
+
 		return true;
 	});
 
@@ -313,9 +326,9 @@ export default function CreateOrderPage() {
 			return;
 		}
 
-		setOrderItems(orderItems.map(i => 
-			i.itemId === itemId ? { ...i, quantity } : i
-		));
+		setOrderItems(
+			orderItems.map(i => (i.itemId === itemId ? { ...i, quantity } : i))
+		);
 	};
 
 	// Remove item from order
@@ -324,7 +337,10 @@ export default function CreateOrderPage() {
 	};
 
 	// Calculate total
-	const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+	const total = orderItems.reduce(
+		(sum, item) => sum + item.price * item.quantity,
+		0
+	);
 
 	// Handle form submission
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -364,7 +380,7 @@ export default function CreateOrderPage() {
 			};
 
 			const newOrder = await createOrderMutation.mutateAsync(orderData);
-				
+
 			// Create bill for the order
 			const newBill = await api.createBill({
 				orderId: newOrder.id,
@@ -394,12 +410,14 @@ export default function CreateOrderPage() {
 			item.categories.forEach(cat => {
 				const category = categories.find(c => c.id === cat.categoryId);
 				if (category) {
-					if (!acc[cat.categoryId]) acc[cat.categoryId] = { category, items: [] };
+					if (!acc[cat.categoryId])
+						acc[cat.categoryId] = { category, items: [] };
 					acc[cat.categoryId].items.push(item);
 				}
 			});
 		} else {
-			if (!acc['uncategorized']) acc['uncategorized'] = { category: null, items: [] };
+			if (!acc['uncategorized'])
+				acc['uncategorized'] = { category: null, items: [] };
 			acc['uncategorized'].items.push(item);
 		}
 		return acc;
@@ -409,7 +427,7 @@ export default function CreateOrderPage() {
 		return (
 			<div className='flex items-center justify-center min-h-[400px]'>
 				<div className='text-center'>
-					<div className='animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4'></div>
+					<div className='animate-spin h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full mx-auto mb-4'></div>
 					<p className='text-gray-600'>Loading items...</p>
 				</div>
 			</div>
@@ -425,8 +443,7 @@ export default function CreateOrderPage() {
 						variant='outline'
 						size='sm'
 						onClick={() => router.push('/orders')}
-						className='gap-2'
-					>
+						className='gap-2'>
 						<ArrowLeft className='h-4 w-4' />
 						Back to Orders
 					</Button>
@@ -456,7 +473,7 @@ export default function CreateOrderPage() {
 								<Input
 									id='customerName'
 									value={customerName}
-									onChange={(e) => setCustomerName(e.target.value)}
+									onChange={e => setCustomerName(e.target.value)}
 									placeholder='Enter customer name'
 									className='mt-1'
 									required
@@ -467,7 +484,7 @@ export default function CreateOrderPage() {
 								<Textarea
 									id='customMessage'
 									value={customMessage}
-									onChange={(e) => setCustomMessage(e.target.value)}
+									onChange={e => setCustomMessage(e.target.value)}
 									placeholder='Any special requests or notes...'
 									className='mt-1'
 									rows={2}
@@ -488,7 +505,7 @@ export default function CreateOrderPage() {
 								<Input
 									placeholder='Search items...'
 									value={searchTerm}
-									onChange={(e) => setSearchTerm(e.target.value)}
+									onChange={e => setSearchTerm(e.target.value)}
 									className='pl-10'
 								/>
 							</div>
@@ -505,50 +522,60 @@ export default function CreateOrderPage() {
 						{Object.keys(itemsByCategory).length === 0 ? (
 							<div className='text-center py-12'>
 								<Package className='h-16 w-16 mx-auto mb-4 text-gray-400' />
-								<h3 className='text-lg font-medium text-gray-900 mb-2'>No items found</h3>
-								<p className='text-gray-600'>Try adjusting your search or category filter.</p>
+								<h3 className='text-lg font-medium text-gray-900 mb-2'>
+									No items found
+								</h3>
+								<p className='text-gray-600'>
+									Try adjusting your search or category filter.
+								</p>
 							</div>
 						) : (
 							<div className='space-y-6'>
-								{Object.entries(itemsByCategory).map(([categoryId, { category, items: categoryItems }]) => (
-									<div key={categoryId}>
-										<h3 className='font-medium text-gray-900 mb-3 flex items-center gap-2'>
-											{category ? (
-												<>
-													<div
-														className='w-3 h-3 rounded-full'
-														style={{ backgroundColor: category.color }}
-													/>
-													{category.name}
-												</>
-											) : (
-												<>
-													<Package className='h-4 w-4 text-gray-400' />
-													Uncategorized
-												</>
-											)}
-											<Badge variant='secondary' className='text-xs'>
-												{categoryItems.length}
-											</Badge>
-										</h3>
-										<div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
-											{categoryItems.map(item => {
-												const orderItem = orderItems.find(oi => oi.itemId === item.id);
-												return (
-													<OrderItemCard
-														key={item.id}
-														item={item}
-														orderQuantity={orderItem?.quantity}
-														onAdd={() => addItem(item.id)}
-														onUpdateQuantity={(quantity) => updateQuantity(item.id, quantity)}
-														onRemove={() => removeItem(item.id)}
-														isSelected={!!orderItem}
-													/>
-												);
-											})}
+								{Object.entries(itemsByCategory).map(
+									([categoryId, { category, items: categoryItems }]) => (
+										<div key={categoryId}>
+											<h3 className='font-medium text-gray-900 mb-3 flex items-center gap-2'>
+												{category ? (
+													<>
+														<div
+															className='w-3 h-3 rounded-full'
+															style={{ backgroundColor: category.color }}
+														/>
+														{category.name}
+													</>
+												) : (
+													<>
+														<Package className='h-4 w-4 text-gray-400' />
+														Uncategorized
+													</>
+												)}
+												<Badge variant='secondary' className='text-xs'>
+													{categoryItems.length}
+												</Badge>
+											</h3>
+											<div className='grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
+												{categoryItems.map(item => {
+													const orderItem = orderItems.find(
+														oi => oi.itemId === item.id
+													);
+													return (
+														<OrderItemCard
+															key={item.id}
+															item={item}
+															orderQuantity={orderItem?.quantity}
+															onAdd={() => addItem(item.id)}
+															onUpdateQuantity={quantity =>
+																updateQuantity(item.id, quantity)
+															}
+															onRemove={() => removeItem(item.id)}
+															isSelected={!!orderItem}
+														/>
+													);
+												})}
+											</div>
 										</div>
-									</div>
-								))}
+									)
+								)}
 							</div>
 						)}
 					</div>
@@ -567,23 +594,30 @@ export default function CreateOrderPage() {
 					<form onSubmit={handleSubmit} className='mt-6'>
 						<Button
 							type='submit'
-							disabled={!customerName.trim() || orderItems.length === 0 || createOrderMutation.isPending}
+							disabled={
+								!customerName.trim() ||
+								orderItems.length === 0 ||
+								createOrderMutation.isPending
+							}
 							className='w-full gap-2 h-12'
-							size='lg'
-						>
+							size='lg'>
 							{createOrderMutation.isPending ? (
 								<div className='animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full' />
 							) : (
 								<Save className='h-4 w-4' />
 							)}
-							{createOrderMutation.isPending ? 'Creating Order...' : 'Create Order'}
+							{createOrderMutation.isPending
+								? 'Creating Order...'
+								: 'Create Order'}
 						</Button>
 					</form>
 
 					{createOrderMutation.error && (
 						<div className='mt-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
 							<p className='text-sm text-red-600'>
-								{createOrderMutation.error instanceof Error ? createOrderMutation.error.message : 'An error occurred'}
+								{createOrderMutation.error instanceof Error
+									? createOrderMutation.error.message
+									: 'An error occurred'}
 							</p>
 						</div>
 					)}

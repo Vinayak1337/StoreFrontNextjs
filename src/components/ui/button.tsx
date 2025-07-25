@@ -23,7 +23,7 @@ const buttonVariants = cva(
 				glass:
 					'bg-background/40 backdrop-blur-md border border-border/30 hover:bg-background/60 shadow-sm hover:shadow-md',
 				gradient:
-					'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-600/90 hover:to-blue-700/90 shadow-sm hover:shadow-md',
+					'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-600/90 hover:to-emerald-700/90 shadow-sm hover:shadow-md',
 				success:
 					'bg-success text-success-foreground hover:bg-success/90 shadow-sm hover:shadow-md',
 				warning:
