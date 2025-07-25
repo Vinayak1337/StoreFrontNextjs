@@ -30,7 +30,7 @@ export default function AnalyticsPage() {
 	);
 	const [refreshing, setRefreshing] = useState(false);
 
-	const loadAnalyticsData = async (days: number = 30) => {
+	const loadAnalyticsData = useCallback(async (days: number = 30) => {
 		const endDate = new Date().toISOString();
 		const startDate = new Date(
 			Date.now() - days * 24 * 60 * 60 * 1000
@@ -43,11 +43,11 @@ export default function AnalyticsPage() {
 			})
 		);
 		dispatch(fetchAnalyticsMetrics());
-	};
+	}, [dispatch]);
 
 	useEffect(() => {
 		loadAnalyticsData();
-	}, [dispatch]); // Only depend on dispatch
+	}, [loadAnalyticsData]);
 
 	const handleRefresh = async () => {
 		setRefreshing(true);

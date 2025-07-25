@@ -73,7 +73,14 @@ export function SalesChart() {
 		(state: RootState) => state.analytics
 	);
 
-	// Note: Initial data loading is handled by the parent AnalyticsPage component
+	// Load initial data for the chart only once
+	useEffect(() => {
+		if (!salesData || !salesData.dailySales || salesData.dailySales.length === 0) {
+			const endDate = new Date().toISOString().split('T')[0];
+			const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+			dispatch(fetchDailySales({ startDate, endDate }));
+		}
+	}, [dispatch]); // Remove salesData from dependencies to prevent infinite loop
 
 	// Handle view mode change and reload data
 	const handleViewModeChange = (newMode: 'daily' | 'weekly' | 'monthly') => {
@@ -93,12 +100,10 @@ export function SalesChart() {
 	// Format data for the chart based on view mode
 	const formatChartData = () => {
 		if (!salesData || !salesData.dailySales) {
-			console.log('No sales data available');
 			return [];
 		}
 
 		let data = [...salesData.dailySales]; // Create a copy to avoid mutating Redux state
-		console.log(`Formatting data for ${viewMode} view, got ${data.length} data points`);
 
 		// Group data based on view mode
 		if (viewMode === 'weekly') {
@@ -117,7 +122,7 @@ export function SalesChart() {
 					weeklyData[weekKey].totalAmount += Number(item.totalAmount || 0);
 					weeklyData[weekKey].count += Number(item.count || 0);
 				} catch (error) {
-					console.error('Error processing weekly data for item:', item, error);
+					// Skip invalid data
 				}
 			});
 			
@@ -128,7 +133,6 @@ export function SalesChart() {
 					totalAmount: values.totalAmount,
 					count: values.count
 				}));
-			console.log(`Weekly grouping resulted in ${data.length} data points`);
 		} else if (viewMode === 'monthly') {
 			// Group by month
 			const monthlyData: { [key: string]: { totalAmount: number; count: number } } = {};
@@ -143,7 +147,7 @@ export function SalesChart() {
 					monthlyData[monthKey].totalAmount += Number(item.totalAmount || 0);
 					monthlyData[monthKey].count += Number(item.count || 0);
 				} catch (error) {
-					console.error('Error processing monthly data for item:', item, error);
+					// Skip invalid data
 				}
 			});
 			
@@ -154,7 +158,6 @@ export function SalesChart() {
 					totalAmount: values.totalAmount,
 					count: values.count
 				}));
-			console.log(`Monthly grouping resulted in ${data.length} data points`);
 		} else {
 			// Sort daily data by date
 			data = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -174,7 +177,7 @@ export function SalesChart() {
 					profit: Number(item.totalAmount || 0) * 0.1 // 10% estimated profit margin
 				};
 			} catch (error) {
-				console.error('Error formatting chart data for item:', item, error);
+				// Skip invalid data
 				return {
 					date: item.date,
 					sales: Number(item.totalAmount || 0),
@@ -183,7 +186,6 @@ export function SalesChart() {
 			}
 		});
 		
-		console.log(`Final formatted data has ${formattedData.length} points`);
 		return formattedData;
 	};
 
