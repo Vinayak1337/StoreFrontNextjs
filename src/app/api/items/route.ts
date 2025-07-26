@@ -18,85 +18,74 @@ function parseCookies(cookieHeader: string) {
 	return cookies;
 }
 
+export async function getItems(
+	page: number,
+	limit: number
+): Promise<{
+	items: Item[];
+	pagination?: Pagination;
+}> {
+	const skip = (page - 1) * limit;
+
+	// if false, return all items without pagination
+	const shouldPaginate = page > 0 && limit > 0;
+
+	const [items, totalCount] = await prisma.$transaction([
+		prisma.item.findMany({
+			skip: shouldPaginate ? skip : undefined,
+			take: shouldPaginate ? limit : undefined,
+			orderBy: {
+				createdAt: 'desc'
+			},
+			include: {
+				categories: {
+					select: {
+						categoryId: true,
+						createdAt: true,
+						id: true,
+						itemId: true,
+						category: {
+							select: {
+								id: true,
+								name: true,
+								color: true,
+								createdAt: true,
+								order: true
+							}
+						}
+					}
+				}
+			}
+		}),
+		prisma.item.count()
+	]);
+
+	return {
+		items: items.map(item => ({
+			...item,
+			price: item.price.toNumber(),
+			weight: item.weight?.toNumber()
+		})),
+		pagination: shouldPaginate
+			? {
+					page,
+					limit,
+					total: totalCount
+			  }
+			: undefined
+	};
+}
+
 // GET /api/items - Get all items with optional pagination
 export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = parseInt(searchParams.get('page') || '1');
-		const limit = parseInt(searchParams.get('limit') || '100'); // Default to 100 items per page
-		const skip = (page - 1) * limit;
+		const limit = parseInt(searchParams.get('limit') || '100');
 
-		// For backwards compatibility, if no pagination params, return all items
-		const shouldPaginate = searchParams.has('page') || searchParams.has('limit');
+		const { items, pagination } = await getItems(page, limit);
 
-		let items;
-		let totalCount = 0;
-
-		if (shouldPaginate) {
-			// Use transaction for consistent count and data
-			const [itemsData, count] = await prisma.$transaction([
-				prisma.item.findMany({
-					skip,
-					take: limit,
-					orderBy: {
-						createdAt: 'desc'
-					},
-					include: {
-						categories: {
-							select: {
-								categoryId: true,
-								category: {
-									select: {
-										id: true,
-										name: true,
-										color: true
-									}
-								}
-							}
-						}
-					}
-				}),
-				prisma.item.count()
-			]);
-
-			items = itemsData;
-			totalCount = count;
-
-			return NextResponse.json({
-				items,
-				pagination: {
-					page,
-					limit,
-					total: totalCount,
-					totalPages: Math.ceil(totalCount / limit),
-					hasNext: page * limit < totalCount,
-					hasPrev: page > 1
-				}
-			});
-		} else {
-			// Legacy mode: return all items without pagination
-			items = await prisma.item.findMany({
-				orderBy: {
-					createdAt: 'desc'
-				},
-				include: {
-					categories: {
-						select: {
-							categoryId: true,
-							category: {
-								select: {
-									id: true,
-									name: true,
-									color: true
-								}
-							}
-						}
-					}
-				}
-			});
-
-			return NextResponse.json(items);
-		}
+		return NextResponse.json({ items, pagination });
 	} catch (error) {
 		console.error('Error fetching items:', error);
 		return NextResponse.json(
@@ -104,6 +93,58 @@ export async function GET(request: NextRequest) {
 			{ status: 500 }
 		);
 	}
+}
+
+export async function getCategorizedItems(): Promise<Category[]> {
+	const categories = await prisma.category.findMany({
+		select: {
+			id: true,
+			name: true,
+			color: true,
+			createdAt: true,
+			order: true,
+			items: {
+				select: {
+					id: true,
+					itemId: true,
+					categoryId: true,
+					createdAt: true,
+					item: {
+						select: {
+							id: true,
+							name: true,
+							price: true,
+							quantity: true,
+							inStock: true,
+							weight: true,
+							weightUnit: true,
+							createdAt: true
+						}
+					}
+				},
+				orderBy: {
+					item: {
+						createdAt: 'desc'
+					}
+				}
+			}
+		},
+		orderBy: {
+			name: 'asc'
+		}
+	});
+
+	return categories.map(category => ({
+		...category,
+		items: category.items.map(itemCategory => ({
+			...itemCategory,
+			item: {
+				...itemCategory.item,
+				price: itemCategory.item.price.toNumber(),
+				weight: itemCategory.item.weight?.toNumber()
+			}
+		}))
+	}));
 }
 
 // POST /api/items - Create a new item

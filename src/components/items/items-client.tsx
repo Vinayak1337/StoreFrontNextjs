@@ -3,9 +3,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useQueryClient } from '@tanstack/react-query';
-import { useItems, useCategories } from '@/lib/hooks/useItems';
-import { Item, Category } from '@/types';
+import { useRefreshItems } from '@/lib/hooks/useRefreshItems';
 import api from '@/lib/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +20,7 @@ import { AddItemDialog } from '@/components/items/add-item-dialog';
 import { CategorySection } from '@/components/items/category-section';
 import { UncategorizedSection } from '@/components/items/uncategorized-section';
 import { Search, Plus, Grid, List, Loader2, Package } from 'lucide-react';
-import { FullScreenLoader } from '@/components/ui/full-screen-loader';
+import { useRouter } from 'next/navigation';
 
 // Predefined color palette for categories
 const CATEGORY_COLORS = [
@@ -48,8 +46,7 @@ const CATEGORY_COLORS = [
 
 // Add Category Dialog Component
 function AddCategoryDialog({ children }: { children: React.ReactNode }) {
-	const queryClient = useQueryClient();
-	const { data: categories = [] } = useCategories();
+	const refreshItems = useRefreshItems();
 
 	const [open, setOpen] = useState(false);
 	const [name, setName] = useState('');
@@ -62,13 +59,12 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 
 		setLoading(true);
 		try {
-			await api.createCategory({ 
-				name: name.trim(), 
-				color, 
-				order: categories.length 
+			await api.createCategory({
+				name: name.trim(),
+				color
 			});
-			// Invalidate categories cache
-			queryClient.invalidateQueries({ queryKey: ['categories'] });
+			// Refresh items data
+			refreshItems();
 			setName('');
 			setColor(CATEGORY_COLORS[0]);
 			setOpen(false);
@@ -131,7 +127,7 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 						<Button
 							type='submit'
 							disabled={loading || !name.trim()}
-							className='flex-1'>
+							className='flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300'>
 							{loading ? (
 								<>
 									<Loader2 className='h-4 w-4 animate-spin mr-2' />
@@ -151,17 +147,21 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 interface ItemsClientProps {
 	initialItems: Item[];
 	initialCategories: Category[];
+	pagination: Pagination;
 }
 
-export default function ItemsClient({ }: ItemsClientProps) {
+export default function ItemsClient({
+	initialItems: items,
+	initialCategories: categories,
+	pagination
+}: ItemsClientProps) {
 	// Local state
 	const [searchTerm, setSearchTerm] = useState('');
 	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 	const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
 		new Set()
 	);
-	const [uncategorizedPage, setUncategorizedPage] = useState(1);
-	const ITEMS_PER_PAGE = 25;
+
 	const [dragState, setDragState] = useState<{
 		isDragging: boolean;
 		draggedItem: { id: string; categoryId?: string } | null;
@@ -169,10 +169,6 @@ export default function ItemsClient({ }: ItemsClientProps) {
 		isDragging: false,
 		draggedItem: null
 	});
-
-	// Use React Query hooks for data fetching
-	const { data: items = [], isLoading: itemsLoading } = useItems();
-	const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
 	// Auto-scroll functionality
 	useEffect(() => {
@@ -278,60 +274,52 @@ export default function ItemsClient({ }: ItemsClientProps) {
 		});
 	}, []);
 
-	// Filter and organize items
-	const { filteredCategories, uncategorizedItems, totalUncategorizedPages } =
+	const { filteredCategorizedItems, filteredUncategorizedItems } =
 		useMemo(() => {
-			if (!items || !categories) return { filteredCategories: [], uncategorizedItems: [], totalUncategorizedPages: 0 };
+			if (!items || !categories)
+				return {
+					filteredCategorizedItems: [],
+					filteredUncategorizedItems: []
+				};
 
 			const searchLower = searchTerm.toLowerCase();
-			const filteredItems = items.filter(item =>
+			// Filter uncategorized items based on search
+			const filteredUncategorizedItems = items.filter(item =>
 				item.name.toLowerCase().includes(searchLower)
 			);
 
-			const itemsByCategory = new Map<string, Item[]>();
-			const uncategorizedList: Item[] = [];
-
-			filteredItems.forEach(item => {
-				if (item.categories && item.categories.length > 0) {
-					item.categories.forEach(cat => {
-						if (!itemsByCategory.has(cat.categoryId)) {
-							itemsByCategory.set(cat.categoryId, []);
-						}
-						itemsByCategory.get(cat.categoryId)!.push(item);
-					});
-				} else {
-					uncategorizedList.push(item);
-				}
+			// Filter categorized items - extract items from category.items structure
+			const filteredCategorizedItems = categories.map(category => {
+				const categoryItems = (category.items?.map(itemCategory => ({
+					...itemCategory.item,
+					price: itemCategory.item?.price || 0,
+					weight: itemCategory.item?.weight || 0
+				})).filter(item =>
+					item.id && item.name?.toLowerCase().includes(searchLower)
+				) || []) as Item[];
+				
+				return {
+					category,
+					items: categoryItems
+				};
 			});
 
-			const sortedCategories = [...categories]
-				.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
-				.filter(
-					category => searchTerm === '' || itemsByCategory.has(category.id)
-				)
-				.map(category => ({
-					category,
-					items: itemsByCategory.get(category.id) || []
-				}));
-
-			// Paginate uncategorized items
-			const totalPages = Math.ceil(uncategorizedList.length / ITEMS_PER_PAGE);
-			const startIndex = (uncategorizedPage - 1) * ITEMS_PER_PAGE;
-			const paginatedUncategorized = uncategorizedList.slice(
-				startIndex,
-				startIndex + ITEMS_PER_PAGE
-			);
-
 			return {
-				filteredCategories: sortedCategories,
-				uncategorizedItems: paginatedUncategorized,
-				totalUncategorizedPages: totalPages
+				filteredCategorizedItems,
+				filteredUncategorizedItems
 			};
-		}, [items, categories, searchTerm, uncategorizedPage, ITEMS_PER_PAGE]);
+		}, [items, categories, searchTerm]);
 
-	if (itemsLoading || categoriesLoading) {
-		return <FullScreenLoader message="Loading items..." />;
-	}
+	const router = useRouter();
+
+	const onPageChange = useCallback(
+		(page: number) => {
+			const totalPages = Math.ceil(pagination.total / pagination.limit);
+			if (page < 1 || page > totalPages) return;
+			router.push(`/items?page=${page}&limit=${pagination.limit}`);
+		},
+		[pagination.total, pagination.limit, router]
+	);
 
 	return (
 		<DndProvider backend={HTML5Backend}>
@@ -348,13 +336,13 @@ export default function ItemsClient({ }: ItemsClientProps) {
 					</div>
 					<div className='flex items-center gap-3'>
 						<AddCategoryDialog>
-							<Button variant='outline' className='gap-2'>
+							<Button variant='outline' className='gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50'>
 								<Plus className='h-4 w-4' />
 								Add Category
 							</Button>
 						</AddCategoryDialog>
 						<AddItemDialog>
-							<Button className='gap-2'>
+							<Button className='gap-2 bg-emerald-600 hover:bg-emerald-700'>
 								<Plus className='h-4 w-4' />
 								Add Item
 							</Button>
@@ -378,7 +366,7 @@ export default function ItemsClient({ }: ItemsClientProps) {
 							variant={viewMode === 'grid' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setViewMode('grid')}
-							className='gap-2'>
+							className={`gap-2 ${viewMode === 'grid' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}>
 							<Grid className='h-4 w-4' />
 							Grid
 						</Button>
@@ -386,7 +374,7 @@ export default function ItemsClient({ }: ItemsClientProps) {
 							variant={viewMode === 'list' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setViewMode('list')}
-							className='gap-2'>
+							className={`gap-2 ${viewMode === 'list' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}>
 							<List className='h-4 w-4' />
 							List
 						</Button>
@@ -397,18 +385,17 @@ export default function ItemsClient({ }: ItemsClientProps) {
 				<div className='space-y-6'>
 					{/* Uncategorized Items Section - Always visible at top */}
 					<UncategorizedSection
-						items={uncategorizedItems}
+						items={filteredUncategorizedItems}
 						isDragging={dragState.isDragging}
 						draggedItem={dragState.draggedItem}
 						onDragStart={handleDragStart}
 						onDragEnd={handleDragEnd}
-						currentPage={uncategorizedPage}
-						totalPages={totalUncategorizedPages}
-						onPageChange={setUncategorizedPage}
+						pagination={pagination}
+						onPageChange={onPageChange}
 					/>
 
 					{/* Categories */}
-					{filteredCategories.map(item => (
+					{filteredCategorizedItems.map(item => (
 						<CategorySection
 							key={item.category.id}
 							category={item.category}
@@ -422,29 +409,30 @@ export default function ItemsClient({ }: ItemsClientProps) {
 				</div>
 
 				{/* Empty State */}
-				{filteredCategories.length === 0 && uncategorizedItems.length === 0 && (
-					<div className='text-center py-12'>
-						<div className='mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4'>
-							<Package className='h-12 w-12 text-gray-400' />
+				{filteredCategorizedItems.length === 0 &&
+					filteredUncategorizedItems.length === 0 && (
+						<div className='text-center py-12'>
+							<div className='mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4'>
+								<Package className='h-12 w-12 text-gray-400' />
+							</div>
+							<h3 className='text-lg font-semibold text-gray-900 mb-2'>
+								{searchTerm ? 'No items found' : 'No items yet'}
+							</h3>
+							<p className='text-gray-600 mb-6 max-w-sm mx-auto'>
+								{searchTerm
+									? `No items match "${searchTerm}". Try a different search term.`
+									: 'Get started by adding your first item to the inventory.'}
+							</p>
+							{!searchTerm && (
+								<AddItemDialog>
+									<Button className='gap-2 bg-emerald-600 hover:bg-emerald-700'>
+										<Plus className='h-4 w-4' />
+										Add Your First Item
+									</Button>
+								</AddItemDialog>
+							)}
 						</div>
-						<h3 className='text-lg font-semibold text-gray-900 mb-2'>
-							{searchTerm ? 'No items found' : 'No items yet'}
-						</h3>
-						<p className='text-gray-600 mb-6 max-w-sm mx-auto'>
-							{searchTerm
-								? `No items match "${searchTerm}". Try a different search term.`
-								: 'Get started by adding your first item to the inventory.'}
-						</p>
-						{!searchTerm && (
-							<AddItemDialog>
-								<Button className='gap-2'>
-									<Plus className='h-4 w-4' />
-									Add Your First Item
-								</Button>
-							</AddItemDialog>
-						)}
-					</div>
-				)}
+					)}
 			</div>
 		</DndProvider>
 	);

@@ -9,31 +9,36 @@ interface OrderItemInput {
 	price: number;
 }
 
+export async function getOrders() {
+	const orders = await prisma.order.findMany({
+		take: 100, // Limit to 100 most recent orders
+		include: {
+			orderItems: {
+				include: {
+					item: {
+						select: { id: true, name: true, price: true } // Only necessary fields
+					}
+				},
+				orderBy: {
+					id: 'desc'
+				}
+			},
+			bill: {
+				select: { id: true, totalAmount: true, isPaid: true } // Only necessary fields
+			}
+		},
+		orderBy: {
+			createdAt: 'desc'
+		}
+	});
+
+	return orders;
+}
+
 // GET /api/orders - Get all orders
 export async function GET() {
 	try {
-		const orders = await prisma.order.findMany({
-			take: 100, // Limit to 100 most recent orders
-			include: {
-				orderItems: {
-					include: {
-						item: {
-							select: { id: true, name: true, price: true } // Only necessary fields
-						}
-					},
-					orderBy: {
-						id: 'desc'
-					}
-				},
-				bill: {
-					select: { id: true, totalAmount: true, isPaid: true } // Only necessary fields
-				}
-			},
-			orderBy: {
-				createdAt: 'desc'
-			}
-		});
-
+		const orders = await getOrders();
 		return NextResponse.json(orders);
 	} catch {
 		return NextResponse.json(

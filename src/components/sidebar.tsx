@@ -25,11 +25,6 @@ import {
 	SheetDescription
 } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
-import { RootState } from '@/lib/redux/store';
-import { fetchItems } from '@/lib/redux/slices/items.slice';
-import { fetchOrders } from '@/lib/redux/slices/orders.slice';
-// import { fetchBills } from '@/lib/redux/slices/bills.slice';
 import { useAuth } from '@/hooks/use-auth';
 
 interface NavItemProps {
@@ -92,34 +87,14 @@ export function Sidebar() {
 	const [open, setOpen] = useState(false);
 	const [mounted, setMounted] = useState(false);
 
-	// Connect to Redux store
-	const dispatch = useAppDispatch();
-	const { items } = useAppSelector((state: RootState) => state.items);
-	const { orders } = useAppSelector((state: RootState) => state.orders);
-	// const { bills } = useAppSelector((state: RootState) => state.bills);
-
 	// Fix for hydration
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	// Fetch data on component mount
-	useEffect(() => {
-		dispatch(fetchItems());
-		dispatch(fetchOrders());
-		// dispatch(fetchBills());
-	}, [dispatch]);
-
-	// Calculate notification counts with null checks
-	const pendingOrdersCount =
-		orders?.filter(order => !order?.bill)?.length || 0;
-	const lowStockCount =
-		items?.filter(item => item?.inStock === false)?.length || 0;
-	// const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
-
 	const routes = [
 		{
-			href: '/' as Route,
+			href: '/dashboard' as Route,
 			icon: <LayoutDashboard className='h-5 w-5' />,
 			title: 'Dashboard',
 			badge: 0
@@ -128,13 +103,13 @@ export function Sidebar() {
 			href: '/items' as Route,
 			icon: <ShoppingBag className='h-5 w-5' />,
 			title: 'Items',
-			badge: lowStockCount
+			badge: 0
 		},
 		{
 			href: '/orders' as Route,
 			icon: <ShoppingCart className='h-5 w-5' />,
 			title: 'Orders',
-			badge: pendingOrdersCount
+			badge: 0
 		},
 		{
 			href: '/analytics' as Route,

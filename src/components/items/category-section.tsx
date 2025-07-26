@@ -2,8 +2,7 @@
 
 import { useRef, memo, useCallback } from 'react';
 import { useDrop } from 'react-dnd';
-import { useQueryClient } from '@tanstack/react-query';
-import { Item, Category } from '@/types';
+import { useRefreshItems } from '@/lib/hooks/useRefreshItems';
 import api from '@/lib/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ function CategorySectionComponent({
 	onDragStart,
 	onDragEnd
 }: CategorySectionProps) {
-	const queryClient = useQueryClient();
+	const refreshItems = useRefreshItems();
 	const ref = useRef<HTMLDivElement>(null);
 
 	const handleDrop = useCallback(
@@ -49,9 +48,8 @@ function CategorySectionComponent({
 					// Add to new category
 					await api.addItemToCategory(category.id, draggedItem.id);
 
-					// Invalidate queries to refresh the UI
-					queryClient.invalidateQueries({ queryKey: ['items'] });
-					queryClient.invalidateQueries({ queryKey: ['categories'] });
+					// Refresh items data
+					refreshItems();
 
 					toast.success('Item moved successfully!');
 				} catch (error) {
@@ -60,7 +58,7 @@ function CategorySectionComponent({
 				}
 			}
 		},
-		[category.id, queryClient]
+		[category.id, refreshItems]
 	);
 
 	const [{ isOver }, drop] = useDrop({
@@ -108,7 +106,7 @@ function CategorySectionComponent({
 					</Button>
 
 					{isOver && (
-						<Badge variant='default' className='text-xs bg-emerald-500'>
+						<Badge variant='default' className='text-xs bg-emerald-600'>
 							<Tag className='h-3 w-3 mr-1' />
 							Drop here
 						</Badge>

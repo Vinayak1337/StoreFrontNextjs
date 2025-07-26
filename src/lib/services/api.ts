@@ -1,4 +1,3 @@
-import { Item, Order, Bill, AnalyticsMetrics, Category } from '@/types';
 import { fetchWithCsrf } from '@/lib/client/csrf-utils';
 
 // Generic fetch function with error handling

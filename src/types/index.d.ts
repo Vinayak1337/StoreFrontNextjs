@@ -1,11 +1,11 @@
 
 // Category/Label model
-export interface Category {
+interface Category {
 	id: string;
 	name: string;
 	color: string;
 	order: number;
-	createdAt: string;
+	createdAt: Date;
 	items?: ItemCategory[];
 	_count?: {
 		items: number;
@@ -13,30 +13,30 @@ export interface Category {
 }
 
 // ItemCategory relationship model
-export interface ItemCategory {
+interface ItemCategory {
 	id: string;
 	itemId: string;
 	categoryId: string;
-	createdAt: string;
+	createdAt: Date;
 	item?: Item;
 	category?: Category;
 }
 
 // Item model
-export interface Item {
+interface Item {
 	id: string;
 	name: string;
 	price: number;
 	quantity: number;
 	inStock: boolean;
 	weight?: number;
-	weightUnit?: 'kg' | 'g' | 'l' | 'ml';
-	createdAt: string;
+	weightUnit: string | null;
+	createdAt: Date;
 	categories?: ItemCategory[];
 }
 
 // Order item model
-export interface OrderItem {
+interface OrderItem {
 	id: string;
 	itemId: string;
 	orderId: string;
@@ -46,47 +46,47 @@ export interface OrderItem {
 }
 
 // Order status enum
-export enum OrderStatus {
+enum OrderStatus {
 	PENDING = 'PENDING',
 	COMPLETED = 'COMPLETED',
 	CANCELLED = 'CANCELLED'
 }
 
 // Order model
-export interface Order {
+interface Order {
 	id: string;
 	customerName: string;
 	orderItems: OrderItem[];
-	createdAt: string;
+	createdAt: Date;
 	status: OrderStatus;
 	bill?: Bill;
 	customMessage?: string;
 }
 
 // Bill model
-export interface Bill {
+interface Bill {
 	id: string;
 	orderId: string;
 	totalAmount: number;
 	taxes: number;
 	paymentMethod: string;
-	createdAt: string;
+	createdAt: Date;
 	order?: Order;
 	isPaid?: boolean;
 }
 
 // User type
-export interface User {
+interface User {
 	id: string;
 	name: string;
 	email: string;
 	password: string;
-	createdAt: string;
+	createdAt: Date;
 	avatar?: string;
 }
 
 // Authentication types
-export interface AuthState {
+interface AuthState {
 	user: User | null;
 	token: string | null;
 	isAuthenticated: boolean;
@@ -95,18 +95,18 @@ export interface AuthState {
 }
 
 // Analytics types
-export interface DailySales {
+interface DailySales {
 	date: string;
 	sales: number;
 }
 
-export interface DailySalesItem {
+interface DailySalesItem {
 	date: string;
 	totalAmount: number;
 	count: number;
 }
 
-export interface AnalyticsMetrics {
+interface AnalyticsMetrics {
 	totalOrders: number;
 	totalSales: number;
 	averageOrderValue: number;
@@ -139,7 +139,7 @@ export interface AnalyticsMetrics {
 }
 
 // State types for Redux
-export interface ItemsState {
+interface ItemsState {
 	items: Item[];
 	categories: Category[];
 	activeItem: Item | null;
@@ -150,25 +150,25 @@ export interface ItemsState {
 	categoryError: string | null;
 }
 
-export interface OrdersState {
+interface OrdersState {
 	orders: Order[];
 	activeOrder: Order | null;
 	loading: boolean;
 	error: string | null;
 }
 
-export interface BillsState {
+interface BillsState {
 	bills: Bill[];
 	activeBill: Bill | null;
 	loading: boolean;
 	error: string | null;
 }
 
-export interface SalesData {
+interface SalesData {
 	dailySales: DailySalesItem[];
 }
 
-export interface AnalyticsState {
+interface AnalyticsState {
 	salesData: SalesData | null;
 	metrics: AnalyticsMetrics | null;
 	loading: boolean;
@@ -176,7 +176,7 @@ export interface AnalyticsState {
 }
 
 // Settings types
-export interface Settings {
+interface Settings {
 	id?: string;
 	storeName: string;
 	address: string;
@@ -202,10 +202,16 @@ export interface Settings {
 	};
 }
 
-export interface SettingsState {
+interface SettingsState {
 	settings: Settings | null;
 	loading: boolean;
 	error: string | null;
+}
+
+interface Pagination {
+	page: number;
+	limit: number;
+	total: number;
 }
 
 // Add Web Bluetooth API types

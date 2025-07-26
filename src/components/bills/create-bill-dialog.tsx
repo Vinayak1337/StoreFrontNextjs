@@ -30,7 +30,6 @@ export function CreateBillDialog() {
 	const dispatch = useDispatch<AppDispatch>();
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
-	const { orders } = useSelector((state: RootState) => state.orders);
 	const [selectedOrderId, setSelectedOrderId] = useState('');
 	const [paymentMethod, setPaymentMethod] = useState('Cash');
 	const [isSubmitting, setIsSubmitting] = useState(false);

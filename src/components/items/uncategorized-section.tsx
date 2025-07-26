@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, memo, useCallback } from 'react';
+import { useRef, memo, useCallback, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
-import { useQueryClient } from '@tanstack/react-query';
-import { Item } from '@/types';
+import { useRefreshItems } from '@/lib/hooks/useRefreshItems';
 import api from '@/lib/services/api';
 import { Badge } from '@/components/ui/badge';
 import { DraggableItem } from './draggable-item';
@@ -21,43 +20,31 @@ interface UncategorizedSectionProps {
 	draggedItem?: { id: string; categoryId?: string } | null;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
-	currentPage?: number;
-	totalPages?: number;
+	pagination: Pagination;
 	onPageChange?: (page: number) => void;
 }
 
 function UncategorizedSectionComponent({
 	items,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	isDragging = false,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	draggedItem = null,
 	onDragStart,
 	onDragEnd,
-	currentPage = 1,
-	totalPages = 1,
+	pagination,
 	onPageChange
 }: UncategorizedSectionProps) {
-	const queryClient = useQueryClient();
+	const refreshItems = useRefreshItems();
 	const ref = useRef<HTMLDivElement>(null);
 
 	const handleDrop = useCallback(
 		async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId) {
 				try {
-					console.log('Removing item from category:', {
-						categoryId: draggedItem.categoryId,
-						itemId: draggedItem.id
-					});
-
 					await api.removeItemFromCategory(
 						draggedItem.categoryId,
 						draggedItem.id
 					);
 
-					// Invalidate queries to refresh the UI
-					queryClient.invalidateQueries({ queryKey: ['items'] });
-					queryClient.invalidateQueries({ queryKey: ['categories'] });
+					// Refresh items data
+					refreshItems();
 
 					toast.success('Item removed from category!');
 				} catch (error) {
@@ -71,7 +58,7 @@ function UncategorizedSectionComponent({
 				}
 			}
 		},
-		[queryClient]
+		[refreshItems]
 	);
 
 	const [{ isOver }, drop] = useDrop({
@@ -81,6 +68,13 @@ function UncategorizedSectionComponent({
 			isOver: monitor.isOver()
 		})
 	});
+
+	const { totalPages, currentPage } = useMemo(() => {
+		const totalPages = Math.ceil(pagination.total / pagination.limit);
+		const currentPage = pagination.page;
+
+		return { totalPages, currentPage };
+	}, [pagination]);
 
 	drop(ref);
 

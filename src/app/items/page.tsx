@@ -1,19 +1,41 @@
-'use client';
-
-import { Suspense } from 'react';
 import ItemsClient from '@/components/items/items-client';
-import { FullScreenLoader } from '@/components/ui/full-screen-loader';
+import { getCategorizedItems } from '../api/items/route';
+import { getUncategorizedItems } from '../api/items/uncategorized/route';
+import { cache } from 'react';
 
-// Loading component
-function ItemsLoading() {
-  return <FullScreenLoader message="Loading items..." />;
+// Cached functions for better performance
+const getCachedUncategorizedItems = cache(
+	async (page: number, limit: number) => {
+		return await getUncategorizedItems(page, limit);
+	}
+);
+
+const getCachedCategorizedItems = cache(async () => {
+	return await getCategorizedItems();
+});
+
+interface PageProps {
+	searchParams: Promise<{
+		page?: string;
+		limit?: string;
+	}>;
 }
 
-// Client Component with React Query handling server-side caching
-export default function ItemsPage() {
-  return (
-    <Suspense fallback={<ItemsLoading />}>
-      <ItemsClient initialItems={[]} initialCategories={[]} />
-    </Suspense>
-  );
+export default async function ItemsPage({ searchParams }: PageProps) {
+	const resolvedSearchParams = await searchParams;
+	const page = parseInt(resolvedSearchParams.page || '1');
+	const limit = parseInt(resolvedSearchParams.limit || '20');
+
+	// Get paginated uncategorized items and categorized items (with their items included)
+	const { items: uncategorizedItems, pagination } =
+		await getCachedUncategorizedItems(page, limit);
+	const categories = await getCachedCategorizedItems();
+
+	return (
+		<ItemsClient
+			pagination={pagination}
+			initialItems={uncategorizedItems}
+			initialCategories={categories}
+		/>
+	);
 }

@@ -10,7 +10,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useOrders } from '@/lib/hooks/useOrders';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { fetchSettings } from '@/lib/redux/slices/settings.slice';
-import { Order } from '@/types';
 import api from '@/lib/services/api';
 import {
 	Plus,
