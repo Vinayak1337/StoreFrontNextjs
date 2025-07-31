@@ -21,6 +21,11 @@ interface CategorySectionProps {
 	onToggleCollapse: () => void;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
+	selectionMode?: boolean;
+	selectedItems?: Set<string>;
+	selectionCategory?: string | null;
+	onItemHold?: (item: { id: string; categoryId?: string }) => void;
+	onItemSelect?: (itemId: string, selected: boolean) => void;
 }
 
 function CategorySectionComponent({
@@ -29,7 +34,12 @@ function CategorySectionComponent({
 	collapsed,
 	onToggleCollapse,
 	onDragStart,
-	onDragEnd
+	onDragEnd,
+	selectionMode = false,
+	selectedItems = new Set(),
+	selectionCategory,
+	onItemHold,
+	onItemSelect
 }: CategorySectionProps) {
 	const refreshItems = useRefreshItems();
 	const ref = useRef<HTMLDivElement>(null);
@@ -38,27 +48,40 @@ function CategorySectionComponent({
 		async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId !== category.id) {
 				try {
-					// Remove from current category if it has one
-					if (draggedItem.categoryId) {
-						await api.removeItemFromCategory(
-							draggedItem.categoryId,
-							draggedItem.id
-						);
-					}
-					// Add to new category
-					await api.addItemToCategory(category.id, draggedItem.id);
+					// Check if we're moving selected items or just one item
+					const itemsToMove = selectedItems.has(draggedItem.id) && selectedItems.size > 1
+						? Array.from(selectedItems)
+						: [draggedItem.id];
+
+					// Move all items
+					await Promise.all(itemsToMove.map(async (itemId) => {
+						// Find the current category of this item
+						const currentCategoryId = itemId === draggedItem.id 
+							? draggedItem.categoryId 
+							: selectedItems.has(itemId) 
+								? selectionCategory === 'uncategorized' ? undefined : selectionCategory
+								: undefined;
+
+						// Remove from current category if it has one
+						if (currentCategoryId) {
+							await api.removeItemFromCategory(currentCategoryId, itemId);
+						}
+						// Add to new category
+						await api.addItemToCategory(category.id, itemId);
+					}));
 
 					// Refresh items data
 					refreshItems();
 
-					toast.success('Item moved successfully!');
+					const count = itemsToMove.length;
+					toast.success(`${count} item${count > 1 ? 's' : ''} moved successfully!`);
 				} catch (error) {
-					console.error('Failed to move item:', error);
-					toast.error('Failed to move item to category. Please try again.');
+					console.error('Failed to move items:', error);
+					toast.error('Failed to move items to category. Please try again.');
 				}
 			}
 		},
-		[category.id, refreshItems]
+		[category.id, refreshItems, selectedItems, selectionCategory]
 	);
 
 	const [{ isOver }, drop] = useDrop({
@@ -131,6 +154,12 @@ function CategorySectionComponent({
 									categoryId={category.id}
 									onDragStart={onDragStart}
 									onDragEnd={onDragEnd}
+									selectionMode={selectionMode}
+									isSelected={selectedItems.has(item.id)}
+									showSelection={selectionMode && selectionCategory === category.id}
+									selectedItems={selectedItems}
+									onItemHold={onItemHold}
+									onItemSelect={onItemSelect}
 								/>
 							))}
 						</div>

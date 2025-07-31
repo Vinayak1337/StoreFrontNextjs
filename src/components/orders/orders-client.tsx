@@ -6,8 +6,6 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
-import { useOrders } from '@/lib/hooks/useOrders';
 import { RootState, AppDispatch } from '@/lib/redux/store';
 import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import api from '@/lib/services/api';
@@ -20,7 +18,6 @@ import {
 	Loader2,
 	Bluetooth
 } from 'lucide-react';
-import { FullScreenLoader } from '@/components/ui/full-screen-loader';
 import { printDirectlyToThermalPrinter } from '@/lib/utils/direct-thermal-print';
 import {
 	scanForPrinters,
@@ -32,10 +29,9 @@ interface OrdersClientProps {
 	initialOrders: Order[];
 }
 
-export default function OrdersClient({}: OrdersClientProps) {
+export default function OrdersClient({ initialOrders }: OrdersClientProps) {
 	const router = useRouter();
 	const dispatch = useDispatch<AppDispatch>();
-	const queryClient = useQueryClient();
 	const { settings } = useSelector(
 		(state: RootState) => state.settings || { settings: null }
 	);
@@ -44,9 +40,6 @@ export default function OrdersClient({}: OrdersClientProps) {
 		null
 	);
 	const [isPairingPrinter, setIsPairingPrinter] = useState(false);
-
-	// Use React Query hooks for data fetching
-	const { data: orders = [], isLoading, error } = useOrders();
 
 	// Load settings on component mount
 	useEffect(() => {
@@ -106,7 +99,7 @@ export default function OrdersClient({}: OrdersClientProps) {
 		try {
 			setIsPrintingThermal(orderId);
 
-			const order = orders?.find(o => o.id === orderId);
+			const order = initialOrders?.find(o => o.id === orderId);
 			if (!order) return;
 
 			// Calculate total
@@ -128,8 +121,7 @@ export default function OrdersClient({}: OrdersClientProps) {
 
 				if (billResult) {
 					billToUse = billResult;
-					// Invalidate and refetch orders
-					queryClient.invalidateQueries({ queryKey: ['orders'] });
+					router.refresh();
 				} else {
 					alert('Failed to create bill for printing');
 					return;
@@ -186,27 +178,20 @@ export default function OrdersClient({}: OrdersClientProps) {
 				'Are you sure you want to delete this order? This action cannot be undone.'
 			)
 		) {
-			await api.deleteOrder(orderId);
-			// Invalidate orders cache
-			queryClient.invalidateQueries({ queryKey: ['orders'] });
+			try {
+				await api.deleteOrder(orderId);
+				router.refresh();
+				alert('Order deleted successfully!');
+			} catch (error) {
+				console.error('Failed to delete order:', error);
+				alert('Failed to delete order. Please try again.');
+			}
 		}
 	};
 
 	const handleViewDetails = (orderId: string) => {
 		router.push(`/orders/${orderId}`);
 	};
-
-	if (isLoading) {
-		return <FullScreenLoader message='Loading orders...' />;
-	}
-
-	if (error) {
-		return (
-			<div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md'>
-				<p>Error: {error instanceof Error ? error.message : 'Unknown error'}</p>
-			</div>
-		);
-	}
 
 	return (
 		<div className='flex flex-col min-h-screen'>
@@ -249,7 +234,7 @@ export default function OrdersClient({}: OrdersClientProps) {
 				<div className='space-y-6'>
 					<h2 className='text-2xl font-bold tracking-tight'>Orders</h2>
 
-					{!orders || orders.length === 0 ? (
+					{!initialOrders || initialOrders.length === 0 ? (
 						<div className='border rounded-md p-8 text-center'>
 							<p className='text-muted-foreground'>
 								No orders found. Create a new order to get started.
@@ -257,7 +242,7 @@ export default function OrdersClient({}: OrdersClientProps) {
 						</div>
 					) : (
 						<div className='grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'>
-							{orders.map(order => (
+							{initialOrders.map(order => (
 								<Card key={order.id} className='flex flex-col'>
 									<CardHeader className='pb-2'>
 										<div className='flex items-center justify-between'>

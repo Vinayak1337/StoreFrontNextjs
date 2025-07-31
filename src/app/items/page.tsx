@@ -3,7 +3,6 @@ import { getCategorizedItems } from '../api/items/route';
 import { getUncategorizedItems } from '../api/items/uncategorized/route';
 import { cache } from 'react';
 
-// Cached functions for better performance
 const getCachedUncategorizedItems = cache(
 	async (page: number, limit: number) => {
 		return await getUncategorizedItems(page, limit);
@@ -26,7 +25,6 @@ export default async function ItemsPage({ searchParams }: PageProps) {
 	const page = parseInt(resolvedSearchParams.page || '1');
 	const limit = parseInt(resolvedSearchParams.limit || '20');
 
-	// Get paginated uncategorized items and categorized items (with their items included)
 	const { items: uncategorizedItems, pagination } =
 		await getCachedUncategorizedItems(page, limit);
 	const categories = await getCachedCategorizedItems();

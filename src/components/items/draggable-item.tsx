@@ -1,13 +1,12 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
-import { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditItemDialog } from './edit-item-dialog';
 import { DeleteItemButton } from './delete-item-button';
-import { Edit, Trash2, GripVertical } from 'lucide-react';
+import { Edit, Trash2, GripVertical, Check } from 'lucide-react';
 
 const ItemTypes = {
 	ITEM: 'item'
@@ -18,15 +17,29 @@ interface DraggableItemProps {
 	categoryId?: string;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
+	selectionMode?: boolean;
+	isSelected?: boolean;
+	showSelection?: boolean;
+	selectedItems?: Set<string>;
+	onItemHold?: (item: { id: string; categoryId?: string }) => void;
+	onItemSelect?: (itemId: string, selected: boolean) => void;
 }
 
 function DraggableItemComponent({
 	item,
 	categoryId,
 	onDragStart,
-	onDragEnd
+	onDragEnd,
+	selectionMode = false,
+	isSelected = false,
+	showSelection = false,
+	selectedItems,
+	onItemHold,
+	onItemSelect
 }: DraggableItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
+	const [isHolding, setIsHolding] = useState(false);
+	const holdTimeoutRef = useRef<NodeJS.Timeout>(null);
 
 	const [{ isDragging }, drag] = useDrag(
 		{
@@ -49,6 +62,42 @@ function DraggableItemComponent({
 	// Connect drag to the entire card (like working version)
 	drag(ref);
 
+	// Handle hold functionality
+	const handleMouseDown = () => {
+		if (selectionMode) return;
+		setIsHolding(true);
+		holdTimeoutRef.current = setTimeout(() => {
+			onItemHold?.({ id: item.id, categoryId });
+			setIsHolding(false);
+		}, 800); // 800ms hold
+	};
+
+	const handleMouseUp = () => {
+		setIsHolding(false);
+		if (holdTimeoutRef.current) {
+			clearTimeout(holdTimeoutRef.current);
+		}
+	};
+
+	const handleMouseLeave = () => {
+		setIsHolding(false);
+		if (holdTimeoutRef.current) {
+			clearTimeout(holdTimeoutRef.current);
+		}
+	};
+
+	useEffect(() => {
+		return () => {
+			if (holdTimeoutRef.current) {
+				clearTimeout(holdTimeoutRef.current);
+			}
+		};
+	}, []);
+
+	const handleCheckboxChange = (checked: boolean) => {
+		onItemSelect?.(item.id, checked);
+	};
+
 	const formatPrice = (price: string | number) => {
 		const numPrice = typeof price === 'string' ? parseFloat(price) : price;
 		return `₹${numPrice.toFixed(2)}`;
@@ -57,18 +106,63 @@ function DraggableItemComponent({
 	return (
 		<div
 			ref={ref}
-			className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${
+			onMouseDown={handleMouseDown}
+			onMouseUp={handleMouseUp}
+			onMouseLeave={handleMouseLeave}
+			className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 relative ${
 				isDragging
 					? 'opacity-40 shadow-lg border-emerald-400 transform rotate-2 scale-105 cursor-grabbing'
 					: 'cursor-grab hover:cursor-grab hover:border-gray-300'
+			} ${isSelected ? 'border-blue-400 bg-blue-50' : ''} ${
+				isHolding ? 'scale-105 shadow-lg' : ''
 			} p-4`}>
-			<div className='flex flex-col h-full'>
+			{/* Multiple items indicator when dragging */}
+			{isDragging &&
+				selectionMode &&
+				isSelected &&
+				selectedItems &&
+				selectedItems.size > 1 && (
+					<div className='absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white z-20'>
+						{selectedItems.size}
+					</div>
+				)}
+
+			<div
+				className='flex flex-col h-full'
+				onClick={
+					showSelection
+						? e => {
+								e.stopPropagation();
+								handleCheckboxChange(!isSelected);
+						  }
+						: undefined
+				}>
 				<div className='flex-1'>
 					<div className='flex items-start justify-between mb-2'>
-						<div className='flex-1 min-w-0'>
-							<h3 className='font-semibold text-gray-900 text-sm leading-tight line-clamp-2'>
-								{item.name}
-							</h3>
+						<div className='flex items-center gap-3'>
+							{/* Selection Checkbox */}
+							{showSelection && (
+								<div
+									className='cursor-pointer'
+									onClick={e => {
+										e.stopPropagation();
+										handleCheckboxChange(!isSelected);
+									}}>
+									<div
+										className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+											isSelected
+												? 'bg-blue-500 border-blue-500'
+												: 'bg-white border-gray-300 hover:border-blue-400'
+										}`}>
+										{isSelected && <Check className='w-3 h-3 text-white' />}
+									</div>
+								</div>
+							)}
+							<div className={`flex-1 min-w-0`}>
+								<h3 className='font-semibold text-gray-900 text-sm leading-tight line-clamp-2'>
+									{item.name}
+								</h3>
+							</div>
 						</div>
 						<div className='flex items-center gap-1 ml-2'>
 							<div className='opacity-0 group-hover:opacity-100 transition-opacity flex gap-1'>

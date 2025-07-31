@@ -214,88 +214,76 @@ interface Pagination {
 	total: number;
 }
 
-// Add Web Bluetooth API types
-declare global {
-	interface Window {
-		bluetooth?: {
-			requestDevice(options?: {
-				filters?: Array<{
-					services?: string[];
-					name?: string;
-					namePrefix?: string;
-					manufacturerId?: number;
-					serviceData?: Record<string, ArrayBuffer>;
-				}>;
-				optionalServices?: string[];
-				acceptAllDevices?: boolean;
-			}): Promise<BluetoothDevice>;
-		};
-	}
+// Bluetooth Printer types
+interface PrinterDevice {
+	id: string;
+	name: string;
+	bluetoothDevice?: BluetoothDevice;
+	status: 'online' | 'offline' | 'unknown';
+	type: 'bluetooth';
+}
 
+interface PrinterConfig {
+	name: string;
+	deviceId: string;
+	autoConnect: boolean;
+	connected: boolean;
+	paperWidth: number;
+	type: 'bluetooth';
+}
+
+// Web Bluetooth API type definitions
+interface RequestDeviceOptions {
+	acceptAllDevices?: boolean;
+	filters?: BluetoothLEScanFilter[];
+	optionalServices?: BluetoothServiceUUID[];
+}
+
+interface BluetoothLEScanFilter {
+	name?: string;
+	namePrefix?: string;
+	services?: BluetoothServiceUUID[];
+}
+
+type BluetoothServiceUUID = number | string;
+
+// Enhanced Web Bluetooth API types
+declare global {
 	interface Navigator {
 		bluetooth?: {
-			requestDevice(options?: {
-				filters?: Array<{
-					services?: string[];
-					name?: string;
-					namePrefix?: string;
-					manufacturerId?: number;
-					serviceData?: Record<string, ArrayBuffer>;
-				}>;
-				optionalServices?: string[];
-				acceptAllDevices?: boolean;
-			}): Promise<BluetoothDevice>;
+			requestDevice(options?: RequestDeviceOptions): Promise<BluetoothDevice>;
+			getDevices?(): Promise<BluetoothDevice[]>;
 		};
 	}
 
 	interface BluetoothDevice {
 		id: string;
 		name?: string;
-		gatt?: {
-			connected: boolean;
-			connect(): Promise<BluetoothRemoteGATTServer>;
-			disconnect(): void;
-		};
+		gatt?: BluetoothRemoteGATTServer;
 	}
 
 	interface BluetoothRemoteGATTServer {
-		device: BluetoothDevice;
 		connected: boolean;
 		connect(): Promise<BluetoothRemoteGATTServer>;
 		disconnect(): void;
-		getPrimaryService(service: string): Promise<BluetoothRemoteGATTService>;
-		getPrimaryServices(service?: string): Promise<BluetoothRemoteGATTService[]>;
+		getPrimaryService(service: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService>;
+		getPrimaryServices(service?: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService[]>;
 	}
 
 	interface BluetoothRemoteGATTService {
-		device: BluetoothDevice;
 		uuid: string;
-		getCharacteristic(
-			characteristic: string
-		): Promise<BluetoothRemoteGATTCharacteristic>;
-		getCharacteristics(
-			characteristic?: string
-		): Promise<BluetoothRemoteGATTCharacteristic[]>;
+		getCharacteristic(characteristic: BluetoothServiceUUID): Promise<BluetoothRemoteGATTCharacteristic>;
+		getCharacteristics(characteristic?: BluetoothServiceUUID): Promise<BluetoothRemoteGATTCharacteristic[]>;
 	}
 
 	interface BluetoothRemoteGATTCharacteristic {
-		service: BluetoothRemoteGATTService;
 		uuid: string;
 		properties: {
-			broadcast: boolean;
-			read: boolean;
-			writeWithoutResponse: boolean;
 			write: boolean;
+			writeWithoutResponse: boolean;
+			read: boolean;
 			notify: boolean;
-			indicate: boolean;
-			authenticatedSignedWrites: boolean;
-			reliableWrite: boolean;
-			writableAuxiliaries: boolean;
 		};
-		value?: DataView;
-		readValue(): Promise<DataView>;
 		writeValue(value: BufferSource): Promise<void>;
-		startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
-		stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
 	}
 }

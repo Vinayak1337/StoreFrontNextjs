@@ -19,10 +19,9 @@ import { Label } from '@/components/ui/label';
 import { AddItemDialog } from '@/components/items/add-item-dialog';
 import { CategorySection } from '@/components/items/category-section';
 import { UncategorizedSection } from '@/components/items/uncategorized-section';
-import { Search, Plus, Grid, List, Loader2, Package } from 'lucide-react';
+import { Search, Plus, Loader2, Package, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-// Predefined color palette for categories
 const CATEGORY_COLORS = [
 	'#EF4444',
 	'#F97316',
@@ -44,7 +43,6 @@ const CATEGORY_COLORS = [
 	'#6B7280'
 ];
 
-// Add Category Dialog Component
 function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 	const refreshItems = useRefreshItems();
 
@@ -63,7 +61,6 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 				name: name.trim(),
 				color
 			});
-			// Refresh items data
 			refreshItems();
 			setName('');
 			setColor(CATEGORY_COLORS[0]);
@@ -155,9 +152,7 @@ export default function ItemsClient({
 	initialCategories: categories,
 	pagination
 }: ItemsClientProps) {
-	// Local state
 	const [searchTerm, setSearchTerm] = useState('');
-	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 	const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
 		new Set()
 	);
@@ -170,7 +165,11 @@ export default function ItemsClient({
 		draggedItem: null
 	});
 
-	// Auto-scroll functionality
+	// Selection state
+	const [selectionMode, setSelectionMode] = useState(false);
+	const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+	const [selectionCategory, setSelectionCategory] = useState<string | null>(null);
+
 	useEffect(() => {
 		if (!dragState.isDragging) return;
 
@@ -243,7 +242,6 @@ export default function ItemsClient({
 		};
 	}, [dragState.isDragging]);
 
-	// Drag handlers
 	const handleDragStart = useCallback(
 		(item: { id: string; categoryId?: string }) => {
 			setDragState({
@@ -259,9 +257,41 @@ export default function ItemsClient({
 			isDragging: false,
 			draggedItem: null
 		});
+		if (selectionMode && selectedItems.size > 0) {
+			setSelectedItems(new Set());
+			setSelectionMode(false);
+			setSelectionCategory(null);
+		}
+	}, [selectionMode, selectedItems.size]);
+
+	const toggleSelectionMode = useCallback(() => {
+		setSelectionMode(prev => !prev);
+		if (selectionMode) {
+			setSelectedItems(new Set());
+			setSelectionCategory(null);
+		}
+	}, [selectionMode]);
+
+	const handleItemHold = useCallback((item: { id: string; categoryId?: string }) => {
+		if (!selectionMode) {
+			setSelectionMode(true);
+			setSelectionCategory(item.categoryId || 'uncategorized');
+			setSelectedItems(new Set([item.id]));
+		}
+	}, [selectionMode]);
+
+	const handleItemSelect = useCallback((itemId: string, selected: boolean) => {
+		setSelectedItems(prev => {
+			const newSelected = new Set(prev);
+			if (selected) {
+				newSelected.add(itemId);
+			} else {
+				newSelected.delete(itemId);
+			}
+			return newSelected;
+		});
 	}, []);
 
-	// Category toggle handler
 	const toggleCategoryCollapse = useCallback((categoryId: string) => {
 		setCollapsedCategories(prev => {
 			const newCollapsed = new Set(prev);
@@ -283,21 +313,21 @@ export default function ItemsClient({
 				};
 
 			const searchLower = searchTerm.toLowerCase();
-			// Filter uncategorized items based on search
 			const filteredUncategorizedItems = items.filter(item =>
 				item.name.toLowerCase().includes(searchLower)
 			);
 
-			// Filter categorized items - extract items from category.items structure
 			const filteredCategorizedItems = categories.map(category => {
-				const categoryItems = (category.items?.map(itemCategory => ({
-					...itemCategory.item,
-					price: itemCategory.item?.price || 0,
-					weight: itemCategory.item?.weight || 0
-				})).filter(item =>
-					item.id && item.name?.toLowerCase().includes(searchLower)
-				) || []) as Item[];
-				
+				const categoryItems = (category.items
+					?.map(itemCategory => ({
+						...itemCategory.item,
+						price: itemCategory.item?.price || 0,
+						weight: itemCategory.item?.weight || 0
+					}))
+					.filter(
+						item => item.id && item.name?.toLowerCase().includes(searchLower)
+					) || []) as Item[];
+
 				return {
 					category,
 					items: categoryItems
@@ -336,7 +366,9 @@ export default function ItemsClient({
 					</div>
 					<div className='flex items-center gap-3'>
 						<AddCategoryDialog>
-							<Button variant='outline' className='gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50'>
+							<Button
+								variant='outline'
+								className='gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50'>
 								<Plus className='h-4 w-4' />
 								Add Category
 							</Button>
@@ -352,36 +384,34 @@ export default function ItemsClient({
 
 				{/* Search and Controls */}
 				<div className='flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between'>
-					<div className='relative w-full sm:w-96'>
-						<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
-						<Input
-							placeholder='Search items...'
-							value={searchTerm}
-							onChange={e => setSearchTerm(e.target.value)}
-							className='pl-10'
-						/>
+					<div className='flex items-center gap-3'>
+						<div className='relative w-full sm:w-96'>
+							<Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
+							<Input
+								placeholder='Search items...'
+								value={searchTerm}
+								onChange={e => setSearchTerm(e.target.value)}
+								className='pl-10'
+							/>
+						</div>
+						{selectionMode && (
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={toggleSelectionMode}
+								className='border-red-200 text-red-600 hover:bg-red-50'>
+								<X className='h-4 w-4 mr-1' />
+								Cancel
+							</Button>
+						)}
 					</div>
-					<div className='flex items-center gap-2'>
-						<Button
-							variant={viewMode === 'grid' ? 'default' : 'outline'}
-							size='sm'
-							onClick={() => setViewMode('grid')}
-							className={`gap-2 ${viewMode === 'grid' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}>
-							<Grid className='h-4 w-4' />
-							Grid
-						</Button>
-						<Button
-							variant={viewMode === 'list' ? 'default' : 'outline'}
-							size='sm'
-							onClick={() => setViewMode('list')}
-							className={`gap-2 ${viewMode === 'list' ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}>
-							<List className='h-4 w-4' />
-							List
-						</Button>
-					</div>
+					{selectionMode && selectedItems.size > 0 && (
+						<div className='text-sm text-gray-600'>
+							{selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
+						</div>
+					)}
 				</div>
 
-				{/* Items with React DnD */}
 				<div className='space-y-6'>
 					{/* Uncategorized Items Section - Always visible at top */}
 					<UncategorizedSection
@@ -392,6 +422,11 @@ export default function ItemsClient({
 						onDragEnd={handleDragEnd}
 						pagination={pagination}
 						onPageChange={onPageChange}
+						selectionMode={selectionMode}
+						selectedItems={selectedItems}
+						selectionCategory={selectionCategory}
+						onItemHold={handleItemHold}
+						onItemSelect={handleItemSelect}
 					/>
 
 					{/* Categories */}
@@ -404,6 +439,11 @@ export default function ItemsClient({
 							onToggleCollapse={() => toggleCategoryCollapse(item.category.id)}
 							onDragStart={handleDragStart}
 							onDragEnd={handleDragEnd}
+							selectionMode={selectionMode}
+							selectedItems={selectedItems}
+							selectionCategory={selectionCategory}
+							onItemHold={handleItemHold}
+							onItemSelect={handleItemSelect}
 						/>
 					))}
 				</div>

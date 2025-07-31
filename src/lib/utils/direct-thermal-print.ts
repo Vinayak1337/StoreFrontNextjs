@@ -1,4 +1,3 @@
-import { Bill, Settings } from '@/types';
 import { formatBillForThermalPrinter } from './bill-utils';
 import { getGlobalConnectedPrinter, printToBluetooth } from './printer-utils';
 

@@ -1,7 +1,10 @@
-import { getItems } from '../api/items/route';
-import { getOrders } from '../api/orders/route';
-import { getAnalyticsMetrics } from '../api/analytics/metrics/route';
-import { getDailySales } from '../api/analytics/daily-sales/route';
+import {
+	getTotalRevenue,
+	getOrdersStats,
+	getItemsInStock,
+	getConversionRate,
+	getRecentOrders
+} from '@/app/api/dashboard/actions';
 import Link from 'next/link';
 import {
 	BarChart3,
@@ -12,29 +15,6 @@ import {
 	TrendingUp
 } from 'lucide-react';
 import { RefreshButton } from '@/components/dashboard/refresh-button';
-import { cache } from 'react';
-
-// Cached functions for better performance
-const getCachedItems = cache(async () => {
-	const { items } = await getItems(0, 0); // Get all items without pagination
-	return items;
-});
-
-const getCachedOrders = cache(async () => {
-	return await getOrders();
-});
-
-const getCachedAnalyticsMetrics = cache(async () => {
-	return await getAnalyticsMetrics();
-});
-
-const getCachedDailySales = cache(async () => {
-	const endDate = new Date().toISOString().split('T')[0];
-	const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-		.toISOString()
-		.split('T')[0];
-	return await getDailySales(startDate, endDate);
-});
 
 function MetricCard({
 	title,
@@ -85,26 +65,13 @@ function MetricCard({
 }
 
 export default async function DashboardPage() {
-	// Fetch all dashboard data server-side
-	const [items, orders, metrics, dailySales] = await Promise.all([
-		getCachedItems(),
-		getCachedOrders(),
-		getCachedAnalyticsMetrics(),
-		getCachedDailySales()
+	const [totalRevenue, ordersStats, itemsStats, conversionStats, recentOrders] = await Promise.all([
+		getTotalRevenue(),
+		getOrdersStats(),
+		getItemsInStock(),
+		getConversionRate(),
+		getRecentOrders()
 	]);
-
-	// Calculate metrics with proper data
-	const totalRevenue = metrics?.totalSales?.toFixed(2) || '0.00';
-	const revenueChange = metrics?.revenueTrend?.toFixed(1) || '0.0';
-	const ordersChange = metrics?.ordersTrend?.toFixed(1) || '0.0';
-
-	// Calculate items trend (in stock vs out of stock)
-	const inStockItems =
-		items?.filter((item: { inStock: boolean }) => item.inStock)?.length || 0;
-	const itemsChange =
-		items && items.length > 0
-			? ((inStockItems / items.length - 0.85) * 100).toFixed(1)
-			: '0.0';
 
 	return (
 		<div className='space-y-6'>
@@ -123,7 +90,7 @@ export default async function DashboardPage() {
 				<div className='flex items-center gap-3'>
 					<RefreshButton />
 					<Link
-						href='/orders/new'
+						href='/orders/create'
 						className='inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
 						<Plus className='h-4 w-4' />
 						New Order
@@ -135,32 +102,32 @@ export default async function DashboardPage() {
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
 				<MetricCard
 					title='Total Revenue'
-					value={`₹${totalRevenue}`}
-					change={`${revenueChange}%`}
+					value={`₹${totalRevenue.toFixed(2)}`}
+					change='0.0%'
 					icon={DollarSign}
 					iconColor='text-emerald-600'
 				/>
 
 				<MetricCard
 					title='Total Orders'
-					value={metrics?.totalOrders?.toString() || '0'}
-					change={`${ordersChange}%`}
+					value={ordersStats.totalOrders.toString()}
+					change={`${ordersStats.changePercentage.toFixed(1)}%`}
 					icon={ShoppingCart}
 					iconColor='text-emerald-600'
 				/>
 
 				<MetricCard
 					title='Items in Stock'
-					value={inStockItems.toString()}
-					change={`${itemsChange}%`}
+					value={itemsStats.totalInStock.toString()}
+					change={`${itemsStats.changePercentage.toFixed(1)}%`}
 					icon={Package}
 					iconColor='text-emerald-600'
 				/>
 
 				<MetricCard
 					title='Conversion Rate'
-					value={`${metrics?.conversionRate?.toFixed(1) || '0.0'}%`}
-					change={`${metrics?.conversionTrend?.toFixed(1) || '0.0'}%`}
+					value={`${conversionStats.conversionRate.toFixed(1)}%`}
+					change={`${conversionStats.changePercentage.toFixed(1)}%`}
 					icon={TrendingUp}
 					iconColor='text-emerald-600'
 				/>
@@ -191,9 +158,7 @@ export default async function DashboardPage() {
 							<div className='text-center'>
 								<BarChart3 className='h-12 w-12 text-gray-400 mx-auto mb-2' />
 								<p className='text-gray-600'>Sales Chart</p>
-								<p className='text-sm text-gray-500'>
-									{dailySales?.length || 0} data points
-								</p>
+								<p className='text-sm text-gray-500'>Chart Coming Soon</p>
 							</div>
 						</div>
 					</div>
@@ -213,7 +178,7 @@ export default async function DashboardPage() {
 							</Link>
 						</div>
 						<div className='space-y-3'>
-							{(orders || []).slice(0, 5).map((order: any) => (
+							{recentOrders.map((order) => (
 								<div
 									key={order.id}
 									className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
@@ -222,20 +187,20 @@ export default async function DashboardPage() {
 											{order.customerName}
 										</p>
 										<p className='text-sm text-gray-600'>
-											{order.orderItems?.length || 0} items
+											{order.itemCount} items
 										</p>
 									</div>
 									<div className='text-right'>
 										<p className='font-medium text-gray-900'>
-											₹{order.orderItems?.reduce((sum: number, item: any) => sum + (Number(item.price) * Number(item.quantity)), 0).toFixed(2) || '0.00'}
+											₹{order.totalPrice.toFixed(2)}
 										</p>
 										<p className='text-xs text-gray-500'>
-											{new Date(order.createdAt).toLocaleDateString()}
+											{order.createdAt.toLocaleDateString()}
 										</p>
 									</div>
 								</div>
 							))}
-							{(!orders || orders.length === 0) && (
+							{recentOrders.length === 0 && (
 								<div className='text-center py-8 text-gray-500'>
 									<ShoppingCart className='h-12 w-12 mx-auto mb-2 opacity-50' />
 									<p>No orders yet</p>
@@ -253,7 +218,7 @@ export default async function DashboardPage() {
 				</h3>
 				<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
 					<Link
-						href='/orders/new'
+						href='/orders/create'
 						className='group p-4 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all'>
 						<div className='flex items-center gap-3'>
 							<div className='p-2 bg-emerald-100 rounded-lg group-hover:bg-emerald-200 transition-colors'>
