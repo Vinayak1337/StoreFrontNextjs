@@ -23,59 +23,15 @@ export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
 		const page = parseInt(searchParams.get('page') || '1');
-		const limit = parseInt(searchParams.get('limit') || '100'); // Default to 100 items per page
+		const limit = parseInt(searchParams.get('limit') || '100');
+
 		const skip = (page - 1) * limit;
+		const shouldPaginate = page > 0 && limit > 0;
 
-		// For backwards compatibility, if no pagination params, return all items
-		const shouldPaginate = searchParams.has('page') || searchParams.has('limit');
-
-		let items;
-		let totalCount = 0;
-
-		if (shouldPaginate) {
-			// Use transaction for consistent count and data
-			const [itemsData, count] = await prisma.$transaction([
-				prisma.item.findMany({
-					skip,
-					take: limit,
-					orderBy: {
-						createdAt: 'desc'
-					},
-					include: {
-						categories: {
-							select: {
-								categoryId: true,
-								category: {
-									select: {
-										id: true,
-										name: true,
-										color: true
-									}
-								}
-							}
-						}
-					}
-				}),
-				prisma.item.count()
-			]);
-
-			items = itemsData;
-			totalCount = count;
-
-			return NextResponse.json({
-				items,
-				pagination: {
-					page,
-					limit,
-					total: totalCount,
-					totalPages: Math.ceil(totalCount / limit),
-					hasNext: page * limit < totalCount,
-					hasPrev: page > 1
-				}
-			});
-		} else {
-			// Legacy mode: return all items without pagination
-			items = await prisma.item.findMany({
+		const [items, totalCount] = await prisma.$transaction([
+			prisma.item.findMany({
+				skip: shouldPaginate ? skip : undefined,
+				take: shouldPaginate ? limit : undefined,
 				orderBy: {
 					createdAt: 'desc'
 				},
@@ -83,20 +39,40 @@ export async function GET(request: NextRequest) {
 					categories: {
 						select: {
 							categoryId: true,
+							createdAt: true,
+							id: true,
+							itemId: true,
 							category: {
 								select: {
 									id: true,
 									name: true,
-									color: true
+									color: true,
+									createdAt: true,
+									order: true
 								}
 							}
 						}
 					}
 				}
-			});
+			}),
+			prisma.item.count()
+		]);
 
-			return NextResponse.json(items);
-		}
+		const processedItems = items.map(item => ({
+			...item,
+			price: item.price.toNumber(),
+			weight: item.weight?.toNumber()
+		}));
+
+		const paginationResult = shouldPaginate
+			? {
+					page,
+					limit,
+					total: totalCount
+			  }
+			: undefined;
+
+		return NextResponse.json({ items: processedItems, pagination: paginationResult });
 	} catch (error) {
 		console.error('Error fetching items:', error);
 		return NextResponse.json(
@@ -105,6 +81,7 @@ export async function GET(request: NextRequest) {
 		);
 	}
 }
+
 
 // POST /api/items - Create a new item
 export async function POST(request: NextRequest) {

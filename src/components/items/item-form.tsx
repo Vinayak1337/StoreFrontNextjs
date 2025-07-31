@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Item } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +12,8 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select';
-import { useCreateItem, useUpdateItem } from '@/lib/hooks/useItems';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/services/api';
 import { toast } from 'react-toastify';
 import {
 	Package,
@@ -32,8 +32,7 @@ interface ItemFormProps {
 type WeightUnit = 'kg' | 'g' | 'l' | 'ml';
 
 export function ItemForm({ item, onClose }: ItemFormProps) {
-	const createItemMutation = useCreateItem();
-	const updateItemMutation = useUpdateItem();
+	const router = useRouter();
 	const [formData, setFormData] = useState({
 		name: '',
 		price: '',
@@ -44,7 +43,6 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// If we have an item, populate the form
 	useEffect(() => {
 		if (item) {
 			setFormData({
@@ -79,24 +77,20 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 			name: formData.name,
 			price: parseFloat(formData.price),
 			weight: formData.weight ? parseFloat(formData.weight) : undefined,
-			weightUnit: formData.weight ? formData.weightUnit : undefined,
+			weightUnit: formData.weight ? formData.weightUnit : null,
 			quantity: parseInt(formData.quantity, 10),
 			inStock: formData.inStock
 		};
 
 		try {
 			if (item) {
-				// Update existing item
-				await updateItemMutation.mutateAsync({
-					id: item.id,
-					data: itemData
-				});
+				await api.updateItem(item.id, itemData);
 				toast.success('Item updated successfully!');
 			} else {
-				// Create new item
-				await createItemMutation.mutateAsync(itemData);
+				await api.createItem(itemData);
 				toast.success('Item created successfully!');
 			}
+			router.refresh();
 			onClose();
 		} catch (error) {
 			console.error('Error saving item:', error);

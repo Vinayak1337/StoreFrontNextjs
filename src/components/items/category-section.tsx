@@ -2,8 +2,7 @@
 
 import { useRef, memo, useCallback } from 'react';
 import { useDrop } from 'react-dnd';
-import { useQueryClient } from '@tanstack/react-query';
-import { Item, Category } from '@/types';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,11 @@ interface CategorySectionProps {
 	onToggleCollapse: () => void;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
+	selectionMode?: boolean;
+	selectedItems?: Set<string>;
+	selectionCategory?: string | null;
+	onItemHold?: (item: { id: string; categoryId?: string }) => void;
+	onItemSelect?: (itemId: string, selected: boolean) => void;
 }
 
 function CategorySectionComponent({
@@ -30,37 +34,54 @@ function CategorySectionComponent({
 	collapsed,
 	onToggleCollapse,
 	onDragStart,
-	onDragEnd
+	onDragEnd,
+	selectionMode = false,
+	selectedItems = new Set(),
+	selectionCategory,
+	onItemHold,
+	onItemSelect
 }: CategorySectionProps) {
-	const queryClient = useQueryClient();
+	const router = useRouter();
 	const ref = useRef<HTMLDivElement>(null);
 
 	const handleDrop = useCallback(
 		async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId !== category.id) {
 				try {
-					// Remove from current category if it has one
-					if (draggedItem.categoryId) {
-						await api.removeItemFromCategory(
-							draggedItem.categoryId,
-							draggedItem.id
-						);
-					}
-					// Add to new category
-					await api.addItemToCategory(category.id, draggedItem.id);
+					// Check if we're moving selected items or just one item
+					const itemsToMove = selectedItems.has(draggedItem.id) && selectedItems.size > 1
+						? Array.from(selectedItems)
+						: [draggedItem.id];
 
-					// Invalidate queries to refresh the UI
-					queryClient.invalidateQueries({ queryKey: ['items'] });
-					queryClient.invalidateQueries({ queryKey: ['categories'] });
+					// Move all items
+					await Promise.all(itemsToMove.map(async (itemId) => {
+						// Find the current category of this item
+						const currentCategoryId = itemId === draggedItem.id 
+							? draggedItem.categoryId 
+							: selectedItems.has(itemId) 
+								? selectionCategory === 'uncategorized' ? undefined : selectionCategory
+								: undefined;
 
-					toast.success('Item moved successfully!');
+						// Remove from current category if it has one
+						if (currentCategoryId) {
+							await api.removeItemFromCategory(currentCategoryId, itemId);
+						}
+						// Add to new category
+						await api.addItemToCategory(category.id, itemId);
+					}));
+
+					// Refresh items data
+					router.refresh();
+
+					const count = itemsToMove.length;
+					toast.success(`${count} item${count > 1 ? 's' : ''} moved successfully!`);
 				} catch (error) {
-					console.error('Failed to move item:', error);
-					toast.error('Failed to move item to category. Please try again.');
+					console.error('Failed to move items:', error);
+					toast.error('Failed to move items to category. Please try again.');
 				}
 			}
 		},
-		[category.id, queryClient]
+		[category.id, router, selectedItems, selectionCategory]
 	);
 
 	const [{ isOver }, drop] = useDrop({
@@ -108,7 +129,7 @@ function CategorySectionComponent({
 					</Button>
 
 					{isOver && (
-						<Badge variant='default' className='text-xs bg-emerald-500'>
+						<Badge variant='default' className='text-xs bg-emerald-600'>
 							<Tag className='h-3 w-3 mr-1' />
 							Drop here
 						</Badge>
@@ -133,6 +154,12 @@ function CategorySectionComponent({
 									categoryId={category.id}
 									onDragStart={onDragStart}
 									onDragEnd={onDragEnd}
+									selectionMode={selectionMode}
+									isSelected={selectedItems.has(item.id)}
+									showSelection={selectionMode && selectionCategory === category.id}
+									selectedItems={selectedItems}
+									onItemHold={onItemHold}
+									onItemSelect={onItemSelect}
 								/>
 							))}
 						</div>

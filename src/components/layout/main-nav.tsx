@@ -12,7 +12,6 @@ import {
 	BarChart,
 	LogOut
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,69 +22,36 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
-import { RootState } from '@/lib/redux/store';
-import { fetchItems } from '@/lib/redux/slices/items.slice';
-import { fetchOrders } from '@/lib/redux/slices/orders.slice';
-import { fetchBills } from '@/lib/redux/slices/bills.slice';
-import { fetchCurrentUser } from '@/lib/redux/slices/user.slice';
 
 export function MainNav() {
 	const pathname = usePathname();
 	const router = useRouter();
 
-	// Connect to Redux store
-	const dispatch = useAppDispatch();
-	const { items } = useAppSelector((state: RootState) => state.items);
-	const { orders } = useAppSelector((state: RootState) => state.orders);
-	const { bills } = useAppSelector((state: RootState) => state.bills);
-	const { user } = useAppSelector((state: RootState) => state.user);
-
-	// Fetch data on component mount
-	useEffect(() => {
-		dispatch(fetchItems());
-		dispatch(fetchOrders());
-		dispatch(fetchBills());
-		dispatch(fetchCurrentUser());
-	}, [dispatch]);
-
-	// Calculate notification counts with null checks
-	const pendingOrdersCount = orders?.filter(order => !order?.bill)?.length || 0;
-	const lowStockCount =
-		items?.filter(item => item?.inStock === false)?.length || 0;
-	const unpaidBillsCount = bills?.filter(bill => !bill?.isPaid)?.length || 0;
-
 	const navItems = [
 		{
 			name: 'Dashboard',
 			href: '/dashboard' as Route,
-			icon: <Home className='h-4 w-4' />,
-			badge: 0
+			icon: <Home className='h-4 w-4' />
 		},
 		{
 			name: 'Items',
 			href: '/items' as Route,
-			icon: <Package className='h-4 w-4' />,
-			badge: lowStockCount
+			icon: <Package className='h-4 w-4' />
 		},
 		{
 			name: 'Orders',
 			href: '/orders' as Route,
-			icon: <ShoppingCart className='h-4 w-4' />,
-			badge: pendingOrdersCount
+			icon: <ShoppingCart className='h-4 w-4' />
 		},
 		{
 			name: 'Bills',
 			href: '/bills' as Route,
-			icon: <CreditCard className='h-4 w-4' />,
-			badge: unpaidBillsCount
+			icon: <CreditCard className='h-4 w-4' />
 		},
 		{
 			name: 'Analytics',
 			href: '/analytics' as Route,
-			icon: <BarChart className='h-4 w-4' />,
-			badge: 0
+			icon: <BarChart className='h-4 w-4' />
 		}
 	];
 
@@ -125,13 +91,6 @@ export function MainNav() {
 							{item.icon}
 						</span>
 						<span>{item.name}</span>
-						{item.badge > 0 && (
-							<Badge
-								variant='secondary'
-								className='ml-1.5 animate-pulse-ping scale-90'>
-								{item.badge}
-							</Badge>
-						)}
 					</Link>
 				))}
 			</nav>
@@ -144,16 +103,16 @@ export function MainNav() {
 							size='icon'
 							className='rounded-full p-0 hover-scale'>
 							<Avatar className='h-9 w-9 shadow-sm border-2 border-border'>
-								<AvatarImage src='' alt={user?.name || 'Store Manager'} />
+								<AvatarImage src='' alt='Store Manager' />
 								<AvatarFallback className='bg-gradient-to-r from-emerald-600 to-emerald-700 text-white'>
-									{user?.name?.split(' ')?.[0]?.charAt(0) || 'S'}
+									S
 								</AvatarFallback>
 							</Avatar>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align='end' className='w-56 animate-scale'>
 						<DropdownMenuLabel>
-							{user?.name || 'Store Manager'}
+							Store Manager
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className='cursor-pointer' onClick={handleLogout}>

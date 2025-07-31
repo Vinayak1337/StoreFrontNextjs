@@ -1,11 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Provider } from 'react-redux';
-import { store } from '@/lib/redux/store';
 import { Sidebar } from '@/components/sidebar';
 import { ThemeProvider } from '@/components/theme-provider';
-import ReactQueryProvider from '@/lib/providers/react-query-provider';
 import { cn } from '@/lib/utils';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -108,9 +105,7 @@ export default function ClientWrapper({
 
 	return (
 		<ThemeProvider attribute='class' defaultTheme='light'>
-			<ReactQueryProvider>
-				<Provider store={store}>
-					<CsrfProvider>
+			<CsrfProvider>
 						<div
 							className={cn(
 								'flex min-h-screen overflow-hidden',
@@ -148,9 +143,7 @@ export default function ClientWrapper({
 							theme='light'
 							style={{ zIndex: 9999 }}
 						/>
-					</CsrfProvider>
-				</Provider>
-			</ReactQueryProvider>
+			</CsrfProvider>
 		</ThemeProvider>
 	);
 }

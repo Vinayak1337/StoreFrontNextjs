@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Item } from '@/types';
+// Global types available without import
 import {
 	Dialog,
 	DialogContent,

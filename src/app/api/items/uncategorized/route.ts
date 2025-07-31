@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// GET /api/items/uncategorized - Get items that are not in any category with pagination
 export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
@@ -9,8 +8,7 @@ export async function GET(request: NextRequest) {
 		const limit = parseInt(searchParams.get('limit') || '50');
 		const skip = (page - 1) * limit;
 
-		// Get items that don't have any category relationships
-		const [uncategorizedItems, totalCount] = await prisma.$transaction([
+		const [items, totalCount] = await prisma.$transaction([
 			prisma.item.findMany({
 				where: {
 					categories: {
@@ -32,15 +30,18 @@ export async function GET(request: NextRequest) {
 			})
 		]);
 
+		const uncategorizedItems = items.map(item => ({
+			...item,
+			price: item.price.toNumber(),
+			weight: item.weight?.toNumber()
+		}));
+
 		return NextResponse.json({
 			items: uncategorizedItems,
 			pagination: {
 				page,
 				limit,
-				total: totalCount,
-				totalPages: Math.ceil(totalCount / limit),
-				hasNext: page * limit < totalCount,
-				hasPrev: page > 1
+				total: totalCount
 			}
 		});
 	} catch (error) {

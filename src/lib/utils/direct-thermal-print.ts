@@ -1,11 +1,10 @@
-import { Bill, Settings } from '@/types';
 import { formatBillForThermalPrinter } from './bill-utils';
 import { getGlobalConnectedPrinter, printToBluetooth } from './printer-utils';
 
 /**
  * Print directly to the paired thermal printer (no connection needed)
  */
-export async function printDirectlyToThermalPrinter(bill: Bill, settings: Settings): Promise<boolean> {
+export async function printDirectlyToThermalPrinter(order: Order, settings: Settings): Promise<boolean> {
   try {
     // Get the globally set printer (already paired)
     const pairedPrinter = getGlobalConnectedPrinter();
@@ -14,10 +13,10 @@ export async function printDirectlyToThermalPrinter(bill: Bill, settings: Settin
       throw new Error('No thermal printer is set up. Please pair a printer in Settings first.');
     }
 
-    // Format the bill for thermal printing
-    const content = formatBillForThermalPrinter(bill, settings);
+    // Format the order for thermal printing
+    const content = formatBillForThermalPrinter(order, settings);
     if (!content) {
-      throw new Error('Could not format bill data for printing');
+      throw new Error('Could not format order data for printing');
     }
 
     // Send print commands directly to paired printer (no connection step)

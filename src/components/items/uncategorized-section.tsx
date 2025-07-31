@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, memo, useCallback } from 'react';
+import { useRef, memo, useCallback, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
-import { useQueryClient } from '@tanstack/react-query';
-import { Item } from '@/types';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/services/api';
 import { Badge } from '@/components/ui/badge';
 import { DraggableItem } from './draggable-item';
@@ -21,57 +20,71 @@ interface UncategorizedSectionProps {
 	draggedItem?: { id: string; categoryId?: string } | null;
 	onDragStart?: (item: { id: string; categoryId?: string }) => void;
 	onDragEnd?: () => void;
-	currentPage?: number;
-	totalPages?: number;
+	pagination: Pagination;
 	onPageChange?: (page: number) => void;
+	selectionMode?: boolean;
+	selectedItems?: Set<string>;
+	selectionCategory?: string | null;
+	onItemHold?: (item: { id: string; categoryId?: string }) => void;
+	onItemSelect?: (itemId: string, selected: boolean) => void;
 }
 
 function UncategorizedSectionComponent({
 	items,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	isDragging = false,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	draggedItem = null,
 	onDragStart,
 	onDragEnd,
-	currentPage = 1,
-	totalPages = 1,
-	onPageChange
+	pagination,
+	onPageChange,
+	selectionMode = false,
+	selectedItems = new Set(),
+	selectionCategory,
+	onItemHold,
+	onItemSelect
 }: UncategorizedSectionProps) {
-	const queryClient = useQueryClient();
+	const router = useRouter();
 	const ref = useRef<HTMLDivElement>(null);
 
 	const handleDrop = useCallback(
 		async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId) {
 				try {
-					console.log('Removing item from category:', {
-						categoryId: draggedItem.categoryId,
-						itemId: draggedItem.id
-					});
+					// Check if we're moving selected items or just one item
+					const itemsToMove = selectedItems.has(draggedItem.id) && selectedItems.size > 1
+						? Array.from(selectedItems)
+						: [draggedItem.id];
 
-					await api.removeItemFromCategory(
-						draggedItem.categoryId,
-						draggedItem.id
-					);
+					// Remove all items from their categories
+					await Promise.all(itemsToMove.map(async (itemId) => {
+						// Find the current category of this item
+						const currentCategoryId = itemId === draggedItem.id 
+							? draggedItem.categoryId 
+							: selectedItems.has(itemId) 
+								? selectionCategory === 'uncategorized' ? undefined : selectionCategory
+								: undefined;
 
-					// Invalidate queries to refresh the UI
-					queryClient.invalidateQueries({ queryKey: ['items'] });
-					queryClient.invalidateQueries({ queryKey: ['categories'] });
+						// Remove from current category if it has one
+						if (currentCategoryId) {
+							await api.removeItemFromCategory(currentCategoryId, itemId);
+						}
+					}));
 
-					toast.success('Item removed from category!');
+					// Refresh items data
+					router.refresh();
+
+					const count = itemsToMove.length;
+					toast.success(`${count} item${count > 1 ? 's' : ''} removed from category!`);
 				} catch (error) {
-					console.error('Failed to remove item from category:', error);
+					console.error('Failed to remove items from category:', error);
 					console.error('Error details:', {
 						categoryId: draggedItem.categoryId,
 						itemId: draggedItem.id,
 						error: error
 					});
-					toast.error('Failed to remove item from category. Please try again.');
+					toast.error('Failed to remove items from category. Please try again.');
 				}
 			}
 		},
-		[queryClient]
+		[router, selectedItems, selectionCategory]
 	);
 
 	const [{ isOver }, drop] = useDrop({
@@ -81,6 +94,13 @@ function UncategorizedSectionComponent({
 			isOver: monitor.isOver()
 		})
 	});
+
+	const { totalPages, currentPage } = useMemo(() => {
+		const totalPages = Math.ceil(pagination.total / pagination.limit);
+		const currentPage = pagination.page;
+
+		return { totalPages, currentPage };
+	}, [pagination]);
 
 	drop(ref);
 
@@ -129,6 +149,12 @@ function UncategorizedSectionComponent({
 								item={item}
 								onDragStart={onDragStart}
 								onDragEnd={onDragEnd}
+								selectionMode={selectionMode}
+								isSelected={selectedItems.has(item.id)}
+								showSelection={selectionMode && (selectionCategory === 'uncategorized' || selectionCategory === null)}
+								selectedItems={selectedItems}
+								onItemHold={onItemHold}
+								onItemSelect={onItemSelect}
 							/>
 						))}
 					</div>
