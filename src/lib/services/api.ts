@@ -213,37 +213,13 @@ export const categoriesAPI = {
 		})
 };
 
-export const analyticsAPI = {
-	getDailySales: (startDate?: string, endDate?: string) => {
-		let url = '/analytics/daily-sales';
-		const params = new URLSearchParams();
-
-		if (startDate) params.append('startDate', startDate);
-		if (endDate) params.append('endDate', endDate);
-
-		if (params.toString()) {
-			url += `?${params.toString()}`;
-		}
-
-		interface DailySalesData {
-			date: string;
-			sales: number;
-			orderCount: number;
-		}
-
-		return fetchAPI<DailySalesData[]>(url);
-	},
-
-	getMetrics: () => fetchAPI<AnalyticsMetrics>('/analytics/metrics')
-};
 
 const api = {
 	...userAPI,
 	...itemsAPI,
 	...ordersAPI,
 	...billsAPI,
-	...categoriesAPI,
-	...analyticsAPI
+	...categoriesAPI
 };
 
 export default api;

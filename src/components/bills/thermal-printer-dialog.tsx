@@ -14,14 +14,13 @@ import {
 import { Label } from '@/components/ui/label';
 import { Printer, Bluetooth, AlertCircle, Check, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { Bill, Settings } from '@/types';
+// Global type declarations will be available without import
 import { formatBillForThermalPrinter, printBill } from '@/lib/utils/bill-utils';
 import { 
 	scanForPrinters, 
 	isBluetoothSupported, 
 	printToBluetooth,
 	debugBluetoothSupport,
-	PrinterDevice,
 	savePrinterForDirectUse 
 } from '@/lib/utils/printer-utils';
 
@@ -111,7 +110,7 @@ export function ThermalPrinterDialog({
 			toast.info('Connecting to printer...');
 
 			// Format the bill data for printing
-			const content = formatBillForThermalPrinter(bill, settings);
+			const content = formatBillForThermalPrinter(bill.order as unknown as Order, settings);
 			if (!content) {
 				throw new Error('Could not format bill data');
 			}

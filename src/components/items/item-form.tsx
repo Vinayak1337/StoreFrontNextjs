@@ -12,7 +12,8 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '@/components/ui/select';
-import { useCreateItem, useUpdateItem } from '@/lib/hooks/useItems';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/services/api';
 import { toast } from 'react-toastify';
 import {
 	Package,
@@ -31,8 +32,7 @@ interface ItemFormProps {
 type WeightUnit = 'kg' | 'g' | 'l' | 'ml';
 
 export function ItemForm({ item, onClose }: ItemFormProps) {
-	const createItem = useCreateItem();
-	const updateItem = useUpdateItem();
+	const router = useRouter();
 	const [formData, setFormData] = useState({
 		name: '',
 		price: '',
@@ -84,15 +84,13 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 
 		try {
 			if (item) {
-				await updateItem({
-					id: item.id,
-					data: itemData
-				});
+				await api.updateItem(item.id, itemData);
 				toast.success('Item updated successfully!');
 			} else {
-				await createItem(itemData);
+				await api.createItem(itemData);
 				toast.success('Item created successfully!');
 			}
+			router.refresh();
 			onClose();
 		} catch (error) {
 			console.error('Error saving item:', error);

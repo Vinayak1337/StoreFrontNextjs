@@ -1,11 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { RootState, AppDispatch } from '@/lib/redux/store';
-import { fetchSettings } from '@/lib/redux/slices/settings.slice';
 import api from '@/lib/services/api';
 import { Eye, Trash, Printer, Loader2 } from 'lucide-react';
 import { printDirectlyToThermalPrinter } from '@/lib/utils/direct-thermal-print';
@@ -15,6 +12,7 @@ import {
 	savePrinterForDirectUse,
 	getGlobalConnectedPrinter
 } from '@/lib/utils/printer-utils';
+import { getSettings } from '@/app/api/settings/actions';
 
 interface OrderActionsProps {
 	order: BasicOrder;
@@ -22,15 +20,12 @@ interface OrderActionsProps {
 
 export function OrderActions({ order }: OrderActionsProps) {
 	const router = useRouter();
-	const dispatch = useDispatch<AppDispatch>();
-	const { settings } = useSelector(
-		(state: RootState) => state.settings || { settings: null }
-	);
+	const [settings, setSettings] = useState<Settings | null>(null);
 	const [isPrintingThermal, setIsPrintingThermal] = useState(false);
 
 	useEffect(() => {
-		dispatch(fetchSettings());
-	}, [dispatch]);
+		getSettings().then(setSettings).catch(console.error);
+	}, []);
 
 	const handleThermalPrint = async (orderId: string) => {
 		try {

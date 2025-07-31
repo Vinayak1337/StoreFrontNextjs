@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useState } from 'react';
 import {
 	BarChart,
 	Bar,
@@ -16,8 +15,6 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RootState, AppDispatch } from '@/lib/redux/store';
-import { fetchDailySales } from '@/lib/redux/slices/analytics.slice';
 import { format } from 'date-fns';
 import {
 	BarChart3,
@@ -26,6 +23,20 @@ import {
 	ArrowUp,
 	ArrowDown
 } from 'lucide-react';
+
+interface DailySalesData {
+	date: string;
+	totalAmount: number;
+	count: number;
+	sales: number;
+	orderCount: number;
+}
+
+interface AnalyticsChartProps {
+	initialData: DailySalesData[];
+	onViewModeChange: (mode: 'daily' | 'weekly' | 'monthly') => void;
+	loading: boolean;
+}
 
 interface TooltipProps {
 	active?: boolean;
@@ -63,48 +74,23 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 	return null;
 };
 
-export function SalesChart() {
-	const dispatch = useDispatch<AppDispatch>();
-	const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>(
-		'daily'
-	);
+export function AnalyticsChart({ initialData, onViewModeChange, loading }: AnalyticsChartProps) {
+	const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 	const [chartType, setChartType] = useState<'bar' | 'area'>('area');
-	const { salesData, loading } = useSelector(
-		(state: RootState) => state.analytics
-	);
 
-	// Load initial data for the chart only once
-	useEffect(() => {
-		if (!salesData || !salesData.dailySales || salesData.dailySales.length === 0) {
-			const endDate = new Date().toISOString().split('T')[0];
-			const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-			dispatch(fetchDailySales({ startDate, endDate }));
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [dispatch]); // Intentionally excluding salesData to prevent infinite loop
-
-	// Handle view mode change and reload data
+	// Handle view mode change
 	const handleViewModeChange = (newMode: 'daily' | 'weekly' | 'monthly') => {
 		setViewMode(newMode);
-		
-		// Determine date range based on view mode
-		let days = 30; // default for daily
-		if (newMode === 'weekly') days = 84; // 12 weeks
-		if (newMode === 'monthly') days = 365; // 12 months
-		
-		const endDate = new Date().toISOString().split('T')[0];
-		const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-		
-		dispatch(fetchDailySales({ startDate, endDate }));
+		onViewModeChange(newMode);
 	};
 
 	// Format data for the chart based on view mode
 	const formatChartData = () => {
-		if (!salesData || !salesData.dailySales) {
+		if (!initialData || initialData.length === 0) {
 			return [];
 		}
 
-		let data = [...salesData.dailySales]; // Create a copy to avoid mutating Redux state
+		let data = [...initialData]; // Create a copy
 
 		// Group data based on view mode
 		if (viewMode === 'weekly') {
@@ -112,9 +98,9 @@ export function SalesChart() {
 			const weeklyData: { [key: string]: { totalAmount: number; count: number } } = {};
 			data.forEach(item => {
 				try {
-					const date = new Date(item.date + 'T00:00:00.000Z'); // Ensure UTC
+					const date = new Date(item.date + 'T00:00:00.000Z');
 					const weekStart = new Date(date);
-					weekStart.setDate(date.getDate() - date.getDay()); // Get start of week (Sunday)
+					weekStart.setDate(date.getDate() - date.getDay());
 					const weekKey = weekStart.toISOString().split('T')[0];
 					
 					if (!weeklyData[weekKey]) {
@@ -132,14 +118,16 @@ export function SalesChart() {
 				.map(([date, values]) => ({
 					date,
 					totalAmount: values.totalAmount,
-					count: values.count
+					count: values.count,
+					sales: values.totalAmount,
+					orderCount: values.count
 				}));
 		} else if (viewMode === 'monthly') {
 			// Group by month
 			const monthlyData: { [key: string]: { totalAmount: number; count: number } } = {};
 			data.forEach(item => {
 				try {
-					const date = new Date(item.date + 'T00:00:00.000Z'); // Ensure UTC
+					const date = new Date(item.date + 'T00:00:00.000Z');
 					const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
 					
 					if (!monthlyData[monthKey]) {
@@ -157,7 +145,9 @@ export function SalesChart() {
 				.map(([date, values]) => ({
 					date,
 					totalAmount: values.totalAmount,
-					count: values.count
+					count: values.count,
+					sales: values.totalAmount,
+					orderCount: values.count
 				}));
 		} else {
 			// Sort daily data by date
@@ -219,45 +209,45 @@ export function SalesChart() {
 
 	return (
 		<Card className='col-span-full animate-fade-in'>
-			<CardHeader className='flex flex-row items-center justify-between pb-4'>
-				<div>
-					<CardTitle className='text-lg font-medium flex items-center gap-2'>
+			<CardHeader className='flex flex-col sm:flex-row sm:items-center justify-between pb-4 space-y-4 sm:space-y-0'>
+				<div className='flex-1'>
+					<CardTitle className='text-base sm:text-lg font-medium flex items-center gap-2'>
 						<div className='icon-container'>
-							<BarChart3 className='h-5 w-5 text-primary' />
+							<BarChart3 className='h-4 w-4 sm:h-5 sm:w-5 text-primary' />
 						</div>
 						Sales Overview
 					</CardTitle>
-					<div className='mt-1 flex items-center text-sm text-muted-foreground'>
+					<div className='mt-1 flex items-center text-xs sm:text-sm text-muted-foreground'>
 						{trend.isPositive ? (
 							<span className='flex items-center gap-1 text-success font-medium'>
-								<ArrowUp className='h-4 w-4' />
+								<ArrowUp className='h-3 w-3 sm:h-4 sm:w-4' />
 								Up {trend.percentage.toFixed(1)}% from previous period
 							</span>
 						) : (
 							<span className='flex items-center gap-1 text-destructive font-medium'>
-								<ArrowDown className='h-4 w-4' />
+								<ArrowDown className='h-3 w-3 sm:h-4 sm:w-4' />
 								Down {trend.percentage.toFixed(1)}% from previous period
 							</span>
 						)}
 					</div>
 				</div>
-				<div className='flex gap-2'>
+				<div className='flex flex-wrap gap-2'>
 					<div className='bg-muted/50 rounded-lg p-1 mr-2'>
 						<Button
 							size='sm'
 							variant={chartType === 'bar' ? 'default' : 'ghost'}
 							onClick={() => setChartType('bar')}
-							className='h-8 w-8 p-0 rounded-md'
+							className='h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-md'
 							title='Bar Chart'>
-							<BarChart3 className='h-4 w-4' />
+							<BarChart3 className='h-3 w-3 sm:h-4 sm:w-4' />
 						</Button>
 						<Button
 							size='sm'
 							variant={chartType === 'area' ? 'default' : 'ghost'}
 							onClick={() => setChartType('area')}
-							className='h-8 w-8 p-0 rounded-md'
+							className='h-6 w-6 sm:h-8 sm:w-8 p-0 rounded-md'
 							title='Area Chart'>
-							<LineChart className='h-4 w-4' />
+							<LineChart className='h-3 w-3 sm:h-4 sm:w-4' />
 						</Button>
 					</div>
 					<Button
@@ -265,54 +255,56 @@ export function SalesChart() {
 						variant={viewMode === 'daily' ? 'default' : 'outline'}
 						onClick={() => handleViewModeChange('daily')}
 						disabled={loading}
-						className={`shadow-sm rounded-lg gap-1 ${
+						className={`shadow-sm rounded-lg gap-1 text-xs sm:text-sm ${
 							viewMode === 'daily' ? 'bg-emerald-600 text-white' : ''
 						}`}>
-						<Calendar className='h-4 w-4' />
-						Daily
+						<Calendar className='h-3 w-3 sm:h-4 sm:w-4' />
+						<span className='hidden xs:inline'>Daily</span>
 					</Button>
 					<Button
 						size='sm'
 						variant={viewMode === 'weekly' ? 'default' : 'outline'}
 						onClick={() => handleViewModeChange('weekly')}
 						disabled={loading}
-						className={`shadow-sm rounded-lg ${
+						className={`shadow-sm rounded-lg text-xs sm:text-sm ${
 							viewMode === 'weekly' ? 'bg-emerald-600 text-white' : ''
 						}`}>
-						Weekly
+						<span className='hidden xs:inline'>Weekly</span>
+						<span className='xs:hidden'>Week</span>
 					</Button>
 					<Button
 						size='sm'
 						variant={viewMode === 'monthly' ? 'default' : 'outline'}
 						onClick={() => handleViewModeChange('monthly')}
 						disabled={loading}
-						className={`shadow-sm rounded-lg ${
+						className={`shadow-sm rounded-lg text-xs sm:text-sm ${
 							viewMode === 'monthly' ? 'bg-emerald-600 text-white' : ''
 						}`}>
-						Monthly
+						<span className='hidden xs:inline'>Monthly</span>
+						<span className='xs:hidden'>Month</span>
 					</Button>
 				</div>
 			</CardHeader>
-			<CardContent>
+			<CardContent className='p-3 sm:p-6'>
 				{loading ? (
-					<div className='flex justify-center items-center h-80 animate-pulse'>
+					<div className='flex justify-center items-center h-60 sm:h-80 animate-pulse'>
 						<div className='text-center'>
-							<BarChart3 className='h-10 w-10 mx-auto mb-2 opacity-30' />
-							<p>Loading chart data...</p>
+							<BarChart3 className='h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 opacity-30' />
+							<p className='text-sm sm:text-base'>Loading chart data...</p>
 						</div>
 					</div>
 				) : chartData.length === 0 ? (
-					<div className='flex justify-center items-center h-80 border border-dashed rounded-lg'>
+					<div className='flex justify-center items-center h-60 sm:h-80 border border-dashed rounded-lg'>
 						<div className='text-center text-muted-foreground'>
-							<BarChart3 className='h-10 w-10 mx-auto mb-2 opacity-30' />
-							<p>No sales data available</p>
-							<p className='text-sm mt-1'>
+							<BarChart3 className='h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 opacity-30' />
+							<p className='text-sm sm:text-base'>No sales data available</p>
+							<p className='text-xs sm:text-sm mt-1'>
 								Sales information will appear here once data is available
 							</p>
 						</div>
 					</div>
 				) : (
-					<div className='h-80 animate-slide-in'>
+					<div className='h-60 sm:h-80 animate-slide-in'>
 						<ResponsiveContainer width='100%' height='100%'>
 							{chartType === 'bar' ? (
 								<BarChart
@@ -328,12 +320,14 @@ export function SalesChart() {
 										axisLine={false}
 										tickLine={false}
 										tickMargin={10}
+										fontSize={12}
 									/>
 									<YAxis
 										tickFormatter={value => `₹${value}`}
 										axisLine={false}
 										tickLine={false}
 										tickMargin={10}
+										fontSize={12}
 									/>
 									<Tooltip content={<CustomTooltip />} />
 									<Legend
@@ -407,12 +401,14 @@ export function SalesChart() {
 										axisLine={false}
 										tickLine={false}
 										tickMargin={10}
+										fontSize={12}
 									/>
 									<YAxis
 										tickFormatter={value => `₹${value}`}
 										axisLine={false}
 										tickLine={false}
 										tickMargin={10}
+										fontSize={12}
 									/>
 									<Tooltip content={<CustomTooltip />} />
 									<Legend

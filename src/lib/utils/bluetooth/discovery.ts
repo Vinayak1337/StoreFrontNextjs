@@ -5,6 +5,44 @@
 import { isBluetoothSupported } from './support';
 import { savePrinterForDirectUse } from './storage';
 
+interface Bluetooth {
+	requestDevice(options?: RequestDeviceOptions): Promise<BluetoothDevice>;
+}
+
+interface RequestDeviceOptions {
+	acceptAllDevices?: boolean;
+	filters?: BluetoothLEScanFilter[];
+	optionalServices?: BluetoothServiceUUID[];
+}
+
+interface BluetoothLEScanFilter {
+	name?: string;
+	namePrefix?: string;
+	services?: BluetoothServiceUUID[];
+}
+
+type BluetoothServiceUUID = number | string;
+
+interface BluetoothDevice {
+	id: string;
+	name?: string;
+	gatt?: BluetoothRemoteGATTServer;
+}
+
+interface BluetoothRemoteGATTServer {
+	connected: boolean;
+	connect(): Promise<BluetoothRemoteGATTServer>;
+	disconnect(): void;
+}
+
+interface PrinterDevice {
+	id: string;
+	name: string;
+	bluetoothDevice?: BluetoothDevice;
+	status: 'online' | 'offline' | 'unknown';
+	type: 'bluetooth';
+}
+
 /**
  * Scans for available Bluetooth thermal printers
  * Shows original device names or "Unknown" if not available
@@ -44,7 +82,7 @@ export async function scanForPrinters(): Promise<PrinterDevice[]> {
 
 	try {
 		// Request Bluetooth device with comprehensive printer service UUIDs
-		const device = await navigator.bluetooth?.requestDevice({
+		const device = await (navigator.bluetooth as Bluetooth)?.requestDevice({
 			acceptAllDevices: true,
 			// Request all possible services to maximize chances of connecting
 			optionalServices: [

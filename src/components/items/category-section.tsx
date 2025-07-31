@@ -2,7 +2,7 @@
 
 import { useRef, memo, useCallback } from 'react';
 import { useDrop } from 'react-dnd';
-import { useRefreshItems } from '@/lib/hooks/useRefreshItems';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ function CategorySectionComponent({
 	onItemHold,
 	onItemSelect
 }: CategorySectionProps) {
-	const refreshItems = useRefreshItems();
+	const router = useRouter();
 	const ref = useRef<HTMLDivElement>(null);
 
 	const handleDrop = useCallback(
@@ -71,7 +71,7 @@ function CategorySectionComponent({
 					}));
 
 					// Refresh items data
-					refreshItems();
+					router.refresh();
 
 					const count = itemsToMove.length;
 					toast.success(`${count} item${count > 1 ? 's' : ''} moved successfully!`);
@@ -81,7 +81,7 @@ function CategorySectionComponent({
 				}
 			}
 		},
-		[category.id, refreshItems, selectedItems, selectionCategory]
+		[category.id, router, selectedItems, selectionCategory]
 	);
 
 	const [{ isOver }, drop] = useDrop({

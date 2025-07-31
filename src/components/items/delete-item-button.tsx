@@ -11,7 +11,8 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '@/components/ui/dialog';
-import { useDeleteItem } from '@/lib/hooks/useItems';
+import { useRouter } from 'next/navigation';
+import api from '@/lib/services/api';
 import { toast } from 'react-toastify';
 
 interface DeleteItemButtonProps {
@@ -21,17 +22,22 @@ interface DeleteItemButtonProps {
 }
 
 export function DeleteItemButton({ itemId, itemName, children }: DeleteItemButtonProps) {
-	const deleteItemMutation = useDeleteItem();
+	const router = useRouter();
 	const [open, setOpen] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const handleDelete = async () => {
+		setIsDeleting(true);
 		try {
-			await deleteItemMutation.mutateAsync(itemId);
+			await api.deleteItem(itemId);
 			toast.success('Item deleted successfully!');
+			router.refresh();
 			setOpen(false);
 		} catch (error) {
 			console.error('Error deleting item:', error);
 			toast.error(error instanceof Error ? error.message : 'Failed to delete item. Please try again.');
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -49,11 +55,11 @@ export function DeleteItemButton({ itemId, itemName, children }: DeleteItemButto
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
-					<Button variant='outline' onClick={() => setOpen(false)} disabled={deleteItemMutation.isPending}>
+					<Button variant='outline' onClick={() => setOpen(false)} disabled={isDeleting}>
 						Cancel
 					</Button>
-					<Button variant='destructive' onClick={handleDelete} disabled={deleteItemMutation.isPending}>
-						{deleteItemMutation.isPending ? 'Deleting...' : 'Delete'}
+					<Button variant='destructive' onClick={handleDelete} disabled={isDeleting}>
+						{isDeleting ? 'Deleting...' : 'Delete'}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

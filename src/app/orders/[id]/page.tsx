@@ -7,7 +7,7 @@ import { OrderDetailActions } from '@/components/orders/order-detail-actions';
 import { OrderDetailNavigation } from '@/components/orders/order-detail-navigation';
 
 interface PageProps {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }
 
 export async function generateStaticParams() {
@@ -24,7 +24,8 @@ export async function generateStaticParams() {
 }
 
 export default async function OrderDetailsPage({ params }: PageProps) {
-	const orderId = params.id;
+	const resolvedParams = await params;
+	const orderId = resolvedParams.id;
 
 	const order = await getOrderById(orderId);
 

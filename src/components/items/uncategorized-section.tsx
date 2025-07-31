@@ -2,7 +2,7 @@
 
 import { useRef, memo, useCallback, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
-import { useRefreshItems } from '@/lib/hooks/useRefreshItems';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/services/api';
 import { Badge } from '@/components/ui/badge';
 import { DraggableItem } from './draggable-item';
@@ -41,7 +41,7 @@ function UncategorizedSectionComponent({
 	onItemHold,
 	onItemSelect
 }: UncategorizedSectionProps) {
-	const refreshItems = useRefreshItems();
+	const router = useRouter();
 	const ref = useRef<HTMLDivElement>(null);
 
 	const handleDrop = useCallback(
@@ -69,7 +69,7 @@ function UncategorizedSectionComponent({
 					}));
 
 					// Refresh items data
-					refreshItems();
+					router.refresh();
 
 					const count = itemsToMove.length;
 					toast.success(`${count} item${count > 1 ? 's' : ''} removed from category!`);
@@ -84,7 +84,7 @@ function UncategorizedSectionComponent({
 				}
 			}
 		},
-		[refreshItems, selectedItems, selectionCategory]
+		[router, selectedItems, selectionCategory]
 	);
 
 	const [{ isOver }, drop] = useDrop({

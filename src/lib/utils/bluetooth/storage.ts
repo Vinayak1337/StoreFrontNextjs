@@ -4,6 +4,32 @@
 
 import { isBluetoothSupported } from './support';
 
+interface NavigatorWithBluetooth extends Navigator {
+	bluetooth?: {
+		getDevices?(): Promise<BluetoothDevice[]>;
+	};
+}
+
+interface BluetoothDevice {
+	id: string;
+	name?: string;
+	gatt?: BluetoothRemoteGATTServer;
+}
+
+interface BluetoothRemoteGATTServer {
+	connected: boolean;
+	connect(): Promise<BluetoothRemoteGATTServer>;
+	disconnect(): void;
+}
+
+interface PrinterDevice {
+	id: string;
+	name: string;
+	bluetoothDevice?: BluetoothDevice;
+	status: 'online' | 'offline' | 'unknown';
+	type: 'bluetooth';
+}
+
 // Global state for connected printer
 let globalConnectedPrinter: PrinterDevice | null = null;
 
@@ -100,13 +126,13 @@ export async function autoConnectToSavedPrinter(): Promise<boolean> {
 		console.log('Loading saved printer for direct use:', savedPrinterName);
 
 		// Use the browser's getDevices to find previously paired devices
-		if (!isBluetoothSupported() || !navigator.bluetooth) {
+		if (!isBluetoothSupported() || !(navigator as NavigatorWithBluetooth).bluetooth) {
 			return false;
 		}
 
 		try {
 			// Get available paired devices
-			const availableDevices = await navigator.bluetooth.getDevices?.();
+			const availableDevices = await (navigator as NavigatorWithBluetooth).bluetooth?.getDevices?.();
 			if (!availableDevices) {
 				return false;
 			}

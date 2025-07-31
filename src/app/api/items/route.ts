@@ -18,64 +18,6 @@ function parseCookies(cookieHeader: string) {
 	return cookies;
 }
 
-export async function getItems(
-	page: number,
-	limit: number
-): Promise<{
-	items: Item[];
-	pagination?: Pagination;
-}> {
-	const skip = (page - 1) * limit;
-
-	// if false, return all items without pagination
-	const shouldPaginate = page > 0 && limit > 0;
-
-	const [items, totalCount] = await prisma.$transaction([
-		prisma.item.findMany({
-			skip: shouldPaginate ? skip : undefined,
-			take: shouldPaginate ? limit : undefined,
-			orderBy: {
-				createdAt: 'desc'
-			},
-			include: {
-				categories: {
-					select: {
-						categoryId: true,
-						createdAt: true,
-						id: true,
-						itemId: true,
-						category: {
-							select: {
-								id: true,
-								name: true,
-								color: true,
-								createdAt: true,
-								order: true
-							}
-						}
-					}
-				}
-			}
-		}),
-		prisma.item.count()
-	]);
-
-	return {
-		items: items.map(item => ({
-			...item,
-			price: item.price.toNumber(),
-			weight: item.weight?.toNumber()
-		})),
-		pagination: shouldPaginate
-			? {
-					page,
-					limit,
-					total: totalCount
-			  }
-			: undefined
-	};
-}
-
 // GET /api/items - Get all items with optional pagination
 export async function GET(request: NextRequest) {
 	try {
@@ -83,9 +25,54 @@ export async function GET(request: NextRequest) {
 		const page = parseInt(searchParams.get('page') || '1');
 		const limit = parseInt(searchParams.get('limit') || '100');
 
-		const { items, pagination } = await getItems(page, limit);
+		const skip = (page - 1) * limit;
+		const shouldPaginate = page > 0 && limit > 0;
 
-		return NextResponse.json({ items, pagination });
+		const [items, totalCount] = await prisma.$transaction([
+			prisma.item.findMany({
+				skip: shouldPaginate ? skip : undefined,
+				take: shouldPaginate ? limit : undefined,
+				orderBy: {
+					createdAt: 'desc'
+				},
+				include: {
+					categories: {
+						select: {
+							categoryId: true,
+							createdAt: true,
+							id: true,
+							itemId: true,
+							category: {
+								select: {
+									id: true,
+									name: true,
+									color: true,
+									createdAt: true,
+									order: true
+								}
+							}
+						}
+					}
+				}
+			}),
+			prisma.item.count()
+		]);
+
+		const processedItems = items.map(item => ({
+			...item,
+			price: item.price.toNumber(),
+			weight: item.weight?.toNumber()
+		}));
+
+		const paginationResult = shouldPaginate
+			? {
+					page,
+					limit,
+					total: totalCount
+			  }
+			: undefined;
+
+		return NextResponse.json({ items: processedItems, pagination: paginationResult });
 	} catch (error) {
 		console.error('Error fetching items:', error);
 		return NextResponse.json(
@@ -95,57 +82,6 @@ export async function GET(request: NextRequest) {
 	}
 }
 
-export async function getCategorizedItems(): Promise<Category[]> {
-	const categories = await prisma.category.findMany({
-		select: {
-			id: true,
-			name: true,
-			color: true,
-			createdAt: true,
-			order: true,
-			items: {
-				select: {
-					id: true,
-					itemId: true,
-					categoryId: true,
-					createdAt: true,
-					item: {
-						select: {
-							id: true,
-							name: true,
-							price: true,
-							quantity: true,
-							inStock: true,
-							weight: true,
-							weightUnit: true,
-							createdAt: true
-						}
-					}
-				},
-				orderBy: {
-					item: {
-						createdAt: 'desc'
-					}
-				}
-			}
-		},
-		orderBy: {
-			name: 'asc'
-		}
-	});
-
-	return categories.map(category => ({
-		...category,
-		items: category.items.map(itemCategory => ({
-			...itemCategory,
-			item: {
-				...itemCategory.item,
-				price: itemCategory.item.price.toNumber(),
-				weight: itemCategory.item.weight?.toNumber()
-			}
-		}))
-	}));
-}
 
 // POST /api/items - Create a new item
 export async function POST(request: NextRequest) {

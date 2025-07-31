@@ -1,4 +1,4 @@
-import { Settings, Bill } from '@/types';
+// Global types available without import
 
 /**
  * Format a bill for printing with store settings

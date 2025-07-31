@@ -8,36 +8,30 @@ interface OrderItemInput {
 	price: number;
 }
 
-export async function getOrders() {
-	const orders = await prisma.order.findMany({
-		take: 100, // Limit to 100 most recent orders
-		include: {
-			orderItems: {
-				include: {
-					item: {
-						select: { id: true, name: true, price: true } // Only necessary fields
-					}
-				},
-				orderBy: {
-					id: 'desc'
-				}
-			},
-			bill: {
-				select: { id: true, totalAmount: true, isPaid: true } // Only necessary fields
-			}
-		},
-		orderBy: {
-			createdAt: 'desc'
-		}
-	});
-
-	return orders;
-}
-
 // GET /api/orders - Get all orders
 export async function GET() {
 	try {
-		const orders = await getOrders();
+		const orders = await prisma.order.findMany({
+			take: 100, // Limit to 100 most recent orders
+			include: {
+				orderItems: {
+					include: {
+						item: {
+							select: { id: true, name: true, price: true } // Only necessary fields
+						}
+					},
+					orderBy: {
+						id: 'desc'
+					}
+				},
+				bill: {
+					select: { id: true, totalAmount: true, isPaid: true } // Only necessary fields
+				}
+			},
+			orderBy: {
+				createdAt: 'desc'
+			}
+		});
 		return NextResponse.json(orders);
 	} catch {
 		return NextResponse.json(
@@ -104,6 +98,7 @@ export async function POST(req: NextRequest) {
 				data: {
 					customerName: data.customerName,
 					customMessage: data.customMessage,
+					status: 'PENDING',
 					orderItems: {
 						create: (data.items as OrderItemInput[]).map(item => ({
 							quantity: item.quantity,

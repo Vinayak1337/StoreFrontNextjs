@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useRefreshItems } from '@/lib/hooks/useRefreshItems';
 import api from '@/lib/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,7 +43,7 @@ const CATEGORY_COLORS = [
 ];
 
 function AddCategoryDialog({ children }: { children: React.ReactNode }) {
-	const refreshItems = useRefreshItems();
+	const router = useRouter();
 
 	const [open, setOpen] = useState(false);
 	const [name, setName] = useState('');
@@ -61,7 +60,7 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 				name: name.trim(),
 				color
 			});
-			refreshItems();
+			router.refresh();
 			setName('');
 			setColor(CATEGORY_COLORS[0]);
 			setOpen(false);
