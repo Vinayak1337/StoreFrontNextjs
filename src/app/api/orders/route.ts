@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { OrderStatus } from '@prisma/client';
 
 // Define the expected item structure for order creation
 interface OrderItemInput {
@@ -105,7 +104,6 @@ export async function POST(req: NextRequest) {
 				data: {
 					customerName: data.customerName,
 					customMessage: data.customMessage,
-					status: OrderStatus.COMPLETED,
 					orderItems: {
 						create: (data.items as OrderItemInput[]).map(item => ({
 							quantity: item.quantity,

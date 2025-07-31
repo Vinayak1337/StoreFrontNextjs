@@ -1,5 +1,3 @@
-
-// Category/Label model
 interface Category {
 	id: string;
 	name: string;
@@ -12,7 +10,16 @@ interface Category {
 	};
 }
 
-// ItemCategory relationship model
+interface BasicOrder {
+	id: string;
+	customerName: string;
+	customMessage: string | null;
+	createdAt: Date;
+	updatedAt: Date;
+	itemsCount: number;
+	totalAmount: number;
+}
+
 interface ItemCategory {
 	id: string;
 	itemId: string;
@@ -22,7 +29,6 @@ interface ItemCategory {
 	category?: Category;
 }
 
-// Item model
 interface Item {
 	id: string;
 	name: string;
@@ -35,7 +41,6 @@ interface Item {
 	categories?: ItemCategory[];
 }
 
-// Order item model
 interface OrderItem {
 	id: string;
 	itemId: string;
@@ -45,25 +50,16 @@ interface OrderItem {
 	item?: Item;
 }
 
-// Order status enum
-enum OrderStatus {
-	PENDING = 'PENDING',
-	COMPLETED = 'COMPLETED',
-	CANCELLED = 'CANCELLED'
-}
 
-// Order model
 interface Order {
 	id: string;
 	customerName: string;
 	orderItems: OrderItem[];
 	createdAt: Date;
-	status: OrderStatus;
 	bill?: Bill;
 	customMessage?: string;
 }
 
-// Bill model
 interface Bill {
 	id: string;
 	orderId: string;
@@ -75,7 +71,6 @@ interface Bill {
 	isPaid?: boolean;
 }
 
-// User type
 interface User {
 	id: string;
 	name: string;
@@ -85,7 +80,6 @@ interface User {
 	avatar?: string;
 }
 
-// Authentication types
 interface AuthState {
 	user: User | null;
 	token: string | null;
@@ -94,7 +88,6 @@ interface AuthState {
 	error: string | null;
 }
 
-// Analytics types
 interface DailySales {
 	date: string;
 	sales: number;
@@ -127,18 +120,12 @@ interface AnalyticsMetrics {
 		revenue: number;
 	}>;
 	paymentMethodDistribution: Record<string, number>;
-	orderStatusBreakdown: {
-		pending: number;
-		completed: number;
-		cancelled: number;
-	};
 	printStatusBreakdown: {
 		printed: number;
 		unprinted: number;
 	};
 }
 
-// State types for Redux
 interface ItemsState {
 	items: Item[];
 	categories: Category[];
@@ -175,7 +162,6 @@ interface AnalyticsState {
 	error: string | null;
 }
 
-// Settings types
 interface Settings {
 	id?: string;
 	storeName: string;
@@ -214,7 +200,6 @@ interface Pagination {
 	total: number;
 }
 
-// Bluetooth Printer types
 interface PrinterDevice {
 	id: string;
 	name: string;
@@ -232,7 +217,6 @@ interface PrinterConfig {
 	type: 'bluetooth';
 }
 
-// Web Bluetooth API type definitions
 interface RequestDeviceOptions {
 	acceptAllDevices?: boolean;
 	filters?: BluetoothLEScanFilter[];
@@ -247,7 +231,6 @@ interface BluetoothLEScanFilter {
 
 type BluetoothServiceUUID = number | string;
 
-// Enhanced Web Bluetooth API types
 declare global {
 	interface Navigator {
 		bluetooth?: {
@@ -266,14 +249,22 @@ declare global {
 		connected: boolean;
 		connect(): Promise<BluetoothRemoteGATTServer>;
 		disconnect(): void;
-		getPrimaryService(service: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService>;
-		getPrimaryServices(service?: BluetoothServiceUUID): Promise<BluetoothRemoteGATTService[]>;
+		getPrimaryService(
+			service: BluetoothServiceUUID
+		): Promise<BluetoothRemoteGATTService>;
+		getPrimaryServices(
+			service?: BluetoothServiceUUID
+		): Promise<BluetoothRemoteGATTService[]>;
 	}
 
 	interface BluetoothRemoteGATTService {
 		uuid: string;
-		getCharacteristic(characteristic: BluetoothServiceUUID): Promise<BluetoothRemoteGATTCharacteristic>;
-		getCharacteristics(characteristic?: BluetoothServiceUUID): Promise<BluetoothRemoteGATTCharacteristic[]>;
+		getCharacteristic(
+			characteristic: BluetoothServiceUUID
+		): Promise<BluetoothRemoteGATTCharacteristic>;
+		getCharacteristics(
+			characteristic?: BluetoothServiceUUID
+		): Promise<BluetoothRemoteGATTCharacteristic[]>;
 	}
 
 	interface BluetoothRemoteGATTCharacteristic {

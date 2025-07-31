@@ -173,11 +173,6 @@ export async function getAnalyticsMetrics(
 		conversionTrend,
 		topSellingItems: topItems,
 		paymentMethodDistribution,
-		orderStatusBreakdown: {
-			pending: pendingOrders,
-			completed: completedOrders,
-			cancelled: cancelledOrders
-		},
 		printStatusBreakdown: {
 			printed: printedOrders,
 			unprinted: totalOrders - printedOrders

@@ -287,14 +287,14 @@ export function printBill(bill: Bill, settings: Settings): void {
 }
 
 /**
- * Format bill content specifically for thermal printers
+ * Format order content specifically for thermal printers
  * This creates a plain text representation that can be used with ESC/POS commands
  */
 export const formatBillForThermalPrinter = (
-	bill: Bill,
+	order: Order,
 	settings: Settings
 ): string => {
-	if (!bill || !settings) return '';
+	if (!order || !settings) return '';
 
 	// ESC/POS Commands
 	const ESC = '\x1B'; // Escape character
@@ -368,8 +368,8 @@ export const formatBillForThermalPrinter = (
 
 	content += SEPARATOR + LF;
 
-	// Bill header - improved date format for India (DD-MM-YYYY)
-	const createdDate = new Date(bill.createdAt);
+	// Order header - improved date format for India (DD-MM-YYYY)
+	const createdDate = new Date(order.createdAt);
 	const formattedDate = `${String(createdDate.getDate()).padStart(
 		2,
 		'0'
@@ -384,11 +384,11 @@ export const formatBillForThermalPrinter = (
 
 	// Invoice number and date on separate lines to avoid collision
 	content += LEFT;
-	content += dataRow('Invoice# ' + bill.id.slice(0, 6), '');
+	content += dataRow('Invoice# ' + order.id.slice(0, 6), '');
 	content += dataRow('Date', formattedDate + ' ' + formattedTime);
 
 	// Customer on separate line (not cashier)
-	const cashier = bill.order?.customerName?.split(' ')[0] || 'Customer';
+	const cashier = order.customerName?.split(' ')[0] || 'Customer';
 	content += dataRow('Customer: ' + cashier, '');
 	content += LF; // Extra line before separator
 
@@ -400,8 +400,8 @@ export const formatBillForThermalPrinter = (
 	content += BOLD_OFF;
 
 	// Items with precise column alignment
-	if (bill.order?.orderItems) {
-		bill.order.orderItems.forEach(item => {
+	if (order.orderItems) {
+		order.orderItems.forEach(item => {
 			// Item name - truncating as needed
 			const itemName = item.item?.name || 'Unknown';
 
@@ -419,13 +419,18 @@ export const formatBillForThermalPrinter = (
 
 	content += SEPARATOR + LF;
 
+	// Calculate total from order items
+	const orderTotal = order.orderItems?.reduce((sum, item) => {
+		return sum + (Number(item.price) * item.quantity);
+	}, 0) || 0;
+
 	// Total with prominent formatting (no subtotal needed since taxes were removed)
 	content += BOLD_ON;
-	content += dataRow('TOTAL', money(Number(bill.totalAmount)));
+	content += dataRow('TOTAL', money(orderTotal));
 	content += BOLD_OFF;
 
-	// Payment method
-	content += `Paid by: ${bill.paymentMethod.toUpperCase() || 'CASH'}` + LF;
+	// Payment method - default to CASH since we don't have bill
+	content += `Paid by: CASH` + LF;
 
 	content += LF + SEPARATOR + LF;
 

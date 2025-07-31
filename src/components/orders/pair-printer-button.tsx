@@ -1,17 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, Bluetooth } from 'lucide-react';
+import { Loader2, Bluetooth, BluetoothConnected } from 'lucide-react';
 import {
 	scanForPrinters,
 	isBluetoothSupported,
-	savePrinterForDirectUse
+	savePrinterForDirectUse,
+	autoConnectToSavedPrinter,
+	getGlobalConnectedPrinter
 } from '@/lib/utils/printer-utils';
 
 export function PairPrinterButton() {
 	const [isPairingPrinter, setIsPairingPrinter] = useState(false);
 	const [printerSaved, setPrinterSaved] = useState(false);
+	const [isConnectedPrinter, setIsConnectedPrinter] = useState(false);
+	const [connectedPrinterName, setConnectedPrinterName] = useState<string | null>(null);
+	const [isAutoConnecting, setIsAutoConnecting] = useState(true);
+
+	useEffect(() => {
+		const initPrinter = async () => {
+			try {
+				const success = await autoConnectToSavedPrinter();
+				if (success) {
+					const connectedPrinter = getGlobalConnectedPrinter();
+					if (connectedPrinter) {
+						setIsConnectedPrinter(true);
+						setConnectedPrinterName(connectedPrinter.name);
+						console.log('Auto-connected to saved printer:', connectedPrinter.name);
+					}
+				}
+			} catch (error) {
+				console.error('Failed to auto-connect to saved printer:', error);
+			} finally {
+				setIsAutoConnecting(false);
+			}
+		};
+
+		initPrinter();
+	}, []);
 
 	const handlePairPrinter = async () => {
 		try {
@@ -35,6 +62,8 @@ export function PairPrinterButton() {
 			const printer = printers[0];
 			savePrinterForDirectUse(printer);
 			setPrinterSaved(true);
+			setIsConnectedPrinter(true);
+			setConnectedPrinterName(printer.name);
 
 			setTimeout(() => {
 				setPrinterSaved(false);
@@ -51,24 +80,76 @@ export function PairPrinterButton() {
 		}
 	};
 
+	const getButtonState = () => {
+		if (isAutoConnecting) {
+			return {
+				variant: 'outline' as const,
+				icon: <Loader2 className='h-4 w-4 animate-spin' />,
+				text: 'Connecting...',
+				shortText: 'Connecting...',
+				className: '',
+				disabled: true
+			};
+		}
+
+		if (isPairingPrinter) {
+			return {
+				variant: 'outline' as const,
+				icon: <Loader2 className='h-4 w-4 animate-spin' />,
+				text: 'Pairing...',
+				shortText: 'Pairing...',
+				className: '',
+				disabled: true
+			};
+		}
+
+		if (printerSaved) {
+			return {
+				variant: 'default' as const,
+				icon: <BluetoothConnected className='h-4 w-4' />,
+				text: 'Printer Saved',
+				shortText: 'Saved',
+				className: 'bg-green-600 hover:bg-green-700 text-white',
+				disabled: false
+			};
+		}
+
+		if (isConnectedPrinter && connectedPrinterName) {
+			return {
+				variant: 'default' as const,
+				icon: <BluetoothConnected className='h-4 w-4' />,
+				text: connectedPrinterName,
+				shortText: 'Connected',
+				className: 'bg-blue-600 hover:bg-blue-700 text-white',
+				disabled: false
+			};
+		}
+
+		return {
+			variant: 'outline' as const,
+			icon: <Bluetooth className='h-4 w-4' />,
+			text: 'Pair Printer',
+			shortText: 'Pair',
+			className: '',
+			disabled: false
+		};
+	};
+
+	const buttonState = getButtonState();
+
 	return (
 		<Button
-			variant={printerSaved ? 'default' : 'outline'}
+			variant={buttonState.variant}
 			onClick={handlePairPrinter}
-			disabled={isPairingPrinter}
-			className={`flex items-center gap-2 text-sm md:text-base ${
-				printerSaved ? 'bg-green-600 hover:bg-green-700 text-white' : ''
-			}`}>
-			{isPairingPrinter ? (
-				<Loader2 className='h-4 w-4 animate-spin' />
-			) : (
-				<Bluetooth className='h-4 w-4' />
-			)}
+			disabled={buttonState.disabled}
+			className={`flex items-center gap-2 text-sm md:text-base ${buttonState.className}`}
+			title={isConnectedPrinter && connectedPrinterName ? `Connected to: ${connectedPrinterName}` : undefined}>
+			{buttonState.icon}
 			<span className='hidden sm:inline'>
-				{printerSaved ? 'Printer Saved' : 'Pair Printer'}
+				{buttonState.text}
 			</span>
 			<span className='sm:hidden'>
-				{printerSaved ? 'Saved' : 'Pair'}
+				{buttonState.shortText}
 			</span>
 		</Button>
 	);

@@ -2,7 +2,6 @@
 
 import { cache } from 'react';
 import prisma from '@/lib/prisma';
-import { OrderStatus } from '@prisma/client';
 
 interface OrderItemInput {
 	itemId: string;
@@ -11,47 +10,26 @@ interface OrderItemInput {
 }
 
 export const getOrders = cache(async () => {
-	const orders = await prisma.order.findMany({
-		take: 100,
-		include: {
-			orderItems: {
-				include: {
-					item: {
-						select: { id: true, name: true, price: true }
-					}
-				},
-				orderBy: {
-					id: 'desc'
-				}
-			},
-			bill: {
-				select: { id: true, totalAmount: true, isPaid: true }
-			}
-		},
-		orderBy: {
-			createdAt: 'desc'
-		}
-	});
+	const orders = await prisma.$queryRaw<Array<BasicOrder>>`
+		SELECT 
+			o.id,
+			o.customer_name as "customerName",
+			o.custom_message as "customMessage",
+			o.created_at as "createdAt",
+			o.created_at as "updatedAt",
+			COALESCE(COUNT(oi.id), 0) as "itemsCount",
+			COALESCE(SUM(oi.price * oi.quantity), 0) as "totalAmount"
+		FROM orders o
+		LEFT JOIN order_items oi ON o.id = oi.order_id
+		GROUP BY o.id, o.customer_name, o.custom_message, o.created_at
+		ORDER BY o.created_at DESC
+	`;
 
 	return orders.map(order => ({
 		...order,
-		orderItems: order.orderItems.map(orderItem => ({
-			...orderItem,
-			price: Number(orderItem.price),
-			item: orderItem.item
-				? {
-						...orderItem.item,
-						price: Number(orderItem.item.price)
-				  }
-				: null
-		})),
-		bill: order.bill
-			? {
-					...order.bill,
-					totalAmount: Number(order.bill.totalAmount)
-			  }
-			: null
-	})) as Order[];
+		itemsCount: Number(order.itemsCount),
+		totalAmount: Number(order.totalAmount)
+	}));
 });
 
 export const getOrderById = cache(async (id: string) => {
@@ -71,7 +49,6 @@ export const getOrderById = cache(async (id: string) => {
 
 	if (!order) return null;
 
-	// Convert Decimal objects to numbers for client components
 	return {
 		...order,
 		orderItems: order.orderItems.map(orderItem => ({
@@ -87,10 +64,11 @@ export const getOrderById = cache(async (id: string) => {
 		bill: order.bill
 			? {
 					...order.bill,
-					totalAmount: Number(order.bill.totalAmount)
+					totalAmount: Number(order.bill.totalAmount),
+					taxes: Number(order.bill.taxes)
 			  }
 			: null
-	};
+	} as unknown as Order;
 });
 
 export const createOrder = async (data: {
@@ -139,7 +117,7 @@ export const createOrder = async (data: {
 				data: {
 					customerName: data.customerName,
 					customMessage: data.customMessage,
-					status: OrderStatus.COMPLETED,
+					status: 'COMPLETED',
 					orderItems: {
 						create: data.items.map(item => ({
 							quantity: item.quantity,
@@ -235,7 +213,8 @@ export const updateOrder = async (
 		bill: updatedOrder.bill
 			? {
 					...updatedOrder.bill,
-					totalAmount: Number(updatedOrder.bill.totalAmount)
+					totalAmount: Number(updatedOrder.bill.totalAmount),
+					taxes: Number(updatedOrder.bill.taxes)
 			  }
 			: null
 	};
@@ -294,12 +273,14 @@ export const getOrdersStats = cache(
 				}),
 				prisma.order.count({
 					where: {
-						status: OrderStatus.PENDING
+						bill: null
 					}
 				}),
 				prisma.order.count({
 					where: {
-						status: OrderStatus.COMPLETED
+						bill: {
+							isNot: null
+						}
 					}
 				})
 			]);
