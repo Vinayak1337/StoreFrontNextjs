@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// Define the expected item structure for order creation
 interface OrderItemInput {
 	itemId: string;
 	quantity: number;
 	price: number;
 }
 
-// GET /api/orders - Get all orders
 export async function GET() {
 	try {
 		const orders = await prisma.order.findMany({
-			take: 100, // Limit to 100 most recent orders
+			take: 100,
 			include: {
 				orderItems: {
 					include: {
@@ -23,9 +21,6 @@ export async function GET() {
 					orderBy: {
 						id: 'desc'
 					}
-				},
-				bill: {
-					select: { id: true, totalAmount: true, isPaid: true } // Only necessary fields
 				}
 			},
 			orderBy: {
@@ -41,12 +36,10 @@ export async function GET() {
 	}
 }
 
-// POST /api/orders - Create a new order
 export async function POST(req: NextRequest) {
 	try {
 		const data = await req.json();
-		
-		// Validate required fields
+
 		if (
 			!data.customerName ||
 			!Array.isArray(data.items) ||
@@ -58,22 +51,18 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		// Extract item IDs for batch validation
 		const itemIds = (data.items as OrderItemInput[]).map(item => item.itemId);
-		
-		// Validate all items OUTSIDE the transaction first
+
 		const foundItems = await prisma.item.findMany({
-			where: { 
+			where: {
 				id: { in: itemIds },
-				inStock: true // Only get items that are in stock
+				inStock: true 
 			},
-			select: { id: true, name: true, inStock: true } // Only select necessary fields
+			select: { id: true, name: true, inStock: true }
 		});
 
-		// Quick validation using Set for O(1) lookup
 		const foundItemIds = new Set(foundItems.map(item => item.id));
-		
-		// Validate all items exist and are in stock
+
 		for (const item of data.items as OrderItemInput[]) {
 			if (!foundItemIds.has(item.itemId)) {
 				return NextResponse.json(
@@ -82,8 +71,12 @@ export async function POST(req: NextRequest) {
 				);
 			}
 
-			// Basic validation
-			if (!item.quantity || item.quantity <= 0 || !item.price || item.price <= 0) {
+			if (
+				!item.quantity ||
+				item.quantity <= 0 ||
+				!item.price ||
+				item.price <= 0
+			) {
 				return NextResponse.json(
 					{ error: 'Invalid item quantity or price' },
 					{ status: 400 }
@@ -91,52 +84,52 @@ export async function POST(req: NextRequest) {
 			}
 		}
 
-		// Optimized transaction with shorter timeout for Vercel
-		const result = await prisma.$transaction(async tx => {
-			// Create the order with all order items in one operation
-			return await tx.order.create({
-				data: {
-					customerName: data.customerName,
-					customMessage: data.customMessage,
-					status: 'PENDING',
-					orderItems: {
-						create: (data.items as OrderItemInput[]).map(item => ({
-							quantity: item.quantity,
-							price: item.price,
-							itemId: item.itemId // Direct foreign key instead of connect
-						}))
-					}
-				},
-				include: {
-					orderItems: {
-						include: {
-							item: {
-								select: { id: true, name: true, price: true } // Only necessary fields
+		const result = await prisma.$transaction(
+			async tx => {
+				return await tx.order.create({
+					data: {
+						customerName: data.customerName,
+						customMessage: data.customMessage,
+						status: 'PENDING',
+						orderItems: {
+							create: (data.items as OrderItemInput[]).map(item => ({
+								quantity: item.quantity,
+								price: item.price,
+								itemId: item.itemId 
+							}))
+						}
+					},
+					include: {
+						orderItems: {
+							include: {
+								item: {
+									select: { id: true, name: true, price: true } 
+								}
 							}
 						}
 					}
-				}
-			});
-		}, {
-			timeout: 5000, // Reduced timeout for Vercel (5 seconds)
-			maxWait: 2000,  // Reduced max wait time
-		});
+				});
+			},
+			{
+				timeout: 5000,
+				maxWait: 2000
+			}
+		);
 
 		return NextResponse.json(result, { status: 201 });
 	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+		const errorMessage =
+			error instanceof Error ? error.message : 'Failed to create order';
 		return NextResponse.json({ error: errorMessage }, { status: 500 });
 	}
 }
 
-// PUT /api/orders/:id - Update an order
 export async function PUT(req: NextRequest) {
 	try {
 		const url = new URL(req.url);
 		const id = url.pathname.split('/').pop() as string;
 		const data = await req.json();
 
-		// Find order
 		const order = await prisma.order.findUnique({
 			where: { id },
 			include: {
@@ -152,7 +145,6 @@ export async function PUT(req: NextRequest) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Update order with allowed fields
 		const updatedOrder = await prisma.order.update({
 			where: { id },
 			data: {
@@ -164,8 +156,7 @@ export async function PUT(req: NextRequest) {
 					include: {
 						item: true
 					}
-				},
-				bill: true
+				}
 			}
 		});
 
@@ -177,39 +168,24 @@ export async function PUT(req: NextRequest) {
 	}
 }
 
-// DELETE /api/orders/:id - Delete an order
 export async function DELETE(req: NextRequest) {
 	try {
 		const url = new URL(req.url);
 		const id = url.pathname.split('/').pop() as string;
 
-		// Find order to check if it exists
 		const order = await prisma.order.findUnique({
-			where: { id },
-			include: {
-				bill: true
-			}
+			where: { id }
 		});
 
 		if (!order) {
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Use transaction to delete related records properly
 		await prisma.$transaction(async tx => {
-			// Delete associated bill if it exists
-			if (order.bill) {
-				await tx.bill.delete({
-					where: { id: order.bill.id }
-				});
-			}
-
-			// Delete order items
 			await tx.orderItem.deleteMany({
 				where: { orderId: id }
 			});
 
-			// Delete the order
 			await tx.order.delete({
 				where: { id }
 			});

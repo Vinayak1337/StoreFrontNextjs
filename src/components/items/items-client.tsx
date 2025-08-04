@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider } from 'react-dnd-multi-backend';
+import { HTML5toTouch } from 'rdndmb-html5-to-touch';
 import api from '@/lib/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -174,10 +174,9 @@ export default function ItemsClient({
 
 		let scrollInterval: NodeJS.Timeout;
 
-		const handleMouseMove = (e: MouseEvent) => {
+		const handleScroll = (clientY: number) => {
 			const scrollSpeed = 15;
 			const viewportHeight = window.innerHeight;
-			const mouseY = e.clientY;
 			const topThreshold = viewportHeight * 0.3;
 			const bottomThreshold = viewportHeight * 0.7;
 
@@ -185,38 +184,30 @@ export default function ItemsClient({
 				clearInterval(scrollInterval);
 			}
 
-			if (mouseY < topThreshold) {
+			if (clientY < topThreshold) {
 				scrollInterval = setInterval(() => {
 					window.scrollBy(0, -scrollSpeed);
 				}, 16);
-			} else if (mouseY > bottomThreshold) {
+			} else if (clientY > bottomThreshold) {
 				scrollInterval = setInterval(() => {
 					window.scrollBy(0, scrollSpeed);
 				}, 16);
 			}
 		};
 
+		const handleMouseMove = (e: MouseEvent) => {
+			handleScroll(e.clientY);
+		};
+
+		const handleTouchMove = (e: TouchEvent) => {
+			if (e.touches.length > 0) {
+				handleScroll(e.touches[0].clientY);
+			}
+		};
+
 		const handleDragOver = (e: DragEvent) => {
 			e.preventDefault();
-			const scrollSpeed = 15;
-			const viewportHeight = window.innerHeight;
-			const mouseY = e.clientY;
-			const topThreshold = viewportHeight * 0.3;
-			const bottomThreshold = viewportHeight * 0.7;
-
-			if (scrollInterval) {
-				clearInterval(scrollInterval);
-			}
-
-			if (mouseY < topThreshold) {
-				scrollInterval = setInterval(() => {
-					window.scrollBy(0, -scrollSpeed);
-				}, 16);
-			} else if (mouseY > bottomThreshold) {
-				scrollInterval = setInterval(() => {
-					window.scrollBy(0, scrollSpeed);
-				}, 16);
-			}
+			handleScroll(e.clientY);
 		};
 
 		const handleDragEnd = () => {
@@ -226,15 +217,19 @@ export default function ItemsClient({
 		};
 
 		document.addEventListener('mousemove', handleMouseMove);
+		document.addEventListener('touchmove', handleTouchMove, { passive: false });
 		document.addEventListener('dragover', handleDragOver);
 		document.addEventListener('dragend', handleDragEnd);
 		document.addEventListener('mouseup', handleDragEnd);
+		document.addEventListener('touchend', handleDragEnd);
 
 		return () => {
 			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('touchmove', handleTouchMove);
 			document.removeEventListener('dragover', handleDragOver);
 			document.removeEventListener('dragend', handleDragEnd);
 			document.removeEventListener('mouseup', handleDragEnd);
+			document.removeEventListener('touchend', handleDragEnd);
 			if (scrollInterval) {
 				clearInterval(scrollInterval);
 			}
@@ -351,7 +346,7 @@ export default function ItemsClient({
 	);
 
 	return (
-		<DndProvider backend={HTML5Backend}>
+		<DndProvider options={HTML5toTouch}>
 			<div className='space-y-4 lg:space-y-6 pb-4 lg:pb-6'>
 				{/* Header */}
 				<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4'>

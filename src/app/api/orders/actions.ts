@@ -42,8 +42,7 @@ export const getOrderById = cache(async (id: string) => {
 						select: { id: true, name: true, price: true }
 					}
 				}
-			},
-			bill: true
+			}
 		}
 	});
 
@@ -60,14 +59,7 @@ export const getOrderById = cache(async (id: string) => {
 						price: Number(orderItem.item.price)
 				  }
 				: null
-		})),
-		bill: order.bill
-			? {
-					...order.bill,
-					totalAmount: Number(order.bill.totalAmount),
-					taxes: Number(order.bill.taxes)
-			  }
-			: null
+		}))
 	} as unknown as Order;
 });
 
@@ -192,8 +184,7 @@ export const updateOrder = async (
 				include: {
 					item: true
 				}
-			},
-			bill: true
+			}
 		}
 	});
 
@@ -209,23 +200,13 @@ export const updateOrder = async (
 						price: Number(orderItem.item.price)
 				  }
 				: null
-		})),
-		bill: updatedOrder.bill
-			? {
-					...updatedOrder.bill,
-					totalAmount: Number(updatedOrder.bill.totalAmount),
-					taxes: Number(updatedOrder.bill.taxes)
-			  }
-			: null
+		}))
 	};
 };
 
 export const deleteOrder = async (id: string) => {
 	const order = await prisma.order.findUnique({
-		where: { id },
-		include: {
-			bill: true
-		}
+		where: { id }
 	});
 
 	if (!order) {
@@ -233,12 +214,6 @@ export const deleteOrder = async (id: string) => {
 	}
 
 	await prisma.$transaction(async tx => {
-		if (order.bill) {
-			await tx.bill.delete({
-				where: { id: order.bill.id }
-			});
-		}
-
 		await tx.orderItem.deleteMany({
 			where: { orderId: id }
 		});
@@ -273,14 +248,12 @@ export const getOrdersStats = cache(
 				}),
 				prisma.order.count({
 					where: {
-						bill: null
+						status: 'PENDING'
 					}
 				}),
 				prisma.order.count({
 					where: {
-						bill: {
-							isNot: null
-						}
+						status: 'COMPLETED'
 					}
 				})
 			]);

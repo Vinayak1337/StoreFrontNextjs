@@ -151,7 +151,6 @@ function CategorySectionComponent({
 									selectionMode={selectionMode}
 									isSelected={selectedItems.has(item.id)}
 									showSelection={selectionMode && selectionCategory === category.id}
-									selectedItems={selectedItems}
 									onItemHold={onItemHold}
 									onItemSelect={onItemSelect}
 								/>

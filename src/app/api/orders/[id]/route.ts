@@ -71,8 +71,7 @@ export async function PUT(
 					include: {
 						item: true
 					}
-				},
-				bill: true
+				}
 			}
 		});
 
@@ -96,8 +95,7 @@ export async function DELETE(
 		const order = await prisma.order.findUnique({
 			where: { id },
 			include: {
-				orderItems: true,
-				bill: true
+				orderItems: true
 			}
 		});
 
@@ -107,16 +105,8 @@ export async function DELETE(
 
 		// Start a transaction to delete related data
 		await prisma.$transaction(async tx => {
-			// Delete associated order items
 			if (order.orderItems.length > 0) {
 				await tx.orderItem.deleteMany({
-					where: { orderId: id }
-				});
-			}
-
-			// Delete associated bill if exists
-			if (order.bill) {
-				await tx.bill.delete({
 					where: { orderId: id }
 				});
 			}
