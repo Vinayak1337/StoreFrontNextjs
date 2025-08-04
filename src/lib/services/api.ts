@@ -152,36 +152,6 @@ export const ordersAPI = {
 	}
 };
 
-export const billsAPI = {
-	getAllBills: () => fetchAPI<Bill[]>('/bills'),
-
-	getBillById: (id: string) => fetchAPI<Bill>(`/bills/${id}`),
-
-	createBill: (bill: Partial<Bill>) =>
-		fetchAPI<Bill>('/bills', {
-			method: 'POST',
-			body: JSON.stringify(bill)
-		}),
-
-	updateBill: (id: string, data: Partial<Bill>) =>
-		fetchAPI<Bill>(`/bills/${id}`, {
-			method: 'PUT',
-			body: JSON.stringify(data)
-		}),
-
-	deleteBill: async (id: string) => {
-		const response = await fetchWithCsrf(`/api/bills/${id}`, {
-			method: 'DELETE'
-		});
-
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.error || 'Failed to delete bill');
-		}
-
-		return id;
-	}
-};
 
 export const categoriesAPI = {
 	getAllCategories: () => fetchAPI<Category[]>('/categories'),
@@ -218,7 +188,6 @@ const api = {
 	...userAPI,
 	...itemsAPI,
 	...ordersAPI,
-	...billsAPI,
 	...categoriesAPI
 };
 

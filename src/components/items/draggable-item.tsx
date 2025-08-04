@@ -59,30 +59,61 @@ function DraggableItemComponent({
 		[item.id, categoryId, onDragStart, onDragEnd]
 	);
 
-	// Connect drag to the entire card (like working version)
 	drag(ref);
 
-	// Handle hold functionality
-	const handleMouseDown = () => {
-		if (selectionMode) return;
+	const startHold = () => {
+		if (selectionMode) return; // Don't start hold timer in selection mode
 		setIsHolding(true);
 		holdTimeoutRef.current = setTimeout(() => {
 			onItemHold?.({ id: item.id, categoryId });
 			setIsHolding(false);
-		}, 800); // 800ms hold
+		}, 800);
 	};
 
-	const handleMouseUp = () => {
+	const endHold = () => {
 		setIsHolding(false);
 		if (holdTimeoutRef.current) {
 			clearTimeout(holdTimeoutRef.current);
 		}
 	};
 
+	const handleMouseDown = () => {
+		// In selection mode, don't start the hold timer
+		if (!selectionMode) {
+			startHold();
+		}
+	};
+
+	const handleMouseUp = () => {
+		if (!selectionMode) {
+			endHold();
+		}
+	};
+
 	const handleMouseLeave = () => {
-		setIsHolding(false);
-		if (holdTimeoutRef.current) {
-			clearTimeout(holdTimeoutRef.current);
+		if (!selectionMode) {
+			endHold();
+		}
+	};
+
+	const handleTouchStart = (e: React.TouchEvent) => {
+		if (selectionMode) return;
+
+		e.preventDefault();
+		startHold();
+	};
+
+	const handleTouchEnd = (e: React.TouchEvent) => {
+		if (selectionMode) return;
+
+		e.preventDefault();
+		endHold();
+	};
+
+	const handleTouchCancel = (e: React.TouchEvent) => {
+		if (!selectionMode) {
+			e.preventDefault();
+			endHold();
 		}
 	};
 
@@ -98,6 +129,14 @@ function DraggableItemComponent({
 		onItemSelect?.(item.id, checked);
 	};
 
+	const handleItemClick = (e: React.MouseEvent | React.TouchEvent) => {
+		if (showSelection) {
+			e.stopPropagation();
+			e.preventDefault();
+			handleCheckboxChange(!isSelected);
+		}
+	};
+
 	const formatPrice = (price: string | number) => {
 		const numPrice = typeof price === 'string' ? parseFloat(price) : price;
 		return `₹${numPrice.toFixed(2)}`;
@@ -109,7 +148,10 @@ function DraggableItemComponent({
 			onMouseDown={handleMouseDown}
 			onMouseUp={handleMouseUp}
 			onMouseLeave={handleMouseLeave}
-			className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 relative ${
+			onTouchStart={handleTouchStart}
+			onTouchEnd={handleTouchEnd}
+			onTouchCancel={handleTouchCancel}
+			className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 relative touch-manipulation select-none ${
 				isDragging
 					? 'opacity-40 shadow-lg border-emerald-400 transform rotate-2 scale-105 cursor-grabbing'
 					: 'cursor-grab hover:cursor-grab hover:border-gray-300'
@@ -127,25 +169,21 @@ function DraggableItemComponent({
 					</div>
 				)}
 
-			<div
-				className='flex flex-col h-full'
-				onClick={
-					showSelection
-						? e => {
-								e.stopPropagation();
-								handleCheckboxChange(!isSelected);
-						  }
-						: undefined
-				}>
+			<div className='flex flex-col h-full' onClick={handleItemClick}>
 				<div className='flex-1'>
 					<div className='flex items-start justify-between mb-2'>
 						<div className='flex items-center gap-3'>
 							{/* Selection Checkbox */}
 							{showSelection && (
 								<div
-									className='cursor-pointer'
+									className='cursor-pointer touch-manipulation'
 									onClick={e => {
 										e.stopPropagation();
+										handleCheckboxChange(!isSelected);
+									}}
+									onTouchEnd={e => {
+										e.stopPropagation();
+										e.preventDefault();
 										handleCheckboxChange(!isSelected);
 									}}>
 									<div
@@ -207,11 +245,11 @@ function DraggableItemComponent({
 							)}
 						</div>
 
-						{item.weight && (
+						{item.weight ? (
 							<p className='text-xs text-gray-500'>
 								Weight: {item.weight} {item.weightUnit || 'kg'}
 							</p>
-						)}
+						) : null}
 
 						<p className='text-xs text-gray-500'>
 							Quantity: {item.quantity}{' '}

@@ -59,20 +59,18 @@ export function OrderDetailActions({ order }: OrderDetailActionsProps) {
 
 	return (
 		<div className='flex flex-col sm:items-end gap-3 sm:gap-4 w-full sm:w-auto'>
-			{!order.bill && (
-				<div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
-					<Button
-						variant='outline'
-						size='sm'
-						onClick={handleCancelOrderClick}
-						disabled={isDeleting}
-						className='flex items-center justify-center gap-2 text-xs sm:text-sm w-full sm:w-auto'>
-						<XCircle className='h-3 w-3 sm:h-4 sm:w-4' />
-						<span className='hidden xs:inline'>Cancel Order</span>
-						<span className='xs:hidden'>Cancel</span>
-					</Button>
-				</div>
-			)}
+			<div className='flex flex-col sm:flex-row gap-2 w-full sm:w-auto'>
+				<Button
+					variant='outline'
+					size='sm'
+					onClick={handleCancelOrderClick}
+					disabled={isDeleting}
+					className='flex items-center justify-center gap-2 text-xs sm:text-sm w-full sm:w-auto'>
+					<XCircle className='h-3 w-3 sm:h-4 sm:w-4' />
+					<span className='hidden xs:inline'>Cancel Order</span>
+					<span className='xs:hidden'>Cancel</span>
+				</Button>
+			</div>
 
 			<Button
 				variant='ghost'
