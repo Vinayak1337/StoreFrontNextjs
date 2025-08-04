@@ -60,147 +60,170 @@ interface CategorizedItemsResponse {
 	items: unknown[];
 }
 
-export const getItems = cache(async (
-	page: number,
-	limit: number
-): Promise<{
-	items: ProcessedItem[];
-	pagination?: Pagination;
-}> => {
-	const skip = (page - 1) * limit;
-
-	// if false, return all items without pagination
-	const shouldPaginate = page > 0 && limit > 0;
-
-	const items = await prisma.item.findMany({
-		skip: shouldPaginate ? skip : undefined,
-		take: shouldPaginate ? limit : undefined,
-		orderBy: {
-			createdAt: 'desc'
-		},
-		include: {
-			categories: {
-				select: {
-					categoryId: true,
-					createdAt: true,
-					id: true,
-					itemId: true,
-					category: {
-						select: {
-							id: true,
-							name: true,
-							color: true
-						}
-					}
-				}
-			}
-		}
-	});
-
-	const totalCount = shouldPaginate ? await prisma.item.count() : 0;
-
-	const processedItems = items.map(item => ({
-		...item,
-		weight: item.weight ? Number(item.weight) : undefined,
-		price: Number(item.price),
-		categories: item.categories.map(cat => cat.category)
-	}));
-
-	if (!shouldPaginate) {
-		return { items: processedItems };
-	}
-
-	const totalPages = Math.ceil(totalCount / limit);
-	const hasNext = page < totalPages;
-	const hasPrev = page > 1;
-
-	return {
-		items: processedItems,
-		pagination: {
-			page,
-			limit,
-			total: totalCount,
-			totalPages,
-			hasNext,
-			hasPrev
-		}
-	} as {
+export const getItems = cache(
+	async (
+		page: number,
+		limit: number
+	): Promise<{
 		items: ProcessedItem[];
-		pagination: Pagination;
-	};
-});
+		pagination?: Pagination;
+	}> => {
+		const skip = (page - 1) * limit;
 
-export const getCategorizedItems = cache(async (): Promise<CategorizedItemsResponse[]> => {
-	return prisma.category.findMany({
-		include: {
-			items: {
-				include: {
-					item: {
-						include: {
-							categories: {
-								include: {
-									category: true
-								}
+		// if false, return all items without pagination
+		const shouldPaginate = page > 0 && limit > 0;
+
+		const items = await prisma.item.findMany({
+			skip: shouldPaginate ? skip : undefined,
+			take: shouldPaginate ? limit : undefined,
+			orderBy: {
+				createdAt: 'desc'
+			},
+			include: {
+				categories: {
+					select: {
+						categoryId: true,
+						createdAt: true,
+						id: true,
+						itemId: true,
+						category: {
+							select: {
+								id: true,
+								name: true,
+								color: true
 							}
 						}
 					}
 				}
 			}
-		},
-		orderBy: [{ order: 'asc' }, { name: 'asc' }]
-	}) as Promise<CategorizedItemsResponse[]>;
-});
+		});
 
-export const getUncategorizedItems = cache(async (
-	page: number,
-	limit: number
-): Promise<{
-	items: ProcessedItem[];
-	pagination: Pagination;
-}> => {
-	const skip = (page - 1) * limit;
+		const totalCount = shouldPaginate ? await prisma.item.count() : 0;
 
-	const items = await prisma.item.findMany({
-		where: {
-			categories: {
-				none: {}
+		const processedItems = items.map(item => ({
+			...item,
+			weight: item.weight ? Number(item.weight) : undefined,
+			price: Number(item.price),
+			categories: item.categories.map(cat => cat.category)
+		}));
+
+		if (!shouldPaginate) {
+			return { items: processedItems };
+		}
+
+		const totalPages = Math.ceil(totalCount / limit);
+		const hasNext = page < totalPages;
+		const hasPrev = page > 1;
+
+		return {
+			items: processedItems,
+			pagination: {
+				page,
+				limit,
+				total: totalCount,
+				totalPages,
+				hasNext,
+				hasPrev
 			}
-		},
-		skip,
-		take: limit,
-		orderBy: {
-			createdAt: 'desc'
-		}
-	});
+		} as {
+			items: ProcessedItem[];
+			pagination: Pagination;
+		};
+	}
+);
 
-	const totalCount = await prisma.item.count({
-		where: {
-			categories: {
-				none: {}
+export const getCategorizedItems = cache(
+	async (): Promise<CategorizedItemsResponse[]> => {
+		const categories = await prisma.category.findMany({
+			include: {
+				items: {
+					include: {
+						item: {
+							include: {
+								categories: {
+									include: {
+										category: true
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			orderBy: [{ order: 'asc' }, { name: 'asc' }]
+		});
+
+		return categories.map(category => ({
+			...category,
+			items: category.items.map(itemCategory => ({
+				...itemCategory,
+				item: itemCategory.item
+					? {
+							...itemCategory.item,
+							price: Number(itemCategory.item.price),
+							weight: itemCategory.item.weight
+								? Number(itemCategory.item.weight)
+								: undefined,
+							categories: itemCategory.item.categories
+					  }
+					: undefined
+			}))
+		})) as CategorizedItemsResponse[];
+	}
+);
+
+export const getUncategorizedItems = cache(
+	async (
+		page: number,
+		limit: number
+	): Promise<{
+		items: ProcessedItem[];
+		pagination: Pagination;
+	}> => {
+		const skip = (page - 1) * limit;
+
+		const items = await prisma.item.findMany({
+			where: {
+				categories: {
+					none: {}
+				}
+			},
+			skip,
+			take: limit,
+			orderBy: {
+				createdAt: 'desc'
 			}
-		}
-	});
+		});
 
-	const processedItems = items.map(item => ({
-		...item,
-		weight: item.weight ? Number(item.weight) : undefined,
-		price: Number(item.price),
-		categories: []
-	}));
+		const totalCount = await prisma.item.count({
+			where: {
+				categories: {
+					none: {}
+				}
+			}
+		});
 
-	const totalPages = Math.ceil(totalCount / limit);
-	const hasNext = page < totalPages;
-	const hasPrev = page > 1;
+		const processedItems = items.map(item => ({
+			...item,
+			weight: item.weight ? Number(item.weight) : undefined,
+			price: Number(item.price),
+			categories: []
+		}));
 
-	return {
-		items: processedItems,
-		pagination: {
-			page,
-			limit,
-			total: totalCount,
-			totalPages,
-			hasNext,
-			hasPrev
-		}
-	};
-});
+		const totalPages = Math.ceil(totalCount / limit);
+		const hasNext = page < totalPages;
+		const hasPrev = page > 1;
+
+		return {
+			items: processedItems,
+			pagination: {
+				page,
+				limit,
+				total: totalCount,
+				totalPages,
+				hasNext,
+				hasPrev
+			}
+		};
+	}
+);

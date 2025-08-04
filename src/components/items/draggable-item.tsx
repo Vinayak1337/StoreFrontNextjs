@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect, memo, useState } from 'react';
 import { useDrag } from 'react-dnd';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,11 @@ const ItemTypes = {
 	ITEM: 'item'
 };
 
+const formatPrice = (price: string | number) => {
+	const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+	return `₹${numPrice.toFixed(2)}`;
+};
+
 interface DraggableItemProps {
 	item: Item;
 	categoryId?: string;
@@ -20,7 +25,6 @@ interface DraggableItemProps {
 	selectionMode?: boolean;
 	isSelected?: boolean;
 	showSelection?: boolean;
-	selectedItems?: Set<string>;
 	onItemHold?: (item: { id: string; categoryId?: string }) => void;
 	onItemSelect?: (itemId: string, selected: boolean) => void;
 }
@@ -33,56 +37,74 @@ function DraggableItemComponent({
 	selectionMode = false,
 	isSelected = false,
 	showSelection = false,
-	selectedItems,
 	onItemHold,
 	onItemSelect
 }: DraggableItemProps) {
 	const ref = useRef<HTMLDivElement>(null);
-	const [isHolding, setIsHolding] = useState(false);
+	const dragHandleRef = useRef<HTMLDivElement>(null);
 	const holdTimeoutRef = useRef<NodeJS.Timeout>(null);
+	const [isDragStarted, setIsDragStarted] = useState(false);
 
 	const [{ isDragging }, drag] = useDrag(
 		{
 			type: ItemTypes.ITEM,
 			item: () => {
+				setIsDragStarted(true);
 				const itemData = { id: item.id, categoryId: categoryId || undefined };
 				onDragStart?.(itemData);
 				return itemData;
 			},
 			end: () => {
+				setIsDragStarted(false);
 				onDragEnd?.();
 			},
 			collect: monitor => ({
 				isDragging: monitor.isDragging()
-			})
+			}),
+			canDrag: () => true
 		},
 		[item.id, categoryId, onDragStart, onDragEnd]
 	);
 
-	// Connect drag to the entire card (like working version)
-	drag(ref);
+	drag(dragHandleRef);
 
-	// Handle hold functionality
-	const handleMouseDown = () => {
-		if (selectionMode) return;
-		setIsHolding(true);
+	const startHold = () => {
+		if (selectionMode || isDragStarted) return;
 		holdTimeoutRef.current = setTimeout(() => {
-			onItemHold?.({ id: item.id, categoryId });
-			setIsHolding(false);
-		}, 800); // 800ms hold
+			if (!isDragStarted) {
+				onItemHold?.({ id: item.id, categoryId });
+			}
+		}, 600);
 	};
 
-	const handleMouseUp = () => {
-		setIsHolding(false);
+	const endHold = () => {
 		if (holdTimeoutRef.current) {
 			clearTimeout(holdTimeoutRef.current);
 		}
 	};
 
+	const handleMouseDown = (e: React.MouseEvent) => {
+		if (selectionMode || isDragStarted || 
+			(e.target as HTMLElement).closest('.drag-handle') ||
+			(e.target as HTMLElement).closest('button') ||
+			(e.target as HTMLElement).closest('.cursor-pointer')) {
+			return;
+		}
+		startHold();
+	};
+
+	const handleMouseUp = () => {
+		endHold();
+	};
+
 	const handleMouseLeave = () => {
-		setIsHolding(false);
-		if (holdTimeoutRef.current) {
-			clearTimeout(holdTimeoutRef.current);
+		endHold();
+	};
+
+	const handleContextMenu = (e: React.MouseEvent) => {
+		e.preventDefault();
+		if (!selectionMode) {
+			onItemHold?.({ id: item.id, categoryId });
 		}
 	};
 
@@ -94,49 +116,29 @@ function DraggableItemComponent({
 		};
 	}, []);
 
-	const handleCheckboxChange = (checked: boolean) => {
-		onItemSelect?.(item.id, checked);
-	};
 
-	const formatPrice = (price: string | number) => {
-		const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-		return `₹${numPrice.toFixed(2)}`;
-	};
+
 
 	return (
 		<div
 			ref={ref}
-			onMouseDown={handleMouseDown}
-			onMouseUp={handleMouseUp}
-			onMouseLeave={handleMouseLeave}
-			className={`group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 relative ${
+			onMouseDown={selectionMode ? undefined : handleMouseDown}
+			onMouseUp={selectionMode ? undefined : handleMouseUp}
+			onMouseLeave={selectionMode ? undefined : handleMouseLeave}
+			onContextMenu={handleContextMenu}
+			className={`bg-white rounded-xl border border-gray-200 shadow-sm relative select-none p-4 ${
 				isDragging
-					? 'opacity-40 shadow-lg border-emerald-400 transform rotate-2 scale-105 cursor-grabbing'
-					: 'cursor-grab hover:cursor-grab hover:border-gray-300'
-			} ${isSelected ? 'border-blue-400 bg-blue-50' : ''} ${
-				isHolding ? 'scale-105 shadow-lg' : ''
-			} p-4`}>
-			{/* Multiple items indicator when dragging */}
-			{isDragging &&
-				selectionMode &&
-				isSelected &&
-				selectedItems &&
-				selectedItems.size > 1 && (
-					<div className='absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-white z-20'>
-						{selectedItems.size}
-					</div>
-				)}
+					? 'opacity-40 shadow-lg border-emerald-400 cursor-grabbing'
+					: 'cursor-grab hover:border-gray-300'
+			} ${isSelected ? 'border-blue-400 bg-blue-50' : ''}`}>
 
-			<div
-				className='flex flex-col h-full'
-				onClick={
-					showSelection
-						? e => {
-								e.stopPropagation();
-								handleCheckboxChange(!isSelected);
-						  }
-						: undefined
-				}>
+			<div 
+				className='flex flex-col h-full' 
+				onClick={showSelection ? (e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					onItemSelect?.(item.id, !isSelected);
+				} : undefined}>
 				<div className='flex-1'>
 					<div className='flex items-start justify-between mb-2'>
 						<div className='flex items-center gap-3'>
@@ -146,13 +148,16 @@ function DraggableItemComponent({
 									className='cursor-pointer'
 									onClick={e => {
 										e.stopPropagation();
-										handleCheckboxChange(!isSelected);
-									}}>
+										e.preventDefault();
+										onItemSelect?.(item.id, !isSelected);
+									}}
+									onMouseDown={e => e.stopPropagation()}
+									onTouchStart={e => e.stopPropagation()}>
 									<div
-										className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+										className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
 											isSelected
 												? 'bg-blue-500 border-blue-500'
-												: 'bg-white border-gray-300 hover:border-blue-400'
+												: 'bg-white border-gray-300'
 										}`}>
 										{isSelected && <Check className='w-3 h-3 text-white' />}
 									</div>
@@ -165,7 +170,7 @@ function DraggableItemComponent({
 							</div>
 						</div>
 						<div className='flex items-center gap-1 ml-2'>
-							<div className='opacity-0 group-hover:opacity-100 transition-opacity flex gap-1'>
+							<div className='flex gap-1'>
 								<EditItemDialog item={item}>
 									<Button
 										variant='ghost'
@@ -183,7 +188,12 @@ function DraggableItemComponent({
 									</Button>
 								</DeleteItemButton>
 							</div>
-							<div className='opacity-60 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded-md cursor-grab active:cursor-grabbing'>
+							<div 
+								ref={dragHandleRef}
+								className='drag-handle p-2 cursor-grab active:cursor-grabbing touch-none'
+								onClick={e => e.stopPropagation()}
+								style={{ touchAction: 'none' }}
+							>
 								<GripVertical className='h-4 w-4 text-gray-500' />
 							</div>
 						</div>
@@ -207,11 +217,11 @@ function DraggableItemComponent({
 							)}
 						</div>
 
-						{item.weight && (
+						{item.weight ? (
 							<p className='text-xs text-gray-500'>
 								Weight: {item.weight} {item.weightUnit || 'kg'}
 							</p>
-						)}
+						) : null}
 
 						<p className='text-xs text-gray-500'>
 							Quantity: {item.quantity}{' '}
@@ -224,4 +234,4 @@ function DraggableItemComponent({
 	);
 }
 
-export const DraggableItem = DraggableItemComponent;
+export const DraggableItem = memo(DraggableItemComponent);

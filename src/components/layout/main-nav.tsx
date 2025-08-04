@@ -8,7 +8,6 @@ import {
 	Home,
 	Package,
 	ShoppingCart,
-	CreditCard,
 	BarChart,
 	LogOut
 } from 'lucide-react';
@@ -42,11 +41,6 @@ export function MainNav() {
 			name: 'Orders',
 			href: '/orders' as Route,
 			icon: <ShoppingCart className='h-4 w-4' />
-		},
-		{
-			name: 'Bills',
-			href: '/bills' as Route,
-			icon: <CreditCard className='h-4 w-4' />
 		},
 		{
 			name: 'Analytics',

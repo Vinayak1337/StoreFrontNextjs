@@ -1,6 +1,5 @@
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { notFound } from 'next/navigation';
 import { getOrderById, getOrders } from '@/app/api/orders/actions';
 import { OrderDetailActions } from '@/components/orders/order-detail-actions';
@@ -13,9 +12,9 @@ interface PageProps {
 export async function generateStaticParams() {
 	try {
 		const orders = await getOrders();
-		
-		return orders.map((order) => ({
-			id: order.id,
+
+		return orders.map(order => ({
+			id: order.id
 		}));
 	} catch (error) {
 		console.error('Error generating static params for orders:', error);
@@ -44,11 +43,6 @@ export default async function OrderDetailsPage({ params }: PageProps) {
 				<div className='flex items-center gap-3 sm:gap-4'>
 					<OrderDetailNavigation />
 					<h1 className='text-xl sm:text-2xl font-bold'>Order Details</h1>
-					<Badge
-						className='text-xs'
-						variant={order.bill ? 'default' : 'secondary'}>
-						{order.bill ? 'COMPLETED' : 'PENDING'}
-					</Badge>
 				</div>
 
 				<div className='sm:ml-auto'>

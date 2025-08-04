@@ -63,10 +63,9 @@ model Item {
 model Order {
   id            String      @id @default(uuid())
   customerName  String      @map("customer_name")
-  status        OrderStatus
+  status        OrderStatus @default(COMPLETED)
   createdAt     DateTime    @default(now()) @map("created_at")
   customMessage String?     @map("custom_message")
-  bill          Bill?
   orderItems    OrderItem[]
 
   @@map("orders")
@@ -84,18 +83,6 @@ model OrderItem {
   @@map("order_items")
 }
 
-model Bill {
-  id            String   @id @default(uuid())
-  totalAmount   Decimal  @map("total_amount")
-  taxes         Decimal
-  paymentMethod String   @map("payment_method")
-  createdAt     DateTime @default(now()) @map("created_at")
-  orderId       String   @unique @map("order_id")
-  isPaid        Boolean  @default(false) @map("is_paid")
-  order         Order    @relation(fields: [orderId], references: [id])
-
-  @@map("bills")
-}
 
 model Settings {
   id            String  @id @default(uuid())

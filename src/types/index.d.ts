@@ -56,20 +56,9 @@ interface Order {
 	customerName: string;
 	orderItems: OrderItem[];
 	createdAt: Date;
-	bill?: Bill;
 	customMessage?: string;
 }
 
-interface Bill {
-	id: string;
-	orderId: string;
-	totalAmount: number;
-	taxes: number;
-	paymentMethod: string;
-	createdAt: Date;
-	order?: Order;
-	isPaid?: boolean;
-}
 
 interface User {
 	id: string;
@@ -107,7 +96,6 @@ interface AnalyticsMetrics {
 	completedOrders: number;
 	cancelledOrders: number;
 	printedOrders: number;
-	unpaidBills: number;
 	conversionRate: number;
 	printRate: number;
 	revenueTrend: number;
@@ -144,12 +132,6 @@ interface OrdersState {
 	error: string | null;
 }
 
-interface BillsState {
-	bills: Bill[];
-	activeBill: Bill | null;
-	loading: boolean;
-	error: string | null;
-}
 
 interface SalesData {
 	dailySales: DailySalesItem[];

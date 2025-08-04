@@ -152,7 +152,6 @@ function UncategorizedSectionComponent({
 								selectionMode={selectionMode}
 								isSelected={selectedItems.has(item.id)}
 								showSelection={selectionMode && (selectionCategory === 'uncategorized' || selectionCategory === null)}
-								selectedItems={selectedItems}
 								onItemHold={onItemHold}
 								onItemSelect={onItemSelect}
 							/>

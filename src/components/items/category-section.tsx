@@ -48,29 +48,23 @@ function CategorySectionComponent({
 		async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId !== category.id) {
 				try {
-					// Check if we're moving selected items or just one item
 					const itemsToMove = selectedItems.has(draggedItem.id) && selectedItems.size > 1
 						? Array.from(selectedItems)
 						: [draggedItem.id];
 
-					// Move all items
 					await Promise.all(itemsToMove.map(async (itemId) => {
-						// Find the current category of this item
 						const currentCategoryId = itemId === draggedItem.id 
 							? draggedItem.categoryId 
 							: selectedItems.has(itemId) 
 								? selectionCategory === 'uncategorized' ? undefined : selectionCategory
 								: undefined;
 
-						// Remove from current category if it has one
 						if (currentCategoryId) {
 							await api.removeItemFromCategory(currentCategoryId, itemId);
 						}
-						// Add to new category
 						await api.addItemToCategory(category.id, itemId);
 					}));
 
-					// Refresh items data
 					router.refresh();
 
 					const count = itemsToMove.length;
@@ -157,7 +151,6 @@ function CategorySectionComponent({
 									selectionMode={selectionMode}
 									isSelected={selectedItems.has(item.id)}
 									showSelection={selectionMode && selectionCategory === category.id}
-									selectedItems={selectedItems}
 									onItemHold={onItemHold}
 									onItemSelect={onItemSelect}
 								/>
