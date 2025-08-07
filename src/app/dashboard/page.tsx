@@ -1,3 +1,4 @@
+import React from 'react';
 import {
 	getTotalRevenue,
 	getOrdersStats,
@@ -12,46 +13,46 @@ import {
 	Package,
 	ShoppingCart,
 	Plus,
-	TrendingUp
+	TrendingUp,
+	Users
 } from 'lucide-react';
 import { RefreshButton } from '@/components/dashboard/refresh-button';
 
-function MetricCard({
+const MetricCard = React.memo(function MetricCard({
 	title,
 	value,
 	change,
 	icon: Icon,
-	iconColor
+	iconColor,
+	bgColor = 'bg-emerald-100'
 }: {
 	title: string;
 	value: string;
 	change: string;
 	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 	iconColor: string;
+	bgColor?: string;
 }) {
 	const changeNum = Number(change.replace('%', ''));
 	const isPositive = changeNum >= 0;
 
 	return (
-		<div className='bg-white rounded-xl border border-gray-200 p-6'>
+		<div className='bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-200'>
 			<div className='flex items-center justify-between'>
-				<div>
+				<div className='flex-1 min-w-0'>
 					<p className='text-sm font-medium text-gray-600'>{title}</p>
-					<p className='text-2xl font-bold text-gray-900 mt-2'>{value}</p>
+					<p className='text-2xl font-bold text-gray-900 mt-2 truncate'>{value}</p>
 				</div>
-				<div
-					className={`p-3 rounded-lg ${
-						'bg-emerald-100'
-					}`}>
+				<div className={`p-3 rounded-lg ${bgColor}`}>
 					<Icon className={`h-6 w-6 ${iconColor}`} />
 				</div>
 			</div>
 			<div className='mt-4 flex items-center'>
-				<TrendingUp
-					className={`h-4 w-4 mr-1 ${
-						isPositive ? 'text-green-500' : 'text-red-500'
-					}`}
-				/>
+				{isPositive ? (
+					<TrendingUp className='h-4 w-4 mr-1 text-green-500' />
+				) : (
+					<TrendingUp className='h-4 w-4 mr-1 text-red-500 rotate-180' />
+				)}
 				<span
 					className={`text-sm font-medium ${
 						isPositive ? 'text-green-600' : 'text-red-600'
@@ -62,7 +63,7 @@ function MetricCard({
 			</div>
 		</div>
 	);
-}
+});
 
 export default async function DashboardPage() {
 	const [totalRevenue, ordersStats, itemsStats, conversionStats, recentOrders] = await Promise.all([
@@ -125,11 +126,12 @@ export default async function DashboardPage() {
 				/>
 
 				<MetricCard
-					title='Conversion Rate'
+					title='Customer Retention'
 					value={`${conversionStats.conversionRate.toFixed(1)}%`}
 					change={`${conversionStats.changePercentage.toFixed(1)}%`}
-					icon={TrendingUp}
+					icon={Users}
 					iconColor='text-emerald-600'
+					bgColor='bg-blue-100'
 				/>
 			</div>
 

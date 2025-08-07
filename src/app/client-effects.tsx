@@ -1,0 +1,96 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { autoConnectToSavedPrinter } from '@/lib/utils/printer-utils';
+
+interface ClientEffectsProps {
+	isProtectedRoute: boolean;
+}
+
+export default function ClientEffects({ isProtectedRoute }: ClientEffectsProps) {
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	useEffect(() => {
+		if (isProtectedRoute && mounted) {
+			autoConnectToSavedPrinter().catch(error => {
+				console.log('Auto-connect to printer failed:', error);
+			});
+		}
+	}, [isProtectedRoute, mounted]);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const detectKeyboard = () => {
+				const initialHeight = window.innerHeight;
+
+				window.addEventListener('resize', () => {
+					const heightDifference = initialHeight - window.innerHeight;
+
+					if (heightDifference > initialHeight * 0.2) {
+						document.body.classList.add('keyboard-visible');
+					} else {
+						document.body.classList.remove('keyboard-visible');
+					}
+				});
+			};
+
+			const mediaQuery = window.matchMedia(
+				'(min-width: 600px) and (max-width: 1023px) and (orientation: portrait)'
+			);
+
+			const handleTabletPortraitMode = (
+				e: MediaQueryListEvent | MediaQueryList
+			) => {
+				if (e.matches) {
+					document.body.classList.add('tablet-portrait');
+				} else {
+					document.body.classList.remove('tablet-portrait');
+				}
+			};
+
+			handleTabletPortraitMode(mediaQuery);
+
+			mediaQuery.addEventListener('change', handleTabletPortraitMode);
+
+			detectKeyboard();
+
+			return () => {
+				mediaQuery.removeEventListener('change', handleTabletPortraitMode);
+			};
+		}
+	}, []);
+
+	useEffect(() => {
+		if (mounted) {
+			document.body.classList.add('animate-fade-in');
+			const mainContent = document.querySelector('main');
+			if (mainContent) {
+				mainContent.classList.add('animate-slide-in');
+			}
+		}
+	}, [mounted]);
+
+	if (!mounted) return null;
+
+	return (
+		<ToastContainer
+			position='top-right'
+			autoClose={3000}
+			hideProgressBar={false}
+			newestOnTop
+			closeOnClick
+			rtl={false}
+			pauseOnFocusLoss
+			draggable
+			pauseOnHover
+			theme='light'
+			style={{ zIndex: 9999 }}
+		/>
+	);
+}

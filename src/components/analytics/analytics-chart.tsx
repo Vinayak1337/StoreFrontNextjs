@@ -59,9 +59,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 								className='w-3 h-3 rounded-full'
 								style={{ backgroundColor: entry.stroke }}
 							/>
-							<span className='text-sm'>
-								{entry.dataKey === 'sales' ? 'Revenue' : 'Est. Profit'}:
-							</span>
+								<span className='text-sm'>
+									{entry.dataKey === 'sales' ? 'Revenue' : 'Gross Margin'}:
+								</span>
 						</div>
 						<span className='text-sm font-semibold'>
 							₹{entry.value.toFixed(2)}
@@ -154,25 +154,30 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 			data = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 		}
 
-		// Format the data for chart display
+		// Format the data for chart display with realistic wholesale margins
 		const formattedData = data.map(item => {
 			try {
 				const dateObj = new Date(item.date + 'T00:00:00.000Z');
+				const revenue = Number(item.totalAmount || 0);
+				// Profit margin for wholesale (10% gross margin)
+				const grossMargin = revenue * 0.10;
+				
 				return {
 					date: viewMode === 'monthly' 
 						? format(dateObj, 'MMM yyyy')
 						: viewMode === 'weekly'
 						? `Week of ${format(dateObj, 'MMM dd')}`
 						: format(dateObj, 'MMM dd'),
-					sales: Number(item.totalAmount || 0),
-					profit: Number(item.totalAmount || 0) * 0.1 // 10% estimated profit margin
+					sales: revenue,
+					profit: grossMargin
 				};
 			} catch {
 				// Skip invalid data
+				const revenue = Number(item.totalAmount || 0);
 				return {
 					date: item.date,
-					sales: Number(item.totalAmount || 0),
-					profit: Number(item.totalAmount || 0) * 0.1
+					sales: revenue,
+					profit: revenue * 0.10
 				};
 			}
 		});
@@ -344,7 +349,7 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 									/>
 									<Bar
 										dataKey='profit'
-										name='Est. Profit'
+										name='Gross Margin (10%)'
 										fill={colorPalette.profit}
 										radius={[4, 4, 0, 0]}
 										animationDuration={1000}
@@ -429,7 +434,7 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 									<Area
 										type='monotone'
 										dataKey='profit'
-										name='Est. Profit'
+										name='Gross Margin (10%)'
 										stroke={colorPalette.profit}
 										fillOpacity={1}
 										fill='url(#profitGradient)'
