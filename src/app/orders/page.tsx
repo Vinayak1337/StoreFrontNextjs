@@ -39,9 +39,7 @@ export default async function OrdersPage() {
 
 					{orders.length === 0 ? (
 						<div className='border rounded-md p-6 sm:p-8 text-center'>
-							<p className='text-muted-foreground text-sm sm:text-base'>
-								No orders found. Create a new order to get started.
-							</p>
+							<p className='text-muted-foreground text-sm sm:text-base'>No orders found. Create a new order to get started.</p>
 						</div>
 					) : (
 						<div className='grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>

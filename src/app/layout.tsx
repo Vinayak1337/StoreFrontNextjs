@@ -3,6 +3,7 @@ import { Inter as FontSans } from 'next/font/google';
 import { headers, cookies } from 'next/headers';
 import { Sidebar } from '@/components/sidebar';
 import ClientEffects from './client-effects';
+import { ThemeProvider } from '@/components/theme-provider';
 import { COOKIE_NAME } from '@/lib/auth-constants';
 import { cn } from '@/lib/utils';
 
@@ -38,26 +39,27 @@ export default async function RootLayout({
 				/>
 				<link rel='icon' href='/favicon.ico' />
 			</head>
-			<body
-				className={`min-h-screen bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
-				<div className={cn('flex min-h-screen overflow-hidden', 'animate-fade-in')}>
-					{isProtectedRoute && <Sidebar />}
-					<div className='flex-1 flex flex-col overflow-hidden'>
-						<main className='flex-1 overflow-auto bg-gray-50/30'>
-							<div
-								className={cn(
-									'h-full animate-slide-in',
-									isProtectedRoute
-										? 'pt-16 md:pt-4 px-4 pb-4 md:p-6 md:pb-20 lg:pb-6 lg:pl-[calc(16rem+2rem)] xl:pl-[calc(18rem+2rem)] lg:pr-8'
-										: ''
-								)}>
-								{children}
-							</div>
-						</main>
+			<body className={`min-h-screen bg-background text-foreground font-sans antialiased ${fontSans.variable}`}>
+				<ThemeProvider>
+					<div className={cn('flex min-h-screen overflow-hidden')}>
+						{isProtectedRoute && <Sidebar />}
+						<div className='flex-1 flex flex-col overflow-hidden'>
+							<main className='flex-1 overflow-auto bg-background'>
+								<div
+									className={cn(
+										'h-full',
+										isProtectedRoute
+											? 'pt-16 md:pt-4 px-4 pb-4 md:p-6 md:pb-20 lg:pb-6 lg:pl-[calc(16rem+2rem)] xl:pl-[calc(18rem+2rem)] lg:pr-8'
+											: ''
+									)}>
+									{children}
+								</div>
+							</main>
+						</div>
 					</div>
-				</div>
-				{/* Client-only effects (toasts, printer auto-connect, keyboard/tablet detection) */}
-				<ClientEffects isProtectedRoute={isProtectedRoute} />
+					{/* Client-only effects (toasts, printer auto-connect, keyboard/tablet detection) */}
+					<ClientEffects isProtectedRoute={isProtectedRoute} />
+				</ThemeProvider>
 			</body>
 		</html>
 	);

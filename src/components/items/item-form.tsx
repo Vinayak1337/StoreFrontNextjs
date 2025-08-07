@@ -105,15 +105,9 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 	};
 
 	return (
-		<form
-			onSubmit={handleSubmit}
-			className='space-y-5 animate-fade-in max-w-3xl mx-auto md:px-4'>
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.1s' }}>
-				<Label
-					htmlFor='name'
-					className='text-sm font-medium flex items-center gap-2'>
+		<form onSubmit={handleSubmit} className='space-y-5 max-w-3xl mx-auto md:px-4'>
+			<div className='space-y-2'>
+				<Label htmlFor='name' className='text-sm font-medium flex items-center gap-2'>
 					<Package className='h-4 w-4 text-primary' />
 					Product Name
 				</Label>
@@ -123,18 +117,14 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					value={formData.name}
 					onChange={handleChange}
 					required
-					className='transition-all focus:border-primary'
+					className='transition-colors focus-visible:ring-primary'
 					placeholder='Enter product name'
 				/>
 			</div>
 
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.2s' }}>
-				<Label
-					htmlFor='price'
-					className='text-sm font-medium flex items-center gap-2'>
-					<IndianRupee className='h-4 w-4 text-emerald-500' />
+			<div className='space-y-2'>
+				<Label htmlFor='price' className='text-sm font-medium flex items-center gap-2'>
+					<IndianRupee className='h-4 w-4 text-primary' />
 					Price
 				</Label>
 				<Input
@@ -146,19 +136,15 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					value={formData.price}
 					onChange={handleChange}
 					required
-					className='transition-all focus:border-emerald-500'
+					className='transition-colors focus-visible:ring-primary'
 					icon={<IndianRupee className='h-4 w-4 text-muted-foreground' />}
 					placeholder='0.00'
 				/>
 			</div>
 
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.3s' }}>
-				<Label
-					htmlFor='weight'
-					className='text-sm font-medium flex items-center gap-2'>
-					<Scale className='h-4 w-4 text-emerald-500' />
+			<div className='space-y-2'>
+				<Label htmlFor='weight' className='text-sm font-medium flex items-center gap-2'>
+					<Scale className='h-4 w-4 text-primary' />
 					Weight
 				</Label>
 				<div className='flex gap-2'>
@@ -170,12 +156,10 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 						min='0'
 						value={formData.weight}
 						onChange={handleChange}
-						className='transition-all focus:border-emerald-500 flex-1'
+						className='transition-colors focus-visible:ring-primary flex-1'
 						placeholder='Enter weight'
 					/>
-					<Select
-						value={formData.weightUnit}
-						onValueChange={handleWeightUnitChange}>
+					<Select value={formData.weightUnit} onValueChange={handleWeightUnitChange}>
 						<SelectTrigger className='w-[120px]'>
 							<SelectValue placeholder='Unit' />
 						</SelectTrigger>
@@ -189,13 +173,9 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				</div>
 			</div>
 
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.4s' }}>
-				<Label
-					htmlFor='quantity'
-					className='text-sm font-medium flex items-center gap-2'>
-					<ShoppingBag className='h-4 w-4 text-emerald-500' />
+			<div className='space-y-2'>
+				<Label htmlFor='quantity' className='text-sm font-medium flex items-center gap-2'>
+					<ShoppingBag className='h-4 w-4 text-primary' />
 					Serving Quantity
 				</Label>
 				<Input
@@ -206,41 +186,28 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					value={formData.quantity}
 					onChange={handleChange}
 					required
-					className='transition-all focus:border-emerald-500'
+					className='transition-colors focus-visible:ring-primary'
 					placeholder='e.g., 1 piece, 2 cups, 500 grams'
 				/>
-				<p className='text-xs text-gray-600 mt-1'>
-					How much the customer gets per order (for description only, not
-					inventory tracking)
+				<p className='text-xs text-muted-foreground mt-1'>
+					How much the customer gets per order (for description only, not inventory tracking)
 				</p>
 			</div>
 
-			<div
-				className='stock-switch-container animate-slide-in flex justify-between gap-2'
-				style={{ animationDelay: '0.45s' }}>
-				<Label
-					htmlFor='in-stock'
-					className='text-sm font-medium flex items-center gap-2'>
-					<ShoppingBag className='h-4 w-4 text-orange-500' />
+			<div className='flex justify-between gap-2'>
+				<Label htmlFor='in-stock' className='text-sm font-medium flex items-center gap-2'>
+					<ShoppingBag className='h-4 w-4 text-warning' />
 					In Stock
 				</Label>
-				<div className='switch-container flex items-center gap-2'>
-					<Switch
-						id='in-stock'
-						checked={formData.inStock}
-						onCheckedChange={handleInStockChange}
-					/>
-					<span
-						className='switch-label'
-						onClick={() => handleInStockChange(!formData.inStock)}>
+				<div className='flex items-center gap-2'>
+					<Switch id='in-stock' checked={formData.inStock} onCheckedChange={handleInStockChange} />
+					<span className='cursor-pointer select-none' onClick={() => handleInStockChange(!formData.inStock)}>
 						{formData.inStock ? 'Yes' : 'No'}
 					</span>
 				</div>
 			</div>
 
-			<div
-				className='flex justify-end space-x-3 pt-2 animate-slide-in'
-				style={{ animationDelay: '0.5s' }}>
+			<div className='flex justify-end space-x-3 pt-2'>
 				<Button
 					type='button'
 					variant='outline'
@@ -251,10 +218,9 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				</Button>
 				<Button
 					type='submit'
-					variant='gradient'
+					variant='default'
 					leftIcon={<Save className='h-4 w-4' />}
 					isLoading={isSubmitting}
-					animation='scale'
 					className='py-2.5 md:py-2'>
 					{item ? 'Update Item' : 'Create Item'}
 				</Button>

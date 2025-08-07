@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, ReactNode } from 'react';
 import { DndProvider } from 'react-dnd-multi-backend';
 import { HTML5toTouch } from 'rdndmb-html5-to-touch';
 import api from '@/lib/services/api';
@@ -42,7 +42,7 @@ const CATEGORY_COLORS = [
 	'#6B7280'
 ];
 
-function AddCategoryDialog({ children }: { children: React.ReactNode }) {
+function AddCategoryDialog({ children }: { children: ReactNode }) {
 	const router = useRouter();
 
 	const [open, setOpen] = useState(false);
@@ -123,7 +123,7 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 						<Button
 							type='submit'
 							disabled={loading || !name.trim()}
-							className='flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300'>
+							className='flex-1'>
 							{loading ? (
 								<>
 									<Loader2 className='h-4 w-4 animate-spin mr-2' />
@@ -368,7 +368,7 @@ export default function ItemsClient({
 							</Button>
 						</AddCategoryDialog>
 						<AddItemDialog>
-							<Button className='gap-2 bg-emerald-600 hover:bg-emerald-700'>
+							<Button className='gap-2'>
 								<Plus className='h-4 w-4' />
 								Add Item
 							</Button>
@@ -459,7 +459,7 @@ export default function ItemsClient({
 							</p>
 							{!searchTerm && (
 								<AddItemDialog>
-									<Button className='gap-2 bg-emerald-600 hover:bg-emerald-700'>
+									<Button className='gap-2'>
 										<Plus className='h-4 w-4' />
 										Add Your First Item
 									</Button>

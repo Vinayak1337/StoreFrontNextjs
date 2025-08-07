@@ -68,11 +68,7 @@ export default function ClientEffects({ isProtectedRoute }: ClientEffectsProps) 
 
 	useEffect(() => {
 		if (mounted) {
-			document.body.classList.add('animate-fade-in');
-			const mainContent = document.querySelector('main');
-			if (mainContent) {
-				mainContent.classList.add('animate-slide-in');
-			}
+			// keep subtle mount without heavy global animations
 		}
 	}, [mounted]);
 

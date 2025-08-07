@@ -40,8 +40,8 @@ const MetricCard = React.memo(function MetricCard({
 		<div className='bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-all duration-200'>
 			<div className='flex items-center justify-between'>
 				<div className='flex-1 min-w-0'>
-					<p className='text-sm font-medium text-gray-600'>{title}</p>
-					<p className='text-2xl font-bold text-gray-900 mt-2 truncate'>{value}</p>
+											<p className='text-sm font-medium text-muted-foreground'>{title}</p>
+						<p className='text-2xl font-bold mt-2 truncate'>{value}</p>
 				</div>
 				<div className={`p-3 rounded-lg ${bgColor}`}>
 					<Icon className={`h-6 w-6 ${iconColor}`} />
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
 					<RefreshButton />
 					<Link
 						href='/orders/create'
-						className='inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
+						className='inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
 						<Plus className='h-4 w-4' />
 						New Order
 					</Link>
@@ -149,18 +149,18 @@ export default async function DashboardPage() {
 									Daily sales for the last 30 days
 								</p>
 							</div>
-							<div className='flex items-center gap-2 text-sm text-gray-600'>
+							<div className='flex items-center gap-2 text-sm text-muted-foreground'>
 								<BarChart3 className='h-4 w-4' />
 								<span>Last 30 days</span>
 							</div>
 						</div>
 
 						{/* Simple chart placeholder */}
-						<div className='h-64 bg-gray-50 rounded-lg flex items-center justify-center'>
+						<div className='h-64 bg-muted rounded-lg flex items-center justify-center'>
 							<div className='text-center'>
-								<BarChart3 className='h-12 w-12 text-gray-400 mx-auto mb-2' />
-								<p className='text-gray-600'>Sales Chart</p>
-								<p className='text-sm text-gray-500'>Chart Coming Soon</p>
+								<BarChart3 className='h-12 w-12 text-muted-foreground mx-auto mb-2' />
+								<p className='text-muted-foreground'>Sales Chart</p>
+								<p className='text-sm text-muted-foreground/80'>Chart Coming Soon</p>
 							</div>
 						</div>
 					</div>

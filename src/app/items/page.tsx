@@ -38,11 +38,9 @@ declare global {
 	}
 }
 
-const getCachedUncategorizedItems = cache(
-	async (page: number, limit: number) => {
-		return await getUncategorizedItems(page, limit);
-	}
-);
+const getCachedUncategorizedItems = cache(async (page: number, limit: number) => {
+	return await getUncategorizedItems(page, limit);
+});
 
 const getCachedCategorizedItems = cache(async () => {
 	return await getCategorizedItems();

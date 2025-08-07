@@ -156,6 +156,7 @@ body {
 
 	body {
 		@apply antialiased bg-background text-foreground;
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	/* Basic focus styles */

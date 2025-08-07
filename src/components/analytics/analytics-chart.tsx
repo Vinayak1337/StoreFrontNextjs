@@ -207,9 +207,9 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 
 	// Chart colors
 	const colorPalette = {
-		revenue: '#059669', // emerald-600
-		profit: '#10b981', // emerald-500
-		grid: 'rgba(148, 163, 184, 0.1)' // slate-400 with opacity
+		revenue: '#059669',
+		profit: '#10b981',
+		grid: 'rgba(148, 163, 184, 0.1)'
 	};
 
 	return (
