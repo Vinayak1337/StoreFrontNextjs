@@ -1,22 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { CSRF_HEADER, CSRF_TOKEN_COOKIE } from '@/lib/csrf';
-
-// Helper function to parse cookies from header
-function parseCookies(cookieHeader: string) {
-	const cookies: Record<string, string> = {};
-
-	if (!cookieHeader) return cookies;
-
-	cookieHeader.split(';').forEach(cookie => {
-		const [name, value] = cookie.trim().split('=');
-		if (name && value) {
-			cookies[name] = value;
-		}
-	});
-
-	return cookies;
-}
 
 // GET /api/items - Get all items with optional pagination
 export async function GET(request: NextRequest) {
@@ -86,20 +69,7 @@ export async function GET(request: NextRequest) {
 // POST /api/items - Create a new item
 export async function POST(request: NextRequest) {
 	try {
-		// CSRF Check
-		const cookieHeader = request.headers.get('cookie') || '';
-		const cookies = parseCookies(cookieHeader);
-		const csrfCookie = cookies[CSRF_TOKEN_COOKIE];
-		const csrfHeader = request.headers.get(CSRF_HEADER);
-
-		if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-			return NextResponse.json(
-				{ error: 'Invalid CSRF token' },
-				{ status: 403 }
-			);
-		}
-
-		// Process the request
+		// CSRF is now handled by middleware
 		const body = await request.json();
 
 		const { name, price, weight, weightUnit, quantity, inStock, metadata } =

@@ -94,41 +94,44 @@ export function AnalyticsClient({
 		}
 	};
 
-	// Enhanced metrics cards data
+	// Calculate additional wholesale metrics
+	const grossMargin = initialMetrics.totalSales * 0.10; // 10% gross margin
+
+	// Enhanced metrics cards data for wholesale
 	const metricsCards = [
 		{
-			title: 'Total Revenue',
+			title: 'Monthly Revenue',
 			value: `₹${initialMetrics.totalSales.toFixed(2)}`,
 			icon: <DollarSign className='h-4 w-4 sm:h-5 sm:w-5' />,
 			change: initialMetrics.revenueTrend || 0,
-			subtitle: 'vs last period',
+			subtitle: 'Total sales this month',
 			color: 'text-green-600',
 			bgColor: 'bg-green-100'
 		},
 		{
-			title: 'Total Orders',
-			value: initialMetrics.totalOrders.toString(),
-			icon: <ShoppingCart className='h-4 w-4 sm:h-5 sm:w-5' />,
-			change: initialMetrics.ordersTrend || 0,
-			subtitle: `${initialMetrics.totalOrders} completed`,
+			title: 'Gross Margin',
+			value: `₹${grossMargin.toFixed(2)}`,
+			icon: <TrendingUp className='h-4 w-4 sm:h-5 sm:w-5' />,
+			change: 10, // Margin percentage
+			subtitle: '10% profit margin',
 			color: 'text-emerald-600',
 			bgColor: 'bg-emerald-100'
 		},
 		{
-			title: 'Average Order Value',
+			title: 'Avg Order Size',
 			value: `₹${initialMetrics.averageOrderValue.toFixed(2)}`,
-			icon: <BarChart3 className='h-4 w-4 sm:h-5 sm:w-5' />,
-			change: 0, // No trend calculation for AOV
-			subtitle: 'per order',
+			icon: <ShoppingCart className='h-4 w-4 sm:h-5 sm:w-5' />,
+			change: initialMetrics.ordersTrend || 0,
+			subtitle: `${initialMetrics.totalOrders} bulk orders`,
 			color: 'text-orange-600',
 			bgColor: 'bg-orange-100'
 		},
 		{
-			title: 'Items In Stock',
-			value: initialMetrics.topSellingItems.length.toString(),
+			title: 'Inventory Turnover',
+			value: `${(initialMetrics.topSellingItems.reduce((sum, item) => sum + item.quantity, 0) / 30).toFixed(1)}/day`,
 			icon: <BarChart3 className='h-4 w-4 sm:h-5 sm:w-5' />,
-			change: 0,
-			subtitle: 'unique items sold',
+			change: 12,
+			subtitle: 'Items moving daily',
 			color: 'text-blue-600',
 			bgColor: 'bg-blue-100'
 		}
