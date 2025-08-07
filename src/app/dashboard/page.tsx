@@ -64,6 +64,8 @@ function MetricCard({
 	);
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage() {
 	const [totalRevenue, ordersStats, itemsStats, conversionStats, recentOrders] = await Promise.all([
 		getTotalRevenue(),
@@ -78,10 +80,10 @@ export default async function DashboardPage() {
 			{/* Welcome section */}
 			<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 animate-slide-up'>
 				<div className='min-w-0 flex-1'>
-					<h1 className='text-2xl md:text-3xl font-bold text-gray-900 tracking-tight'>
+					<h1 className='text-2xl md:text-3xl font-bold text-foreground tracking-tight'>
 						Dashboard
 					</h1>
-					<p className='text-gray-600 mt-1.5 text-sm md:text-base'>
+					<p className='text-muted-foreground mt-1.5 text-sm md:text-base'>
 						Welcome back! Here&apos;s what&apos;s happening with your store
 						today.
 					</p>
@@ -91,7 +93,7 @@ export default async function DashboardPage() {
 					<RefreshButton />
 					<Link
 						href='/orders/create'
-						className='inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
+						className='inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
 						<Plus className='h-4 w-4' />
 						New Order
 					</Link>

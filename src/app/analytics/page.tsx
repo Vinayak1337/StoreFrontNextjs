@@ -2,6 +2,8 @@ import { Suspense } from 'react';
 import { getAnalyticsMetrics, getDailySales, getTodayStats } from '@/app/api/analytics/actions';
 import { AnalyticsClient } from '@/components/analytics/analytics-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AnalyticsPage() {
 	const endDate = new Date().toISOString().split('T')[0];
 	const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];

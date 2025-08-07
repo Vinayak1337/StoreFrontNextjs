@@ -1,25 +1,14 @@
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { notFound } from 'next/navigation';
-import { getOrderById, getOrders } from '@/app/api/orders/actions';
+import { getOrderById } from '@/app/api/orders/actions';
 import { OrderDetailActions } from '@/components/orders/order-detail-actions';
 import { OrderDetailNavigation } from '@/components/orders/order-detail-navigation';
 
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
 	params: Promise<{ id: string }>;
-}
-
-export async function generateStaticParams() {
-	try {
-		const orders = await getOrders();
-
-		return orders.map(order => ({
-			id: order.id
-		}));
-	} catch (error) {
-		console.error('Error generating static params for orders:', error);
-		return [];
-	}
 }
 
 export default async function OrderDetailsPage({ params }: PageProps) {

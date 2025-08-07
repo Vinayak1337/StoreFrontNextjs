@@ -141,14 +141,14 @@ export function Sidebar() {
 					<Button
 						variant='outline'
 						size='icon'
-						className='md:hidden fixed top-4 left-4 z-50 shadow-lg bg-white hover:bg-gray-50 border-gray-200'>
+						className='md:hidden fixed top-4 left-4 z-50 shadow-lg bg-background hover:bg-accent/50 border-border'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>
 				</SheetTrigger>
 				<SheetContent
 					side='left'
-					className='flex flex-col p-0 w-[85%] sm:w-[300px] border-r bg-white'>
+					className='flex flex-col p-0 w-[85%] sm:w-[300px] border-r bg-background'>
 					<SheetHeader className='sr-only'>
 						<SheetTitle>Navigation Menu</SheetTitle>
 						<SheetDescription>Store navigation options</SheetDescription>
@@ -183,11 +183,11 @@ export function Sidebar() {
 							))}
 						</div>
 					</nav>
-					<div className='border-t bg-gray-50/50 p-4'>
+					<div className='border-t bg-muted/50 p-4'>
 						<Button
 							variant='ghost'
 							size='sm'
-							className='w-full justify-start gap-3 hover:bg-red-50 hover:text-red-600 text-gray-600'
+							className='w-full justify-start gap-3 hover:bg-destructive/10 hover:text-destructive text-foreground'
 							onClick={() => {
 								handleLogout();
 								setOpen(false);
@@ -200,7 +200,7 @@ export function Sidebar() {
 			</Sheet>
 
 			{/* Tablet Navigation - Bottom Navbar (Portrait/vertical tablet) */}
-			<nav className='hidden md:flex lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg'>
+			<nav className='hidden md:flex lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background border-t border-border shadow-lg'>
 				<div className='flex items-center justify-around w-full px-2 py-3'>
 					{routes.map((route) => (
 						<Link
@@ -210,16 +210,16 @@ export function Sidebar() {
 								'flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[64px] relative transition-all duration-200',
 								pathname === route.href
 									? 'text-emerald-600 bg-emerald-50'
-									: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+									: 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
 							)}>
 							<div className={cn(
 								'flex items-center justify-center w-6 h-6 relative',
-								pathname === route.href ? 'text-emerald-600' : 'text-gray-500'
+								pathname === route.href ? 'text-emerald-600' : 'text-muted-foreground'
 							)}>
 								{route.icon}
 								{route.badge > 0 && (
 									<Badge 
-										className='absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 text-white border-white flex items-center justify-center'
+										className='absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-destructive text-destructive-foreground border-white flex items-center justify-center'
 									>
 										{route.badge > 9 ? '9+' : route.badge}
 									</Badge>
@@ -233,7 +233,7 @@ export function Sidebar() {
 					{/* Logout button for tablet */}
 					<button
 						onClick={handleLogout}
-						className='flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[64px] text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200'>
+						className='flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[64px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200'>
 						<LogOut className='w-6 h-6' />
 						<span className='text-xs font-medium'>Logout</span>
 					</button>
@@ -241,7 +241,7 @@ export function Sidebar() {
 			</nav>
 
 			{/* Desktop Navigation - Floating Sidebar (Landscape tablet and desktop) */}
-			<aside className='hidden lg:flex flex-col w-64 xl:w-72 h-[calc(100vh-2rem)] m-4 rounded-2xl bg-white shadow-lg border border-gray-100 fixed top-0 left-0 z-40'>
+			<aside className='hidden lg:flex flex-col w-64 xl:w-72 h-[calc(100vh-2rem)] m-4 rounded-2xl bg-background shadow-lg border border-border fixed top-0 left-0 z-40'>
 				<div className='flex h-16 xl:h-20 items-center border-b px-6'>
 					<div className='flex items-center gap-3'>
 						<div className='flex items-center justify-center w-8 h-8 xl:w-10 xl:h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg shadow-lg'>
@@ -249,41 +249,40 @@ export function Sidebar() {
 						</div>
 						<h2 className='text-xl xl:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent'>
 							StoreFront
-						</h2>
+												</h2>
 					</div>
 				</div>
-
-				<nav className='flex-1 px-4 py-6 overflow-y-auto'>
-					<div className='space-y-2'>
-						{routes.map((route, index) => (
-							<div 
-								key={route.href}
-								style={{ animationDelay: `${index * 50}ms` }}
-								className='animate-slide-in-left'
-							>
-								<NavItem
-									href={route.href}
-									icon={route.icon}
-									title={route.title}
-									isActive={pathname === route.href}
-									badge={route.badge}
-								/>
-							</div>
-						))}
+					<nav className='flex-1 px-4 py-6 overflow-y-auto'>
+						<div className='space-y-2'>
+							{routes.map((route, index) => (
+								<div 
+									key={route.href}
+									style={{ animationDelay: `${index * 50}ms` }}
+									className='animate-slide-in-left'
+								>
+									<NavItem
+										href={route.href}
+										icon={route.icon}
+										title={route.title}
+										isActive={pathname === route.href}
+										badge={route.badge}
+									/>
+								</div>
+							))}
+						</div>
+					</nav>
+					
+					<div className='border-t bg-muted/50 p-4'>
+						<Button
+							variant='ghost'
+							size='sm'
+							className='w-full justify-start gap-3 hover:bg-destructive/10 hover:text-destructive text-foreground'
+							onClick={handleLogout}>
+							<LogOut className='h-4 w-4' />
+							<span className='font-medium'>Sign Out</span>
+						</Button>
 					</div>
-				</nav>
-
-				<div className='border-t bg-gray-50/50 p-4'>
-					<Button
-						variant='ghost'
-						size='sm'
-						className='w-full justify-start gap-3 hover:bg-red-50 hover:text-red-600 text-gray-600'
-						onClick={handleLogout}>
-						<LogOut className='h-4 w-4' />
-						<span className='font-medium'>Sign Out</span>
-					</Button>
-				</div>
-			</aside>
+				</aside>
 		</>
 	);
 }

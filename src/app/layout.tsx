@@ -28,7 +28,7 @@ export default function RootLayout({
 				<link rel='icon' href='/favicon.ico' />
 			</head>
 			<body
-				className={`min-h-screen bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
+				className={`min-h-screen bg-background text-foreground font-sans antialiased ${fontSans.variable}`}>
 				<ClientWrapper>{children}</ClientWrapper>
 			</body>
 		</html>

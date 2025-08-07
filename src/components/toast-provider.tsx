@@ -3,12 +3,14 @@
 import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTheme } from 'next-themes';
 
 export function ToastProvider() {
+	const { resolvedTheme } = useTheme();
 	return (
 		<ToastContainer
 			position='top-right'
-			autoClose={5000}
+			autoClose={3000}
 			hideProgressBar={false}
 			newestOnTop
 			closeOnClick
@@ -16,7 +18,8 @@ export function ToastProvider() {
 			pauseOnFocusLoss
 			draggable
 			pauseOnHover
-			theme='light'
+			theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
+			style={{ zIndex: 9999 }}
 		/>
 	);
 }

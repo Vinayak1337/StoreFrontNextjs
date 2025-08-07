@@ -869,16 +869,16 @@ body {
 		color: inherit;
 	}
 
-	/* Focus styles for accessibility */
-	button:focus,
-	[role='button']:focus,
-	a:focus,
-	input:focus,
-	select:focus,
-	textarea:focus {
-		outline: 2px solid hsl(var(--ring));
-		outline-offset: 2px;
-	}
+			/* Focus styles for accessibility */
+		button:focus,
+		[role='button']:focus,
+		a:focus,
+		input:focus,
+		select:focus,
+		textarea:focus {
+			outline: 2px solid var(--ring);
+			outline-offset: 2px;
+		}
 }
 
 /* Animation preferences */
@@ -904,20 +904,20 @@ body {
 	@media (max-width: 1023px) {
 		/* Better contrast for mobile dark mode */
 		.card {
-			background-color: hsl(var(--card));
-			border: 1px solid hsl(var(--border));
+			background-color: var(--card);
+			border: 1px solid var(--border);
 		}
 
 		/* Improved text contrast */
 		.text-muted-foreground {
-			color: hsl(var(--muted-foreground) / 0.8);
+			color: var(--muted-foreground);
 		}
 	}
 }
 
 /* Keyboard navigation improvements */
 .focus-visible:focus-visible {
-	outline: 2px solid hsl(var(--ring));
+	outline: 2px solid var(--ring);
 	outline-offset: 2px;
 }
 

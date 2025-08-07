@@ -13,7 +13,7 @@ export interface ThemeProviderProps
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 	return (
-		<NextThemesProvider {...props} forcedTheme='light'>
+		<NextThemesProvider {...props}>
 			{children}
 		</NextThemesProvider>
 	);

@@ -4,6 +4,8 @@ import {
 } from '@/app/api/orders/create/actions';
 import { CreateOrderClient } from '@/components/orders/create/create-order-client';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CreateOrderPage() {
 	const [items, categories] = await Promise.all([
 		getItems(),
