@@ -224,14 +224,14 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					<ShoppingBag className='h-4 w-4 text-orange-500' />
 					In Stock
 				</Label>
-                <div className='switch-container flex items-center gap-2'>
+				<div className='switch-container flex items-center gap-2'>
 					<Switch
 						id='in-stock'
 						checked={formData.inStock}
 						onCheckedChange={handleInStockChange}
 					/>
 					<span
-                      className='switch-label select-none text-sm'
+						className='switch-label select-none text-sm'
 						onClick={() => handleInStockChange(!formData.inStock)}>
 						{formData.inStock ? 'Yes' : 'No'}
 					</span>

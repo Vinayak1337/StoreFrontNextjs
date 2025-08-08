@@ -84,10 +84,13 @@ function DraggableItemComponent({
 	};
 
 	const handleMouseDown = (e: React.MouseEvent) => {
-		if (selectionMode || isDragStarted || 
+		if (
+			selectionMode ||
+			isDragStarted ||
 			(e.target as HTMLElement).closest('.drag-handle') ||
 			(e.target as HTMLElement).closest('button') ||
-			(e.target as HTMLElement).closest('.cursor-pointer')) {
+			(e.target as HTMLElement).closest('.cursor-pointer')
+		) {
 			return;
 		}
 		startHold();
@@ -116,9 +119,6 @@ function DraggableItemComponent({
 		};
 	}, []);
 
-
-
-
 	return (
 		<div
 			ref={ref}
@@ -131,14 +131,17 @@ function DraggableItemComponent({
 					? 'opacity-40 shadow-lg border-emerald-400 cursor-grabbing'
 					: 'cursor-grab hover:border-gray-300'
 			} ${isSelected ? 'border-blue-400 bg-blue-50' : ''}`}>
-
-			<div 
-				className='flex flex-col h-full' 
-				onClick={showSelection ? (e) => {
-					e.stopPropagation();
-					e.preventDefault();
-					onItemSelect?.(item.id, !isSelected);
-				} : undefined}>
+			<div
+				className='flex flex-col h-full'
+				onClick={
+					showSelection
+						? e => {
+								e.stopPropagation();
+								e.preventDefault();
+								onItemSelect?.(item.id, !isSelected);
+						  }
+						: undefined
+				}>
 				<div className='flex-1'>
 					<div className='flex items-start justify-between mb-2'>
 						<div className='flex items-center gap-3'>
@@ -188,12 +191,11 @@ function DraggableItemComponent({
 									</Button>
 								</DeleteItemButton>
 							</div>
-							<div 
+							<div
 								ref={dragHandleRef}
 								className='drag-handle p-2 cursor-grab active:cursor-grabbing touch-none'
 								onClick={e => e.stopPropagation()}
-								style={{ touchAction: 'none' }}
-							>
+								style={{ touchAction: 'none' }}>
 								<GripVertical className='h-4 w-4 text-gray-500' />
 							</div>
 						</div>
@@ -201,13 +203,13 @@ function DraggableItemComponent({
 
 					<div className='space-y-2'>
 						<div className='flex items-center justify-between'>
-                            <span className='text-lg font-bold text-emerald-600'>
+							<span className='text-lg font-bold text-emerald-600'>
 								{formatPrice(item.price)}
 							</span>
 							{item.inStock ? (
-                                <Badge
-                                    variant='default'
-                                    className='text-xs bg-emerald-100 text-emerald-700 border-emerald-200'>
+								<Badge
+									variant='default'
+									className='text-xs bg-emerald-100 text-emerald-700 border-emerald-200'>
 									In Stock
 								</Badge>
 							) : (

@@ -18,10 +18,10 @@ export default async function OrdersPage() {
 						Orders Management
 					</h1>
 					<div className='flex items-center gap-1 sm:gap-2'>
-                        <Link href='/orders/create'>
-                            <Button
-                                size='sm'
-                                className='flex items-center gap-1 sm:gap-2 text-xs sm:text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white'>
+						<Link href='/orders/create'>
+							<Button
+								size='sm'
+								className='flex items-center gap-1 sm:gap-2 text-xs sm:text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white'>
 								<Plus className='h-3 w-3 sm:h-4 sm:w-4' />
 								<span className='hidden xs:inline sm:hidden'>New</span>
 								<span className='hidden sm:inline'>Create New Order</span>

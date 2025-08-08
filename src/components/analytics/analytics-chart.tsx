@@ -59,9 +59,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 								className='w-3 h-3 rounded-full'
 								style={{ backgroundColor: entry.stroke }}
 							/>
-								<span className='text-sm'>
-									{entry.dataKey === 'sales' ? 'Revenue' : 'Gross Margin'}:
-								</span>
+							<span className='text-sm'>
+								{entry.dataKey === 'sales' ? 'Revenue' : 'Gross Margin'}:
+							</span>
 						</div>
 						<span className='text-sm font-semibold'>
 							₹{entry.value.toFixed(2)}
@@ -74,8 +74,14 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
 	return null;
 };
 
-export function AnalyticsChart({ initialData, onViewModeChange, loading }: AnalyticsChartProps) {
-	const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+export function AnalyticsChart({
+	initialData,
+	onViewModeChange,
+	loading
+}: AnalyticsChartProps) {
+	const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>(
+		'daily'
+	);
 	const [chartType, setChartType] = useState<'bar' | 'area'>('area');
 
 	// Handle view mode change
@@ -95,14 +101,16 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 		// Group data based on view mode
 		if (viewMode === 'weekly') {
 			// Group by week
-			const weeklyData: { [key: string]: { totalAmount: number; count: number } } = {};
+			const weeklyData: {
+				[key: string]: { totalAmount: number; count: number };
+			} = {};
 			data.forEach(item => {
 				try {
 					const date = new Date(item.date + 'T00:00:00.000Z');
 					const weekStart = new Date(date);
 					weekStart.setDate(date.getDate() - date.getDay());
 					const weekKey = weekStart.toISOString().split('T')[0];
-					
+
 					if (!weeklyData[weekKey]) {
 						weeklyData[weekKey] = { totalAmount: 0, count: 0 };
 					}
@@ -112,7 +120,7 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 					// Skip invalid data
 				}
 			});
-			
+
 			data = Object.entries(weeklyData)
 				.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
 				.map(([date, values]) => ({
@@ -124,12 +132,16 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 				}));
 		} else if (viewMode === 'monthly') {
 			// Group by month
-			const monthlyData: { [key: string]: { totalAmount: number; count: number } } = {};
+			const monthlyData: {
+				[key: string]: { totalAmount: number; count: number };
+			} = {};
 			data.forEach(item => {
 				try {
 					const date = new Date(item.date + 'T00:00:00.000Z');
-					const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
-					
+					const monthKey = `${date.getFullYear()}-${String(
+						date.getMonth() + 1
+					).padStart(2, '0')}-01`;
+
 					if (!monthlyData[monthKey]) {
 						monthlyData[monthKey] = { totalAmount: 0, count: 0 };
 					}
@@ -139,7 +151,7 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 					// Skip invalid data
 				}
 			});
-			
+
 			data = Object.entries(monthlyData)
 				.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
 				.map(([date, values]) => ({
@@ -151,7 +163,9 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 				}));
 		} else {
 			// Sort daily data by date
-			data = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+			data = data.sort(
+				(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+			);
 		}
 
 		// Format the data for chart display with realistic wholesale margins
@@ -160,14 +174,15 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 				const dateObj = new Date(item.date + 'T00:00:00.000Z');
 				const revenue = Number(item.totalAmount || 0);
 				// Profit margin for wholesale (10% gross margin)
-				const grossMargin = revenue * 0.10;
-				
+				const grossMargin = revenue * 0.1;
+
 				return {
-					date: viewMode === 'monthly' 
-						? format(dateObj, 'MMM yyyy')
-						: viewMode === 'weekly'
-						? `Week of ${format(dateObj, 'MMM dd')}`
-						: format(dateObj, 'MMM dd'),
+					date:
+						viewMode === 'monthly'
+							? format(dateObj, 'MMM yyyy')
+							: viewMode === 'weekly'
+							? `Week of ${format(dateObj, 'MMM dd')}`
+							: format(dateObj, 'MMM dd'),
 					sales: revenue,
 					profit: grossMargin
 				};
@@ -177,11 +192,11 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 				return {
 					date: item.date,
 					sales: revenue,
-					profit: revenue * 0.10
+					profit: revenue * 0.1
 				};
 			}
 		});
-		
+
 		return formattedData;
 	};
 
@@ -206,11 +221,11 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 	const trend = calculateTrend();
 
 	// Chart colors
-    const colorPalette = {
-      revenue: '#059669', // emerald-600
-      profit: '#10b981', // emerald-500
-      grid: 'rgba(148, 163, 184, 0.1)'
-    };
+	const colorPalette = {
+		revenue: '#059669', // emerald-600
+		profit: '#10b981', // emerald-500
+		grid: 'rgba(148, 163, 184, 0.1)'
+	};
 
 	return (
 		<Card className='col-span-full animate-fade-in'>

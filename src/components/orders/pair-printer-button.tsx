@@ -15,7 +15,9 @@ export function PairPrinterButton() {
 	const [isPairingPrinter, setIsPairingPrinter] = useState(false);
 	const [printerSaved, setPrinterSaved] = useState(false);
 	const [isConnectedPrinter, setIsConnectedPrinter] = useState(false);
-	const [connectedPrinterName, setConnectedPrinterName] = useState<string | null>(null);
+	const [connectedPrinterName, setConnectedPrinterName] = useState<
+		string | null
+	>(null);
 	const [isAutoConnecting, setIsAutoConnecting] = useState(true);
 
 	useEffect(() => {
@@ -27,7 +29,10 @@ export function PairPrinterButton() {
 					if (connectedPrinter) {
 						setIsConnectedPrinter(true);
 						setConnectedPrinterName(connectedPrinter.name);
-						console.log('Auto-connected to saved printer:', connectedPrinter.name);
+						console.log(
+							'Auto-connected to saved printer:',
+							connectedPrinter.name
+						);
 					}
 				}
 			} catch (error) {
@@ -109,7 +114,7 @@ export function PairPrinterButton() {
 				icon: <BluetoothConnected className='h-4 w-4' />,
 				text: 'Printer Saved',
 				shortText: 'Saved',
-                className: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+				className: 'bg-emerald-600 hover:bg-emerald-700 text-white',
 				disabled: false
 			};
 		}
@@ -143,14 +148,14 @@ export function PairPrinterButton() {
 			onClick={handlePairPrinter}
 			disabled={buttonState.disabled}
 			className={`flex items-center gap-2 text-sm md:text-base ${buttonState.className}`}
-			title={isConnectedPrinter && connectedPrinterName ? `Connected to: ${connectedPrinterName}` : undefined}>
+			title={
+				isConnectedPrinter && connectedPrinterName
+					? `Connected to: ${connectedPrinterName}`
+					: undefined
+			}>
 			{buttonState.icon}
-			<span className='hidden sm:inline'>
-				{buttonState.text}
-			</span>
-			<span className='sm:hidden'>
-				{buttonState.shortText}
-			</span>
+			<span className='hidden sm:inline'>{buttonState.text}</span>
+			<span className='sm:hidden'>{buttonState.shortText}</span>
 		</Button>
 	);
 }
