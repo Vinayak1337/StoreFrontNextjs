@@ -19,7 +19,7 @@ import {
 	connectToPrinter,
 	testPrinter,
 	autoConnectPrinter,
-	debugBluetoothSupport,
+	debugBluetoothSupport
 } from '@/lib/utils/printer-utils';
 import {
 	Loader2,
@@ -79,7 +79,9 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 	});
 	const [loading, setLoading] = useState(false);
 	const [printerLoading, setPrinterLoading] = useState(false);
-	const [availablePrinters, setAvailablePrinters] = useState<PrinterDevice[]>([]);
+	const [availablePrinters, setAvailablePrinters] = useState<PrinterDevice[]>(
+		[]
+	);
 	const [printerStatus, setPrinterStatus] = useState<
 		'online' | 'offline' | 'error' | 'checking'
 	>(formState.printer?.connected ? 'online' : 'offline');
@@ -113,7 +115,10 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 				});
 
 				if (!result.success) {
-					console.error('Failed to save printer connection state:', result.error);
+					console.error(
+						'Failed to save printer connection state:',
+						result.error
+					);
 				}
 			} else {
 				setPrinterStatus('offline');
@@ -259,7 +264,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 		setLoading(true);
 		try {
 			const result = await updateSettings(formState);
-			
+
 			if (result.success) {
 				toast.success('Settings saved successfully');
 
@@ -476,7 +481,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 					<Card className='border-gray-200'>
 						<CardHeader className='border-b border-gray-100 p-4 sm:p-6'>
 							<CardTitle className='text-base sm:text-lg lg:text-xl flex items-center gap-2'>
-                                <Printer className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-600' />
+								<Printer className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-600' />
 								Thermal Printer Status
 								{printerStatus === 'online' || formState.printer?.connected ? (
 									<Badge variant='default' className='ml-2 gap-1 text-xs'>
@@ -506,13 +511,13 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 						</CardHeader>
 						<CardContent className='p-4 lg:p-6'>
 							{formState.printer?.connected ? (
-                                <div className='bg-emerald-50 border border-emerald-200 rounded-lg p-4'>
+								<div className='bg-emerald-50 border border-emerald-200 rounded-lg p-4'>
 									<div className='flex items-center justify-between'>
 										<div>
-                                        <h3 className='font-medium text-emerald-900 text-sm sm:text-base'>
+											<h3 className='font-medium text-emerald-900 text-sm sm:text-base'>
 												{formState.printer.name || 'Connected Printer'}
 											</h3>
-                                            <p className='text-xs sm:text-sm text-emerald-700 mt-1'>
+											<p className='text-xs sm:text-sm text-emerald-700 mt-1'>
 												Device ID: {formState.printer.deviceId}
 											</p>
 										</div>

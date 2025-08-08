@@ -20,7 +20,14 @@ export default async function AnalyticsPage() {
 
 	return (
 		<div className='container py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6'>
-			<Suspense fallback={null}>
+			<Suspense
+				fallback={
+					<div className='flex items-center justify-center min-h-[400px] p-8'>
+						<div className='text-center text-muted-foreground'>
+							Loading analytics...
+						</div>
+					</div>
+				}>
 				<AnalyticsClient
 					initialMetrics={metrics}
 					initialSalesData={salesData}
