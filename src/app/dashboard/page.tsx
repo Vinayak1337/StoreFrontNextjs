@@ -48,15 +48,15 @@ const MetricCard = React.memo(function MetricCard({
 				</div>
 			</div>
 			<div className='mt-4 flex items-center'>
-				{isPositive ? (
-					<TrendingUp className='h-4 w-4 mr-1 text-green-500' />
-				) : (
-					<TrendingUp className='h-4 w-4 mr-1 text-red-500 rotate-180' />
-				)}
+                {isPositive ? (
+                    <TrendingUp className='h-4 w-4 mr-1 text-emerald-500' />
+                ) : (
+                    <TrendingUp className='h-4 w-4 mr-1 text-red-500 rotate-180' />
+                )}
 				<span
-					className={`text-sm font-medium ${
-						isPositive ? 'text-green-600' : 'text-red-600'
-					}`}>
+                    className={`text-sm font-medium ${
+                        isPositive ? 'text-emerald-600' : 'text-red-600'
+                    }`}>
 					{change}
 				</span>
 				<span className='text-gray-500 text-sm ml-1'>vs last period</span>
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
 					<RefreshButton />
 					<Link
 						href='/orders/create'
-						className='inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
+                        className='inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors'>
 						<Plus className='h-4 w-4' />
 						New Order
 					</Link>

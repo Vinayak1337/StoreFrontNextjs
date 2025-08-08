@@ -56,13 +56,13 @@ export function MetricCard({
 				<div className='flex items-center justify-between'>
 					<div className='flex items-center space-x-1'>
 						{isPositive ? (
-							<TrendingUp className='h-3.5 w-3.5 text-green-600' />
+                        <TrendingUp className='h-3.5 w-3.5 text-emerald-600' />
 						) : (
 							<TrendingDown className='h-3.5 w-3.5 text-red-500' />
 						)}
 						<span className={cn(
 							'text-sm font-medium',
-							isPositive ? 'text-green-600' : 'text-red-500'
+                        isPositive ? 'text-emerald-600' : 'text-red-500'
 						)}>
 							{isPositive ? '+' : ''}{change}%
 						</span>

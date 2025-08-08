@@ -63,9 +63,9 @@ export function OrderSummary({
 
 					{/* Total */}
 					<div className='border-t pt-4'>
-						<div className='flex justify-between items-center text-lg font-bold'>
+                        <div className='flex justify-between items-center text-lg font-bold'>
 							<span>Total</span>
-							<span className='text-green-600'>{formatPrice(total)}</span>
+                            <span className='text-emerald-600'>{formatPrice(total)}</span>
 						</div>
 					</div>
 				</div>

@@ -206,11 +206,11 @@ export function AnalyticsChart({ initialData, onViewModeChange, loading }: Analy
 	const trend = calculateTrend();
 
 	// Chart colors
-	const colorPalette = {
-		revenue: '#059669', // emerald-600
-		profit: '#10b981', // emerald-500
-		grid: 'rgba(148, 163, 184, 0.1)' // slate-400 with opacity
-	};
+    const colorPalette = {
+      revenue: '#059669', // emerald-600
+      profit: '#10b981', // emerald-500
+      grid: 'rgba(148, 163, 184, 0.1)'
+    };
 
 	return (
 		<Card className='col-span-full animate-fade-in'>

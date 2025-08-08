@@ -201,13 +201,13 @@ function DraggableItemComponent({
 
 					<div className='space-y-2'>
 						<div className='flex items-center justify-between'>
-							<span className='text-lg font-bold text-green-600'>
+                            <span className='text-lg font-bold text-emerald-600'>
 								{formatPrice(item.price)}
 							</span>
 							{item.inStock ? (
-								<Badge
-									variant='default'
-									className='text-xs bg-green-100 text-green-700 border-green-200'>
+                                <Badge
+                                    variant='default'
+                                    className='text-xs bg-emerald-100 text-emerald-700 border-emerald-200'>
 									In Stock
 								</Badge>
 							) : (

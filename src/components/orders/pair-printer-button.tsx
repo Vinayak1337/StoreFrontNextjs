@@ -109,7 +109,7 @@ export function PairPrinterButton() {
 				icon: <BluetoothConnected className='h-4 w-4' />,
 				text: 'Printer Saved',
 				shortText: 'Saved',
-				className: 'bg-green-600 hover:bg-green-700 text-white',
+                className: 'bg-emerald-600 hover:bg-emerald-700 text-white',
 				disabled: false
 			};
 		}

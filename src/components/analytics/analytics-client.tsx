@@ -12,7 +12,7 @@ import {
 import { AnalyticsChart } from './analytics-chart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getDailySales } from '@/app/api/analytics/actions';
+import { fetchWithCsrf } from '@/lib/client/csrf-utils';
 
 interface AnalyticsMetrics {
 	totalOrders: number;
@@ -57,42 +57,42 @@ export function AnalyticsClient({
 	const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 
-	const handleViewModeChange = useCallback(async (mode: 'daily' | 'weekly' | 'monthly') => {
-		setLoading(true);
-		
-		try {
-			// Determine date range based on view mode
-			let days = 30; // default for daily
-			if (mode === 'weekly') days = 84; // 12 weeks
-			if (mode === 'monthly') days = 365; // 12 months
-			
-			const endDate = new Date().toISOString().split('T')[0];
-			const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-			
-			const newData = await getDailySales(startDate, endDate);
-			setSalesData(newData);
-		} catch (error) {
-			console.error('Error fetching sales data:', error);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+  const handleViewModeChange = useCallback(async (mode: 'daily' | 'weekly' | 'monthly') => {
+    setLoading(true);
+    try {
+      let days = 30;
+      if (mode === 'weekly') days = 84;
+      if (mode === 'monthly') days = 365;
 
-	const handleRefresh = async () => {
-		setRefreshing(true);
-		try {
-			// Refresh with current date range (last 30 days)
-			const endDate = new Date().toISOString().split('T')[0];
-			const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-			
-			const newData = await getDailySales(startDate, endDate);
-			setSalesData(newData);
-		} catch (error) {
-			console.error('Error refreshing data:', error);
-		} finally {
-			setTimeout(() => setRefreshing(false), 1000);
-		}
-	};
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const res = await fetchWithCsrf(`/api/analytics?startDate=${startDate}&endDate=${endDate}`, { method: 'GET' });
+      if (!res.ok) throw new Error('Failed to fetch analytics');
+      const json = await res.json();
+      setSalesData(json.data ?? []);
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const res = await fetchWithCsrf(`/api/analytics?startDate=${startDate}&endDate=${endDate}`, { method: 'GET' });
+      if (!res.ok) throw new Error('Failed to refresh analytics');
+      const json = await res.json();
+      setSalesData(json.data ?? []);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setTimeout(() => setRefreshing(false), 1000);
+    }
+  };
 
 	// Calculate additional wholesale metrics
 	const grossMargin = initialMetrics.totalSales * 0.10; // 10% gross margin
@@ -105,8 +105,8 @@ export function AnalyticsClient({
 			icon: <DollarSign className='h-4 w-4 sm:h-5 sm:w-5' />,
 			change: initialMetrics.revenueTrend || 0,
 			subtitle: 'Total sales this month',
-			color: 'text-green-600',
-			bgColor: 'bg-green-100'
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-100'
 		},
 		{
 			title: 'Gross Margin',
@@ -168,11 +168,10 @@ export function AnalyticsClient({
 
 			{/* Metrics Cards */}
 			<div className='grid gap-3 lg:gap-4 grid-cols-2 lg:grid-cols-4'>
-				{metricsCards.map((card, index) => (
+                {metricsCards.map((card, index) => (
 					<div
 						key={card.title}
-						className='bg-white rounded-lg lg:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6 hover:shadow-md transition-all duration-200'
-						style={{ animationDelay: `${index * 100}ms` }}>
+                    className={`bg-white rounded-lg lg:rounded-xl border border-gray-200 p-3 sm:p-4 lg:p-6 hover:shadow-md transition-all duration-200 [animation-delay:${index*100}ms]`}>
 						<div className='flex items-center justify-between mb-2 sm:mb-3 lg:mb-4'>
 							<div
 								className={`p-1.5 lg:p-2 rounded-md lg:rounded-lg ${card.bgColor}`}>
@@ -267,7 +266,7 @@ export function AnalyticsClient({
 				<div className='bg-white rounded-xl border border-gray-200 p-4 sm:p-6'>
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2'>
-							<BarChart3 className='h-4 w-4 sm:h-5 sm:w-5 text-green-600' />
+                    <BarChart3 className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-600' />
 							Today&apos;s Performance
 						</h3>
 						<Badge variant='secondary' className='text-xs'>
@@ -275,9 +274,9 @@ export function AnalyticsClient({
 						</Badge>
 					</div>
 					<div className='space-y-3 lg:space-y-4'>
-						<div className='flex items-center justify-between p-2 lg:p-3 bg-green-50 rounded-md lg:rounded-lg'>
+                        <div className='flex items-center justify-between p-2 lg:p-3 bg-emerald-50 rounded-md lg:rounded-lg'>
 							<div className='flex items-center gap-2 lg:gap-3 min-w-0 flex-1'>
-								<div className='w-2 h-2 bg-green-500 rounded-full flex-shrink-0'></div>
+                                <div className='w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0'></div>
 								<span className='text-xs lg:text-sm font-medium text-gray-700 truncate'>
 									Orders Today
 								</span>
