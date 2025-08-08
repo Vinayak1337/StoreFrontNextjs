@@ -16,9 +16,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				{children}
-			</DialogTrigger>
+			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent className='w-[92vw] max-w-md sm:max-w-lg p-5'>
 				<DialogHeader>
 					<DialogTitle>Add New Item</DialogTitle>

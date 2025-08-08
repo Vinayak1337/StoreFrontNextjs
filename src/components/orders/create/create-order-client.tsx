@@ -279,8 +279,8 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 							onSelectCategory={setSelectedCategory}
 						/>
 
-						{/* Items Grid */}
-						{Object.keys(itemsByCategory).length === 0 ? (
+                        {/* Items Grid */}
+                        {Object.keys(itemsByCategory).length === 0 ? (
 							<div className='text-center py-8 sm:py-12'>
 								<Package className='h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-gray-400' />
 								<h3 className='text-base sm:text-lg font-medium text-gray-900 mb-2'>
@@ -290,55 +290,65 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 									Try adjusting your search or category filter.
 								</p>
 							</div>
-						) : (
-							<div className='space-y-4 sm:space-y-6'>
-								{Object.entries(itemsByCategory).map(
-									([categoryId, { category, items: categoryItems }]) => (
-										<div key={categoryId}>
-											<h3 className='font-medium text-gray-900 mb-3 flex items-center gap-2 text-sm sm:text-base'>
-												{category ? (
-													<>
-														<div
-															className='w-3 h-3 rounded-full'
-															style={{ backgroundColor: category.color }}
-														/>
-														{category.name}
-													</>
-												) : (
-													<>
-														<Package className='h-4 w-4 text-gray-400' />
-														Uncategorized
-													</>
-												)}
-												<Badge variant='secondary' className='text-xs'>
-													{categoryItems.length}
-												</Badge>
-											</h3>
-											<div className='grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'>
-												{categoryItems.map(item => {
-													const orderItem = orderItems.find(
-														oi => oi.itemId === item.id
-													);
-													return (
-														<OrderItemCard
-															key={item.id}
-															item={item}
-															orderQuantity={orderItem?.quantity}
-															onAdd={() => addItem(item.id)}
-															onUpdateQuantity={quantity =>
-																updateQuantity(item.id, quantity)
-															}
-															onRemove={() => removeItem(item.id)}
-															isSelected={!!orderItem}
-														/>
-													);
-												})}
-											</div>
-										</div>
-									)
-								)}
-							</div>
-						)}
+                        ) : (
+                            <div className='space-y-4 sm:space-y-6'>
+                                {(() => {
+                                    const entries = Object.entries(itemsByCategory);
+                                    const uncategorized = entries.find(([id]) => id === 'uncategorized');
+                                    const categorized = entries.filter(([id]) => id !== 'uncategorized');
+                                    categorized.sort((a, b) => {
+                                        const catA = a[1].category;
+                                        const catB = b[1].category;
+                                        const orderA = catA?.order ?? Number.MAX_SAFE_INTEGER;
+                                        const orderB = catB?.order ?? Number.MAX_SAFE_INTEGER;
+                                        if (orderA !== orderB) return orderA - orderB;
+                                        const nameA = (catA?.name || '').toLowerCase();
+                                        const nameB = (catB?.name || '').toLowerCase();
+                                        return nameA.localeCompare(nameB);
+                                    });
+                                    const ordered = uncategorized ? [uncategorized, ...categorized] : categorized;
+                                    return ordered.map(([categoryId, { category, items: categoryItems }]) => (
+                                        <div key={categoryId}>
+                                            <h3 className='font-medium text-gray-900 mb-3 flex items-center gap-2 text-sm sm:text-base'>
+                                                {category ? (
+                                                    <>
+                                                        <div
+                                                            className='w-3 h-3 rounded-full'
+                                                            style={{ backgroundColor: category.color }}
+                                                        />
+                                                        {category.name}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Package className='h-4 w-4 text-gray-400' />
+                                                        Uncategorized
+                                                    </>
+                                                )}
+                                                <Badge variant='secondary' className='text-xs'>
+                                                    {categoryItems.length}
+                                                </Badge>
+                                            </h3>
+                                            <div className='grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'>
+                                                {categoryItems.map(item => {
+                                                    const orderItem = orderItems.find(oi => oi.itemId === item.id);
+                                                    return (
+                                                        <OrderItemCard
+                                                            key={item.id}
+                                                            item={item}
+                                                            orderQuantity={orderItem?.quantity}
+                                                            onAdd={() => addItem(item.id)}
+                                                            onUpdateQuantity={quantity => updateQuantity(item.id, quantity)}
+                                                            onRemove={() => removeItem(item.id)}
+                                                            isSelected={!!orderItem}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ));
+                                })()}
+                            </div>
+                        )}
 					</div>
 				</div>
 
