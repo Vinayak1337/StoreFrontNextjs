@@ -48,27 +48,35 @@ function CategorySectionComponent({
 		async (draggedItem: { id: string; categoryId?: string }) => {
 			if (draggedItem.categoryId !== category.id) {
 				try {
-					const itemsToMove = selectedItems.has(draggedItem.id) && selectedItems.size > 1
-						? Array.from(selectedItems)
-						: [draggedItem.id];
+					const itemsToMove =
+						selectedItems.has(draggedItem.id) && selectedItems.size > 1
+							? Array.from(selectedItems)
+							: [draggedItem.id];
 
-					await Promise.all(itemsToMove.map(async (itemId) => {
-						const currentCategoryId = itemId === draggedItem.id 
-							? draggedItem.categoryId 
-							: selectedItems.has(itemId) 
-								? selectionCategory === 'uncategorized' ? undefined : selectionCategory
-								: undefined;
+					await Promise.all(
+						itemsToMove.map(async itemId => {
+							const currentCategoryId =
+								itemId === draggedItem.id
+									? draggedItem.categoryId
+									: selectedItems.has(itemId)
+									? selectionCategory === 'uncategorized'
+										? undefined
+										: selectionCategory
+									: undefined;
 
-						if (currentCategoryId) {
-							await api.removeItemFromCategory(currentCategoryId, itemId);
-						}
-						await api.addItemToCategory(category.id, itemId);
-					}));
+							if (currentCategoryId) {
+								await api.removeItemFromCategory(currentCategoryId, itemId);
+							}
+							await api.addItemToCategory(category.id, itemId);
+						})
+					);
 
 					router.refresh();
 
 					const count = itemsToMove.length;
-					toast.success(`${count} item${count > 1 ? 's' : ''} moved successfully!`);
+					toast.success(
+						`${count} item${count > 1 ? 's' : ''} moved successfully!`
+					);
 				} catch (error) {
 					console.error('Failed to move items:', error);
 					toast.error('Failed to move items to category. Please try again.');
@@ -107,13 +115,16 @@ function CategorySectionComponent({
 						) : (
 							<ChevronDown className='h-4 w-4 text-gray-400' />
 						)}
-						<div
-							className='w-4 h-4 rounded-full border-2'
-							style={{
-								backgroundColor: category.color,
-								borderColor: category.color
-							}}
-						/>
+						<svg className='w-4 h-4' viewBox='0 0 12 12' aria-hidden='true'>
+							<circle
+								cx='6'
+								cy='6'
+								r='5'
+								fill={category.color}
+								stroke={category.color}
+								strokeWidth='2'
+							/>
+						</svg>
 						<div className='flex items-center gap-2'>
 							<h3 className='font-semibold text-gray-900'>{category.name}</h3>
 							<Badge variant='secondary' className='text-xs'>
@@ -150,7 +161,9 @@ function CategorySectionComponent({
 									onDragEnd={onDragEnd}
 									selectionMode={selectionMode}
 									isSelected={selectedItems.has(item.id)}
-									showSelection={selectionMode && selectionCategory === category.id}
+									showSelection={
+										selectionMode && selectionCategory === category.id
+									}
 									onItemHold={onItemHold}
 									onItemSelect={onItemSelect}
 								/>

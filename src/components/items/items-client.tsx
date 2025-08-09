@@ -106,8 +106,16 @@ function AddCategoryDialog({ children }: { children: React.ReactNode }) {
 												? 'ring-2 ring-offset-2 ring-gray-400 scale-110'
 												: 'hover:scale-105'
 										}`}
-										style={{ backgroundColor: c }}
-									/>
+										aria-label={`Select color ${c}`}
+										title={`Select color ${c}`}>
+										<svg
+											className='w-6 h-6 rounded-full'
+											viewBox='0 0 24 24'
+											aria-hidden='true'>
+											<circle cx='12' cy='12' r='12' fill={c} />
+										</svg>
+										<span className='sr-only'>{`Select color ${c}`}</span>
+									</button>
 								))}
 							</div>
 						</div>
@@ -167,7 +175,9 @@ export default function ItemsClient({
 	// Selection state
 	const [selectionMode, setSelectionMode] = useState(false);
 	const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-	const [selectionCategory, setSelectionCategory] = useState<string | null>(null);
+	const [selectionCategory, setSelectionCategory] = useState<string | null>(
+		null
+	);
 
 	useEffect(() => {
 		if (!dragState.isDragging) return;
@@ -266,13 +276,16 @@ export default function ItemsClient({
 		}
 	}, [selectionMode]);
 
-	const handleItemHold = useCallback((item: { id: string; categoryId?: string }) => {
-		if (!selectionMode) {
-			setSelectionMode(true);
-			setSelectionCategory(item.categoryId || 'uncategorized');
-			setSelectedItems(new Set([item.id]));
-		}
-	}, [selectionMode]);
+	const handleItemHold = useCallback(
+		(item: { id: string; categoryId?: string }) => {
+			if (!selectionMode) {
+				setSelectionMode(true);
+				setSelectionCategory(item.categoryId || 'uncategorized');
+				setSelectedItems(new Set([item.id]));
+			}
+		},
+		[selectionMode]
+	);
 
 	const handleItemSelect = useCallback((itemId: string, selected: boolean) => {
 		setSelectedItems(prev => {
@@ -401,7 +414,8 @@ export default function ItemsClient({
 					</div>
 					{selectionMode && selectedItems.size > 0 && (
 						<div className='text-sm text-gray-600'>
-							{selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''} selected
+							{selectedItems.size} item{selectedItems.size !== 1 ? 's' : ''}{' '}
+							selected
 						</div>
 					)}
 				</div>

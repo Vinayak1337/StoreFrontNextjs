@@ -107,10 +107,8 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 	return (
 		<form
 			onSubmit={handleSubmit}
-			className='space-y-5 animate-fade-in max-w-3xl mx-auto md:px-4'>
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.1s' }}>
+			className='space-y-5 max-w-3xl mx-auto md:px-4'>
+			<div className='space-y-2'>
 				<Label
 					htmlFor='name'
 					className='text-sm font-medium flex items-center gap-2'>
@@ -128,9 +126,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				/>
 			</div>
 
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.2s' }}>
+			<div className='space-y-2'>
 				<Label
 					htmlFor='price'
 					className='text-sm font-medium flex items-center gap-2'>
@@ -152,9 +148,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				/>
 			</div>
 
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.3s' }}>
+			<div className='space-y-2'>
 				<Label
 					htmlFor='weight'
 					className='text-sm font-medium flex items-center gap-2'>
@@ -189,9 +183,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				</div>
 			</div>
 
-			<div
-				className='space-y-2 animate-slide-in'
-				style={{ animationDelay: '0.4s' }}>
+			<div className='space-y-2'>
 				<Label
 					htmlFor='quantity'
 					className='text-sm font-medium flex items-center gap-2'>
@@ -215,9 +207,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				</p>
 			</div>
 
-			<div
-				className='stock-switch-container animate-slide-in flex justify-between gap-2'
-				style={{ animationDelay: '0.45s' }}>
+			<div className='stock-switch-container flex justify-between gap-2'>
 				<Label
 					htmlFor='in-stock'
 					className='text-sm font-medium flex items-center gap-2'>
@@ -238,9 +228,7 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 				</div>
 			</div>
 
-			<div
-				className='flex justify-end space-x-3 pt-2 animate-slide-in'
-				style={{ animationDelay: '0.5s' }}>
+			<div className='flex justify-end space-x-3 pt-2'>
 				<Button
 					type='button'
 					variant='outline'
@@ -254,7 +242,6 @@ export function ItemForm({ item, onClose }: ItemFormProps) {
 					variant='gradient'
 					leftIcon={<Save className='h-4 w-4' />}
 					isLoading={isSubmitting}
-					animation='scale'
 					className='py-2.5 md:py-2'>
 					{item ? 'Update Item' : 'Create Item'}
 				</Button>
