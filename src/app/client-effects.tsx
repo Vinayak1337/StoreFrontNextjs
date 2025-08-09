@@ -9,7 +9,9 @@ interface ClientEffectsProps {
 	isProtectedRoute: boolean;
 }
 
-export default function ClientEffects({ isProtectedRoute }: ClientEffectsProps) {
+export default function ClientEffects({
+	isProtectedRoute
+}: ClientEffectsProps) {
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -66,15 +68,7 @@ export default function ClientEffects({ isProtectedRoute }: ClientEffectsProps) 
 		}
 	}, []);
 
-	useEffect(() => {
-		if (mounted) {
-			document.body.classList.add('animate-fade-in');
-			const mainContent = document.querySelector('main');
-			if (mainContent) {
-				mainContent.classList.add('animate-slide-in');
-			}
-		}
-	}, [mounted]);
+	// Remove global page-enter animations to match minimal motion theme
 
 	if (!mounted) return null;
 

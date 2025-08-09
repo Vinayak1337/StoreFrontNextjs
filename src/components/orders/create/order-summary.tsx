@@ -14,11 +14,7 @@ interface OrderSummaryProps {
 	total: number;
 }
 
-export function OrderSummary({
-	orderItems,
-	items,
-	total
-}: OrderSummaryProps) {
+export function OrderSummary({ orderItems, items, total }: OrderSummaryProps) {
 	const formatPrice = (price: number) => `₹${price.toFixed(2)}`;
 
 	return (
@@ -32,7 +28,9 @@ export function OrderSummary({
 				<div className='text-center py-6 sm:py-8 text-gray-500'>
 					<ShoppingCart className='h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 opacity-50' />
 					<p className='text-sm sm:text-base'>No items selected</p>
-					<p className='text-xs sm:text-sm mt-1'>Add items to see order summary</p>
+					<p className='text-xs sm:text-sm mt-1'>
+						Add items to see order summary
+					</p>
 				</div>
 			) : (
 				<div className='space-y-4'>
@@ -65,7 +63,7 @@ export function OrderSummary({
 					<div className='border-t pt-4'>
 						<div className='flex justify-between items-center text-lg font-bold'>
 							<span>Total</span>
-							<span className='text-green-600'>{formatPrice(total)}</span>
+							<span className='text-emerald-600'>{formatPrice(total)}</span>
 						</div>
 					</div>
 				</div>

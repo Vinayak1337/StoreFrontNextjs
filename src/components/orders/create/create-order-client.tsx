@@ -24,7 +24,10 @@ interface CreateOrderClientProps {
 	categories: Category[];
 }
 
-export function CreateOrderClient({ items, categories }: CreateOrderClientProps) {
+export function CreateOrderClient({
+	items,
+	categories
+}: CreateOrderClientProps) {
 	const router = useRouter();
 
 	// Form state
@@ -202,7 +205,9 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 				{/* Create Order button - only show on tablet vertical and mobile */}
 				<Button
 					onClick={handleDirectCreate}
-					disabled={!customerName.trim() || orderItems.length === 0 || isSubmitting}
+					disabled={
+						!customerName.trim() || orderItems.length === 0 || isSubmitting
+					}
 					className='xl:hidden flex items-center gap-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white self-start sm:self-auto'>
 					<Save className='h-4 w-4' />
 					<span className='hidden sm:inline'>Create Order</span>
@@ -247,11 +252,7 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 
 					{/* Order Summary - Show in column view between customer info and items */}
 					<div className='xl:hidden'>
-						<OrderSummary
-							orderItems={orderItems}
-							items={items}
-							total={total}
-						/>
+						<OrderSummary orderItems={orderItems} items={items} total={total} />
 					</div>
 
 					{/* Items Selection */}
@@ -292,51 +293,80 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 							</div>
 						) : (
 							<div className='space-y-4 sm:space-y-6'>
-								{Object.entries(itemsByCategory).map(
-									([categoryId, { category, items: categoryItems }]) => (
-										<div key={categoryId}>
-											<h3 className='font-medium text-gray-900 mb-3 flex items-center gap-2 text-sm sm:text-base'>
-												{category ? (
-													<>
-														<div
-															className='w-3 h-3 rounded-full'
-															style={{ backgroundColor: category.color }}
-														/>
-														{category.name}
-													</>
-												) : (
-													<>
-														<Package className='h-4 w-4 text-gray-400' />
-														Uncategorized
-													</>
-												)}
-												<Badge variant='secondary' className='text-xs'>
-													{categoryItems.length}
-												</Badge>
-											</h3>
-											<div className='grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'>
-												{categoryItems.map(item => {
-													const orderItem = orderItems.find(
-														oi => oi.itemId === item.id
-													);
-													return (
-														<OrderItemCard
-															key={item.id}
-															item={item}
-															orderQuantity={orderItem?.quantity}
-															onAdd={() => addItem(item.id)}
-															onUpdateQuantity={quantity =>
-																updateQuantity(item.id, quantity)
-															}
-															onRemove={() => removeItem(item.id)}
-															isSelected={!!orderItem}
-														/>
-													);
-												})}
+								{(() => {
+									const entries = Object.entries(itemsByCategory);
+									const uncategorized = entries.find(
+										([id]) => id === 'uncategorized'
+									);
+									const categorized = entries.filter(
+										([id]) => id !== 'uncategorized'
+									);
+									categorized.sort((a, b) => {
+										const catA = a[1].category;
+										const catB = b[1].category;
+										const orderA = catA?.order ?? Number.MAX_SAFE_INTEGER;
+										const orderB = catB?.order ?? Number.MAX_SAFE_INTEGER;
+										if (orderA !== orderB) return orderA - orderB;
+										const nameA = (catA?.name || '').toLowerCase();
+										const nameB = (catB?.name || '').toLowerCase();
+										return nameA.localeCompare(nameB);
+									});
+									const ordered = uncategorized
+										? [uncategorized, ...categorized]
+										: categorized;
+									return ordered.map(
+										([categoryId, { category, items: categoryItems }]) => (
+											<div key={categoryId}>
+												<h3 className='font-medium text-gray-900 mb-3 flex items-center gap-2 text-sm sm:text-base'>
+													{category ? (
+														<>
+															<svg
+																className='w-3 h-3'
+																viewBox='0 0 8 8'
+																aria-hidden='true'>
+																<circle
+																	cx='4'
+																	cy='4'
+																	r='4'
+																	fill={category.color}
+																/>
+															</svg>
+															{category.name}
+														</>
+													) : (
+														<>
+															<Package className='h-4 w-4 text-gray-400' />
+															Uncategorized
+														</>
+													)}
+													<Badge variant='secondary' className='text-xs'>
+														{categoryItems.length}
+													</Badge>
+												</h3>
+												<div className='grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'>
+													{categoryItems.map(item => {
+														const orderItem = orderItems.find(
+															oi => oi.itemId === item.id
+														);
+														return (
+															<OrderItemCard
+																key={item.id}
+																item={item}
+																orderQuantity={orderItem?.quantity}
+																onAdd={() => addItem(item.id)}
+																onUpdateQuantity={quantity =>
+																	updateQuantity(item.id, quantity)
+																}
+																onRemove={() => removeItem(item.id)}
+																isSelected={!!orderItem}
+															/>
+														);
+													})}
+												</div>
 											</div>
-										</div>
-									)
-								)}
+										)
+									);
+								})()}
 							</div>
 						)}
 					</div>
@@ -344,20 +374,14 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 
 				{/* Order Summary Sidebar - Only show on desktop */}
 				<div className='hidden xl:block xl:col-span-1'>
-					<OrderSummary
-						orderItems={orderItems}
-						items={items}
-						total={total}
-					/>
+					<OrderSummary orderItems={orderItems} items={items} total={total} />
 
 					{/* Submit Button */}
 					<form onSubmit={handleSubmit} className='mt-4 sm:mt-6'>
 						<Button
 							type='submit'
 							disabled={
-								!customerName.trim() ||
-								orderItems.length === 0 ||
-								isSubmitting
+								!customerName.trim() || orderItems.length === 0 || isSubmitting
 							}
 							className='w-full gap-2 h-10 sm:h-12 text-sm sm:text-base'
 							size='lg'>
@@ -377,9 +401,7 @@ export function CreateOrderClient({ items, categories }: CreateOrderClientProps)
 						<Button
 							type='submit'
 							disabled={
-								!customerName.trim() ||
-								orderItems.length === 0 ||
-								isSubmitting
+								!customerName.trim() || orderItems.length === 0 || isSubmitting
 							}
 							className='w-full gap-2 h-10 sm:h-12 text-sm sm:text-base'
 							size='lg'>

@@ -35,10 +35,7 @@ export function MetricCard({
 					<h3 className='text-sm font-semibold text-gray-600 truncate'>
 						{title}
 					</h3>
-					<div className={cn(
-						'p-2.5 rounded-xl transition-colors',
-						iconColor
-					)}>
+					<div className={cn('p-2.5 rounded-xl transition-colors', iconColor)}>
 						<Icon className='h-4 w-4' />
 					</div>
 				</div>
@@ -48,7 +45,10 @@ export function MetricCard({
 					{loading ? (
 						<div className='h-8 bg-gray-200 rounded-md animate-pulse w-20 md:w-24' />
 					) : (
-						<span>{value}{suffix}</span>
+						<span>
+							{value}
+							{suffix}
+						</span>
 					)}
 				</div>
 
@@ -56,15 +56,17 @@ export function MetricCard({
 				<div className='flex items-center justify-between'>
 					<div className='flex items-center space-x-1'>
 						{isPositive ? (
-							<TrendingUp className='h-3.5 w-3.5 text-green-600' />
+							<TrendingUp className='h-3.5 w-3.5 text-emerald-600' />
 						) : (
 							<TrendingDown className='h-3.5 w-3.5 text-red-500' />
 						)}
-						<span className={cn(
-							'text-sm font-medium',
-							isPositive ? 'text-green-600' : 'text-red-500'
-						)}>
-							{isPositive ? '+' : ''}{change}%
+						<span
+							className={cn(
+								'text-sm font-medium',
+								isPositive ? 'text-emerald-600' : 'text-red-500'
+							)}>
+							{isPositive ? '+' : ''}
+							{change}%
 						</span>
 					</div>
 					{description && (

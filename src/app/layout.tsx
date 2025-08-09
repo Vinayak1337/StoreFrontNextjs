@@ -24,7 +24,9 @@ export default async function RootLayout({
 	const headersList = await headers();
 	const pathname = headersList.get('x-pathname') || '/';
 	const cookieStore = await cookies();
-	const isAuthenticated = !!cookieStore.get(COOKIE_NAME);
+	const isAuthenticatedHeader = headersList.get('x-authenticated') === 'true';
+	const isAuthenticated =
+		isAuthenticatedHeader || !!cookieStore.get(COOKIE_NAME);
 	const isLoginPage = pathname === '/login';
 	const isProtectedRoute = isAuthenticated && !isLoginPage && pathname !== '/';
 
@@ -40,7 +42,11 @@ export default async function RootLayout({
 			</head>
 			<body
 				className={`min-h-screen bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
-				<div className={cn('flex min-h-screen overflow-hidden', 'animate-fade-in')}>
+				<div
+					className={cn(
+						'flex min-h-screen overflow-hidden',
+						'animate-fade-in'
+					)}>
 					{isProtectedRoute && <Sidebar />}
 					<div className='flex-1 flex flex-col overflow-hidden'>
 						<main className='flex-1 overflow-auto bg-gray-50/30'>

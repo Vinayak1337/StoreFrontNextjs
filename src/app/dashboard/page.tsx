@@ -41,7 +41,9 @@ const MetricCard = React.memo(function MetricCard({
 			<div className='flex items-center justify-between'>
 				<div className='flex-1 min-w-0'>
 					<p className='text-sm font-medium text-gray-600'>{title}</p>
-					<p className='text-2xl font-bold text-gray-900 mt-2 truncate'>{value}</p>
+					<p className='text-2xl font-bold text-gray-900 mt-2 truncate'>
+						{value}
+					</p>
 				</div>
 				<div className={`p-3 rounded-lg ${bgColor}`}>
 					<Icon className={`h-6 w-6 ${iconColor}`} />
@@ -49,13 +51,13 @@ const MetricCard = React.memo(function MetricCard({
 			</div>
 			<div className='mt-4 flex items-center'>
 				{isPositive ? (
-					<TrendingUp className='h-4 w-4 mr-1 text-green-500' />
+					<TrendingUp className='h-4 w-4 mr-1 text-emerald-500' />
 				) : (
 					<TrendingUp className='h-4 w-4 mr-1 text-red-500 rotate-180' />
 				)}
 				<span
 					className={`text-sm font-medium ${
-						isPositive ? 'text-green-600' : 'text-red-600'
+						isPositive ? 'text-emerald-600' : 'text-red-600'
 					}`}>
 					{change}
 				</span>
@@ -66,13 +68,14 @@ const MetricCard = React.memo(function MetricCard({
 });
 
 export default async function DashboardPage() {
-	const [totalRevenue, ordersStats, itemsStats, conversionStats, recentOrders] = await Promise.all([
-		getTotalRevenue(),
-		getOrdersStats(),
-		getItemsInStock(),
-		getConversionRate(),
-		getRecentOrders()
-	]);
+	const [totalRevenue, ordersStats, itemsStats, conversionStats, recentOrders] =
+		await Promise.all([
+			getTotalRevenue(),
+			getOrdersStats(),
+			getItemsInStock(),
+			getConversionRate(),
+			getRecentOrders()
+		]);
 
 	return (
 		<div className='space-y-6'>
@@ -180,7 +183,7 @@ export default async function DashboardPage() {
 							</Link>
 						</div>
 						<div className='space-y-3'>
-							{recentOrders.map((order) => (
+							{recentOrders.map(order => (
 								<div
 									key={order.id}
 									className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>

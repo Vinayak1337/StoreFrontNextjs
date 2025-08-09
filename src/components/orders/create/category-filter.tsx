@@ -32,10 +32,12 @@ export function CategoryFilter({
 						size='sm'
 						onClick={() => onSelectCategory(category.id)}
 						className='gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap flex-shrink-0'>
-						<div
-							className='w-2 h-2 sm:w-3 sm:h-3 rounded-full'
-							style={{ backgroundColor: category.color }}
-						/>
+						<svg
+							className='w-2 h-2 sm:w-3 sm:h-3'
+							viewBox='0 0 8 8'
+							aria-hidden='true'>
+							<circle cx='4' cy='4' r='4' fill={category.color} />
+						</svg>
 						<span>{category.name}</span>
 					</Button>
 				))}
