@@ -194,8 +194,7 @@ function DraggableItemComponent({
 							<div
 								ref={dragHandleRef}
 								className='drag-handle p-2 cursor-grab active:cursor-grabbing touch-none'
-								onClick={e => e.stopPropagation()}
-								style={{ touchAction: 'none' }}>
+								onClick={e => e.stopPropagation()}>
 								<GripVertical className='h-4 w-4 text-gray-500' />
 							</div>
 						</div>

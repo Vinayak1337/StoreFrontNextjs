@@ -62,13 +62,15 @@ export function AnalyticsClient({
 			setLoading(true);
 			try {
 				let days = 30;
-				if (mode === 'weekly') days = 84;
-				if (mode === 'monthly') days = 365;
+				if (mode === 'weekly') days = 84; // 12 weeks
+				if (mode === 'monthly') days = 365; // 1 year
 
-				const endDate = new Date().toISOString().split('T')[0];
-				const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-					.toISOString()
-					.split('T')[0];
+				// Use local date formatting to avoid timezone issues
+				const now = new Date();
+				const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+				
+				const startDateTime = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+				const startDate = `${startDateTime.getFullYear()}-${String(startDateTime.getMonth() + 1).padStart(2, '0')}-${String(startDateTime.getDate()).padStart(2, '0')}`;
 
 				const res = await fetchWithCsrf(
 					`/api/analytics?startDate=${startDate}&endDate=${endDate}`,
@@ -89,10 +91,13 @@ export function AnalyticsClient({
 	const handleRefresh = async () => {
 		setRefreshing(true);
 		try {
-			const endDate = new Date().toISOString().split('T')[0];
-			const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-				.toISOString()
-				.split('T')[0];
+			// Use local date formatting to avoid timezone issues
+			const now = new Date();
+			const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+			
+			const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+			const startDate = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
+			
 			const res = await fetchWithCsrf(
 				`/api/analytics?startDate=${startDate}&endDate=${endDate}`,
 				{ method: 'GET' }

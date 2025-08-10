@@ -160,7 +160,8 @@ export default function ItemsClient({
 	pagination
 }: ItemsClientProps) {
 	const [searchTerm, setSearchTerm] = useState('');
-	const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+	// Initialize with empty Set, which means all categories start collapsed
+	const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
 		new Set()
 	);
 
@@ -300,14 +301,14 @@ export default function ItemsClient({
 	}, []);
 
 	const toggleCategoryCollapse = useCallback((categoryId: string) => {
-		setCollapsedCategories(prev => {
-			const newCollapsed = new Set(prev);
-			if (newCollapsed.has(categoryId)) {
-				newCollapsed.delete(categoryId);
+		setExpandedCategories(prev => {
+			const newExpanded = new Set(prev);
+			if (newExpanded.has(categoryId)) {
+				newExpanded.delete(categoryId);
 			} else {
-				newCollapsed.add(categoryId);
+				newExpanded.add(categoryId);
 			}
-			return newCollapsed;
+			return newExpanded;
 		});
 	}, []);
 
@@ -318,6 +319,47 @@ export default function ItemsClient({
 					filteredCategorizedItems: [],
 					filteredUncategorizedItems: []
 				};
+
+		// Helper function to convert weight to base unit (grams)
+		const convertToBaseWeight = (weight: number | undefined, unit: string | null | undefined): number => {
+			if (!weight || weight === 0) return 0; // Items without weight go to top
+			
+			const normalizedUnit = unit?.toLowerCase().trim() || 'g';
+				
+				// Convert to grams based on unit
+				switch (normalizedUnit) {
+					case 'kg':
+					case 'kgs':
+					case 'kilogram':
+					case 'kilograms':
+						return weight * 1000;
+					case 'g':
+					case 'gm':
+					case 'gms':
+					case 'gram':
+					case 'grams':
+						return weight;
+					case 'mg':
+					case 'milligram':
+					case 'milligrams':
+						return weight / 1000;
+					case 'l':
+					case 'ltr':
+					case 'liter':
+					case 'liters':
+					case 'litre':
+					case 'litres':
+						return weight * 1000; // Assume 1L = 1000g for liquids
+					case 'ml':
+					case 'milliliter':
+					case 'milliliters':
+					case 'millilitre':
+					case 'millilitres':
+						return weight; // Assume 1ml = 1g for liquids
+					default:
+						return weight; // Default to treating as grams
+				}
+			};
 
 			const searchLower = searchTerm.toLowerCase();
 			const filteredUncategorizedItems = items.filter(item =>
@@ -335,9 +377,24 @@ export default function ItemsClient({
 						item => item.id && item.name?.toLowerCase().includes(searchLower)
 					) || []) as Item[];
 
+				// Sort items by weight: items without weight first (0), then by ascending weight
+				const sortedItems = categoryItems.sort((a, b) => {
+					const weightA = convertToBaseWeight(a.weight, a.weightUnit);
+					const weightB = convertToBaseWeight(b.weight, b.weightUnit);
+					
+					// If both have no weight, maintain original order
+					if (weightA === 0 && weightB === 0) return 0;
+					// If only A has no weight, it comes first
+					if (weightA === 0) return -1;
+					// If only B has no weight, it comes first
+					if (weightB === 0) return 1;
+					// Both have weights, sort ascending (lowest first)
+					return weightA - weightB;
+				});
+
 				return {
 					category,
-					items: categoryItems
+					items: sortedItems
 				};
 			});
 
@@ -443,7 +500,7 @@ export default function ItemsClient({
 							key={item.category.id}
 							category={item.category}
 							items={item.items}
-							collapsed={collapsedCategories.has(item.category.id)}
+							collapsed={!expandedCategories.has(item.category.id)}
 							onToggleCollapse={() => toggleCategoryCollapse(item.category.id)}
 							onDragStart={handleDragStart}
 							onDragEnd={handleDragEnd}

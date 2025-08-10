@@ -97,32 +97,46 @@ export function AnalyticsChart({
 		}
 
 		let data = [...initialData]; // Create a copy
+		console.log('Initial data for chart:', viewMode, data);
 
 		// Group data based on view mode
 		if (viewMode === 'weekly') {
 			// Group by week
 			const weeklyData: {
-				[key: string]: { totalAmount: number; count: number };
+				[key: string]: { totalAmount: number; count: number; dates: string[] };
 			} = {};
+			
 			data.forEach(item => {
 				try {
-					const date = new Date(item.date + 'T00:00:00.000Z');
+					// Parse date without timezone to avoid issues
+					const [year, month, day] = item.date.split('-').map(Number);
+					const date = new Date(year, month - 1, day);
+					
+					// Get start of week (Sunday)
 					const weekStart = new Date(date);
-					weekStart.setDate(date.getDate() - date.getDay());
-					const weekKey = weekStart.toISOString().split('T')[0];
+					const dayOfWeek = weekStart.getDay();
+					weekStart.setDate(weekStart.getDate() - dayOfWeek);
+					
+					const weekKey = `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
 
 					if (!weeklyData[weekKey]) {
-						weeklyData[weekKey] = { totalAmount: 0, count: 0 };
+						weeklyData[weekKey] = { totalAmount: 0, count: 0, dates: [] };
 					}
 					weeklyData[weekKey].totalAmount += Number(item.totalAmount || 0);
 					weeklyData[weekKey].count += Number(item.count || 0);
-				} catch {
-					// Skip invalid data
+					weeklyData[weekKey].dates.push(item.date);
+				} catch (error) {
+					console.error('Error processing weekly data:', item, error);
 				}
 			});
 
+			console.log('Weekly grouped data:', weeklyData);
 			data = Object.entries(weeklyData)
-				.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+				.sort(([a], [b]) => {
+					const [yearA, monthA, dayA] = a.split('-').map(Number);
+					const [yearB, monthB, dayB] = b.split('-').map(Number);
+					return new Date(yearA, monthA - 1, dayA).getTime() - new Date(yearB, monthB - 1, dayB).getTime();
+				})
 				.map(([date, values]) => ({
 					date,
 					totalAmount: values.totalAmount,
@@ -133,27 +147,33 @@ export function AnalyticsChart({
 		} else if (viewMode === 'monthly') {
 			// Group by month
 			const monthlyData: {
-				[key: string]: { totalAmount: number; count: number };
+				[key: string]: { totalAmount: number; count: number; dates: string[] };
 			} = {};
+			
 			data.forEach(item => {
 				try {
-					const date = new Date(item.date + 'T00:00:00.000Z');
-					const monthKey = `${date.getFullYear()}-${String(
-						date.getMonth() + 1
-					).padStart(2, '0')}-01`;
+					// Parse date without timezone to avoid issues
+					const [year, month] = item.date.split('-').map(Number);
+					const monthKey = `${year}-${String(month).padStart(2, '0')}-01`;
 
 					if (!monthlyData[monthKey]) {
-						monthlyData[monthKey] = { totalAmount: 0, count: 0 };
+						monthlyData[monthKey] = { totalAmount: 0, count: 0, dates: [] };
 					}
 					monthlyData[monthKey].totalAmount += Number(item.totalAmount || 0);
 					monthlyData[monthKey].count += Number(item.count || 0);
-				} catch {
-					// Skip invalid data
+					monthlyData[monthKey].dates.push(item.date);
+				} catch (error) {
+					console.error('Error processing monthly data:', item, error);
 				}
 			});
 
+			console.log('Monthly grouped data:', monthlyData);
 			data = Object.entries(monthlyData)
-				.sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+				.sort(([a], [b]) => {
+					const [yearA, monthA] = a.split('-').map(Number);
+					const [yearB, monthB] = b.split('-').map(Number);
+					return new Date(yearA, monthA - 1, 1).getTime() - new Date(yearB, monthB - 1, 1).getTime();
+				})
 				.map(([date, values]) => ({
 					date,
 					totalAmount: values.totalAmount,
@@ -162,16 +182,21 @@ export function AnalyticsChart({
 					orderCount: values.count
 				}));
 		} else {
-			// Sort daily data by date
-			data = data.sort(
-				(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-			);
+			// Sort daily data by date using proper date parsing
+			data = data.sort((a, b) => {
+				const [yearA, monthA, dayA] = a.date.split('-').map(Number);
+				const [yearB, monthB, dayB] = b.date.split('-').map(Number);
+				return new Date(yearA, monthA - 1, dayA).getTime() - new Date(yearB, monthB - 1, dayB).getTime();
+			});
+			console.log('Daily sorted data:', data);
 		}
 
 		// Format the data for chart display with realistic wholesale margins
 		const formattedData = data.map(item => {
 			try {
-				const dateObj = new Date(item.date + 'T00:00:00.000Z');
+				// Parse date without timezone to avoid issues
+				const [year, month, day] = item.date.split('-').map(Number);
+				const dateObj = new Date(year, month - 1, day || 1);
 				const revenue = Number(item.totalAmount || 0);
 				// Profit margin for wholesale (10% gross margin)
 				const grossMargin = revenue * 0.1;
@@ -186,8 +211,9 @@ export function AnalyticsChart({
 					sales: revenue,
 					profit: grossMargin
 				};
-			} catch {
-				// Skip invalid data
+			} catch (error) {
+				// Fallback for invalid data
+				console.error('Error formatting date:', item.date, error);
 				const revenue = Number(item.totalAmount || 0);
 				return {
 					date: item.date,

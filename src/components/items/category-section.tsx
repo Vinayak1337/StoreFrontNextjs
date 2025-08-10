@@ -173,7 +173,7 @@ function CategorySectionComponent({
 											await api.updateCategory(category.id, { name: newName });
 											setIsEditing(false);
 											router.refresh();
-										} catch (e) {
+										} catch {
 											console.error('Failed to update category');
 										}
 									}}
@@ -213,7 +213,7 @@ function CategorySectionComponent({
 										try {
 											await api.deleteCategory(category.id);
 											router.refresh();
-										} catch (e) {
+										} catch {
 											console.error('Failed to delete category');
 										}
 									}}

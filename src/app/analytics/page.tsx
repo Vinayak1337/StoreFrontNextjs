@@ -7,10 +7,13 @@ import {
 import { AnalyticsClient } from '@/components/analytics/analytics-client';
 
 export default async function AnalyticsPage() {
-	const endDate = new Date().toISOString().split('T')[0];
-	const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-		.toISOString()
-		.split('T')[0];
+	// Get current date in local timezone
+	const now = new Date();
+	const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+	
+	// Get date 30 days ago
+	const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+	const startDate = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
 
 	const [metrics, salesData, todayStats] = await Promise.all([
 		getAnalyticsMetrics(startDate, endDate),

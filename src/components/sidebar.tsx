@@ -66,15 +66,14 @@ function NavItem({
 			</div>
 			<span className='flex-1 text-sm font-medium'>{title}</span>
 			{badge !== undefined && badge > 0 && (
-				<Badge 
-					variant={isActive ? 'secondary' : 'default'} 
+				<Badge
+					variant={isActive ? 'secondary' : 'default'}
 					className={cn(
 						'ml-auto text-xs px-2 py-0.5 min-w-[20px] h-5 flex items-center justify-center',
-						isActive 
-							? 'bg-white/20 text-white border-white/30' 
+						isActive
+							? 'bg-white/20 text-white border-white/30'
 							: 'bg-red-100 text-red-700 border-red-200'
-					)}
-				>
+					)}>
 					{badge}
 				</Badge>
 			)}
@@ -165,12 +164,8 @@ export function Sidebar() {
 					</div>
 					<nav className='flex-1 overflow-auto px-4 py-6'>
 						<div className='space-y-2'>
-							{routes.map((route, index) => (
-								<div
-									key={route.href}
-									style={{ animationDelay: `${index * 50}ms` }}
-									className='animate-slide-in-left'
-								>
+							{routes.map((route) => (
+								<div key={route.href} className='animate-slide-in-left'>
 									<NavItem
 										href={route.href}
 										icon={route.icon}
@@ -202,7 +197,7 @@ export function Sidebar() {
 			{/* Tablet Navigation - Bottom Navbar (Portrait/vertical tablet) */}
 			<nav className='hidden md:flex lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-lg'>
 				<div className='flex items-center justify-around w-full px-2 py-3'>
-					{routes.map((route) => (
+					{routes.map(route => (
 						<Link
 							key={route.href}
 							href={route.href}
@@ -212,15 +207,14 @@ export function Sidebar() {
 									? 'text-emerald-600 bg-emerald-50'
 									: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
 							)}>
-							<div className={cn(
-								'flex items-center justify-center w-6 h-6 relative',
-								pathname === route.href ? 'text-emerald-600' : 'text-gray-500'
-							)}>
+							<div
+								className={cn(
+									'flex items-center justify-center w-6 h-6 relative',
+									pathname === route.href ? 'text-emerald-600' : 'text-gray-500'
+								)}>
 								{route.icon}
 								{route.badge > 0 && (
-									<Badge 
-										className='absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 text-white border-white flex items-center justify-center'
-									>
+									<Badge className='absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-red-500 text-white border-white flex items-center justify-center'>
 										{route.badge > 9 ? '9+' : route.badge}
 									</Badge>
 								)}
@@ -255,12 +249,8 @@ export function Sidebar() {
 
 				<nav className='flex-1 px-4 py-6 overflow-y-auto'>
 					<div className='space-y-2'>
-						{routes.map((route, index) => (
-							<div 
-								key={route.href}
-								style={{ animationDelay: `${index * 50}ms` }}
-								className='animate-slide-in-left'
-							>
+						{routes.map(route => (
+							<div key={route.href} className='animate-slide-in-left'>
 								<NavItem
 									href={route.href}
 									icon={route.icon}

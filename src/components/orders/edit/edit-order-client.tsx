@@ -125,7 +125,48 @@ export function EditOrderClient({
 		}
 	};
 
-	// Organize items by category
+	// Helper function to convert weight to base unit (grams)
+	const convertToBaseWeight = (weight: number | undefined, unit: string | null | undefined): number => {
+		if (!weight || weight === 0) return 0; // Items without weight go to top
+		
+		const normalizedUnit = unit?.toLowerCase().trim() || 'g';
+		
+		// Convert to grams based on unit
+		switch (normalizedUnit) {
+			case 'kg':
+			case 'kgs':
+			case 'kilogram':
+			case 'kilograms':
+				return weight * 1000;
+			case 'g':
+			case 'gm':
+			case 'gms':
+			case 'gram':
+			case 'grams':
+				return weight;
+			case 'mg':
+			case 'milligram':
+			case 'milligrams':
+				return weight / 1000;
+			case 'l':
+			case 'ltr':
+			case 'liter':
+			case 'liters':
+			case 'litre':
+			case 'litres':
+				return weight * 1000; // Assume 1L = 1000g for liquids
+			case 'ml':
+			case 'milliliter':
+			case 'milliliters':
+			case 'millilitre':
+			case 'millilitres':
+				return weight; // Assume 1ml = 1g for liquids
+			default:
+				return weight; // Default to treating as grams
+		}
+	};
+
+	// Organize items by category and sort by weight
 	const itemsByCategory = filteredItems.reduce((acc, item) => {
 		if (item.categories && item.categories.length > 0) {
 			item.categories.forEach(cat => {
@@ -143,6 +184,23 @@ export function EditOrderClient({
 		}
 		return acc;
 	}, {} as Record<string, { category: Category | null; items: Item[] }>);
+
+	// Sort items within each category by weight
+	Object.values(itemsByCategory).forEach(categoryData => {
+		categoryData.items.sort((a, b) => {
+			const weightA = convertToBaseWeight(a.weight, a.weightUnit);
+			const weightB = convertToBaseWeight(b.weight, b.weightUnit);
+			
+			// If both have no weight, maintain original order
+			if (weightA === 0 && weightB === 0) return 0;
+			// If only A has no weight, it comes first
+			if (weightA === 0) return -1;
+			// If only B has no weight, it comes first
+			if (weightB === 0) return 1;
+			// Both have weights, sort ascending (lowest first)
+			return weightA - weightB;
+		});
+	});
 
 	return (
 		<div className='space-y-4 sm:space-y-6'>

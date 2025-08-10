@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import { Loader2, Bluetooth, BluetoothConnected } from 'lucide-react';
 import {
 	scanForPrinters,
 	isBluetoothSupported,
-	savePrinterForDirectUse,
-	getGlobalConnectedPrinter
+	savePrinterForDirectUse
 } from '@/lib/utils/printer-utils';
 
 export function PairPrinterButton() {
@@ -18,9 +17,6 @@ export function PairPrinterButton() {
 	const [connectedPrinterName, setConnectedPrinterName] = useState<
 		string | null
 	>(null);
-	const [isAutoConnecting, setIsAutoConnecting] = useState(false);
-
-	// Removed auto-connect on mount for reliability and UX clarity
 
 	const handlePairPrinter = async () => {
 		try {
@@ -61,17 +57,6 @@ export function PairPrinterButton() {
 	};
 
 	const getButtonState = () => {
-		if (isAutoConnecting) {
-			return {
-				variant: 'outline' as const,
-				icon: <Loader2 className='h-4 w-4 animate-spin' />,
-				text: 'Connecting...',
-				shortText: 'Connecting...',
-				className: '',
-				disabled: true
-			};
-		}
-
 		if (isPairingPrinter) {
 			return {
 				variant: 'outline' as const,
