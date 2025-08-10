@@ -97,9 +97,10 @@ export function useAuth() {
 				isLoading: false,
 				user: null
 			});
-			router.push('/login');
+			// Use hard navigation to ensure server-side layout updates
+			window.location.href = '/login';
 		}
-	}, [router]);
+	}, []);
 
 	const login = useCallback((userData: { id: string; sessionId: string; sessionType: string }) => {
 		setAuthState({

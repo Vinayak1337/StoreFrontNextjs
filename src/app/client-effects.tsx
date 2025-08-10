@@ -3,26 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { autoConnectToSavedPrinter } from '@/lib/utils/printer-utils';
 
 interface ClientEffectsProps {
-	isProtectedRoute: boolean;
+	isProtectedRoute?: boolean;
 }
 
-export default function ClientEffects({ isProtectedRoute }: ClientEffectsProps) {
+export default function ClientEffects({}: ClientEffectsProps) {
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	useEffect(() => {
-		if (isProtectedRoute && mounted) {
-			autoConnectToSavedPrinter().catch(error => {
-				console.log('Auto-connect to printer failed:', error);
-			});
-		}
-	}, [isProtectedRoute, mounted]);
+	// Removed auto-connect attempt for Bluetooth printers due to browser constraints
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
@@ -66,15 +59,7 @@ export default function ClientEffects({ isProtectedRoute }: ClientEffectsProps) 
 		}
 	}, []);
 
-	useEffect(() => {
-		if (mounted) {
-			document.body.classList.add('animate-fade-in');
-			const mainContent = document.querySelector('main');
-			if (mainContent) {
-				mainContent.classList.add('animate-slide-in');
-			}
-		}
-	}, [mounted]);
+	// Remove global page-enter animations to match minimal motion theme
 
 	if (!mounted) return null;
 

@@ -59,21 +59,50 @@ export async function PUT(
 			return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 		}
 
-		// Update order with allowed fields
-		const updatedOrder = await prisma.order.update({
-			where: { id },
-			data: {
-				customerName: data.customerName || order.customerName,
-				customMessage: data.customMessage || order.customMessage
-			},
-			include: {
-				orderItems: {
-					include: {
-						item: true
+		let updatedOrder;
+		if (Array.isArray(data.items)) {
+			// Replace order items with provided payload
+			updatedOrder = await prisma.$transaction(async tx => {
+				await tx.order.update({
+					where: { id },
+					data: {
+						customerName: data.customerName || order.customerName,
+						customMessage: data.customMessage || order.customMessage
 					}
+				});
+				await tx.orderItem.deleteMany({ where: { orderId: id } });
+				if (data.items.length > 0) {
+					await tx.orderItem.createMany({
+						data: data.items.map(
+							(i: { itemId: string; quantity: number; price: number }) => ({
+								orderId: id,
+								itemId: i.itemId,
+								quantity: i.quantity,
+								price: i.price
+							})
+						)
+					});
 				}
-			}
-		});
+				return tx.order.findUnique({
+					where: { id },
+					include: {
+						orderItems: { include: { item: true } }
+					}
+				});
+			});
+		} else {
+			// Only fields update
+			updatedOrder = await prisma.order.update({
+				where: { id },
+				data: {
+					customerName: data.customerName || order.customerName,
+					customMessage: data.customMessage || order.customMessage
+				},
+				include: {
+					orderItems: { include: { item: true } }
+				}
+			});
+		}
 
 		return NextResponse.json(updatedOrder);
 	} catch (error) {

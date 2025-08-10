@@ -29,10 +29,14 @@ export const getAnalyticsMetrics = cache(async (
 	startDate?: string,
 	endDate?: string
 ): Promise<AnalyticsMetrics> => {
+	// Set proper time boundaries
 	const startDateTime = startDate 
 		? new Date(startDate)
 		: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+	startDateTime.setHours(0, 0, 0, 0);
+	
 	const endDateTime = endDate ? new Date(endDate) : new Date();
+	endDateTime.setHours(23, 59, 59, 999);
 
 	const totalOrders = await prisma.order.count({
 		where: {
@@ -92,11 +96,32 @@ export const getAnalyticsMetrics = cache(async (
 				where: { id: item.itemId }
 			});
 
+			// Get all order items for this item to calculate correct revenue
+			const orderItemsForItem = await prisma.orderItem.findMany({
+				where: {
+					itemId: item.itemId,
+					order: {
+						createdAt: {
+							gte: startDateTime,
+							lte: endDateTime
+						}
+					}
+				},
+				select: {
+					price: true,
+					quantity: true
+				}
+			});
+
+			const revenue = orderItemsForItem.reduce((sum, orderItem) => {
+				return sum + (Number(orderItem.price) * Number(orderItem.quantity));
+			}, 0);
+
 			return {
 				id: item.itemId,
 				name: itemDetails?.name || 'Unknown Item',
 				quantity: item._sum.quantity || 0,
-				revenue: Number(item._sum.price || 0) * Number(item._sum.quantity || 0)
+				revenue: revenue
 			};
 		})
 	);
@@ -138,6 +163,17 @@ export const getAnalyticsMetrics = cache(async (
 	const revenueTrend = prevTotalSales > 0 ? 
 		((totalSales - prevTotalSales) / prevTotalSales) * 100 : 0;
 
+	console.log('Analytics Metrics Debug:', {
+		startDateTime: startDateTime.toISOString(),
+		endDateTime: endDateTime.toISOString(),
+		totalOrders,
+		totalSales,
+		averageOrderValue,
+		ordersTrend,
+		revenueTrend,
+		topSellingItems: topItems
+	});
+
 	return {
 		totalOrders,
 		totalSales,
@@ -152,8 +188,12 @@ export const getDailySales = cache(async (
 	startDate: string, 
 	endDate: string
 ): Promise<DailySalesData[]> => {
+	// Set time to start and end of day to capture all orders
 	const startDateTime = new Date(startDate);
+	startDateTime.setHours(0, 0, 0, 0);
+	
 	const endDateTime = new Date(endDate);
+	endDateTime.setHours(23, 59, 59, 999);
 
 	const orders = await prisma.order.findMany({
 		where: {
@@ -170,7 +210,9 @@ export const getDailySales = cache(async (
 	const dailySales: Record<string, { date: string; totalAmount: number; count: number }> = {};
 
 	for (const order of orders) {
-		const dateString = order.createdAt.toISOString().split('T')[0];
+		// Use local date string to avoid timezone issues
+		const localDate = new Date(order.createdAt);
+		const dateString = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
 
 		if (!dailySales[dateString]) {
 			dailySales[dateString] = {
@@ -188,11 +230,12 @@ export const getDailySales = cache(async (
 		dailySales[dateString].count += 1;
 	}
 
+	// Fill in missing dates with zero values
 	const currentDate = new Date(startDateTime);
 	const endDateObj = new Date(endDateTime);
 
 	while (currentDate <= endDateObj) {
-		const dateString = currentDate.toISOString().split('T')[0];
+		const dateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
 		if (!dailySales[dateString]) {
 			dailySales[dateString] = {
 				date: dateString,

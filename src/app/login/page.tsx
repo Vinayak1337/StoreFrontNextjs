@@ -1,13 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Store, Key, Eye, EyeOff, LogIn } from 'lucide-react';
 import { login } from '@/lib/client/auth-utils';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function LoginPage() {
-	const router = useRouter();
 	const { login: setAuthLogin } = useAuth();
 	const [password, setPassword] = useState('');
 	const [showPassword, setShowPassword] = useState(false);
@@ -30,8 +28,8 @@ export default function LoginPage() {
 					sessionType: response.user.sessionType || 'production'
 				});
 				
-				// Redirect to dashboard on successful login
-				router.push('/dashboard');
+				// Use hard navigation to ensure server-side layout updates
+				window.location.href = '/dashboard';
 			} else {
 				setError('Login failed. Please try again.');
 			}

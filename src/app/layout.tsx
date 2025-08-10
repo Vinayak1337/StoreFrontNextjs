@@ -1,9 +1,8 @@
 import './globals.css';
 import { Inter as FontSans } from 'next/font/google';
-import { headers, cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { Sidebar } from '@/components/sidebar';
 import ClientEffects from './client-effects';
-import { COOKIE_NAME } from '@/lib/auth-constants';
 import { cn } from '@/lib/utils';
 
 const fontSans = FontSans({
@@ -23,10 +22,12 @@ export default async function RootLayout({
 }) {
 	const headersList = await headers();
 	const pathname = headersList.get('x-pathname') || '/';
-	const cookieStore = await cookies();
-	const isAuthenticated = !!cookieStore.get(COOKIE_NAME);
+
 	const isLoginPage = pathname === '/login';
-	const isProtectedRoute = isAuthenticated && !isLoginPage && pathname !== '/';
+	// Show layout chrome (like sidebar) for all non-login, non-root routes.
+	// Middleware already guards protected routes, so we don't gate on auth here
+	// to avoid hydration flicker after client-side login redirects.
+	const isProtectedRoute = !isLoginPage && pathname !== '/';
 
 	return (
 		<html lang='en' suppressHydrationWarning>
@@ -40,7 +41,11 @@ export default async function RootLayout({
 			</head>
 			<body
 				className={`min-h-screen bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
-				<div className={cn('flex min-h-screen overflow-hidden', 'animate-fade-in')}>
+				<div
+					className={cn(
+						'flex min-h-screen overflow-hidden',
+						'animate-fade-in'
+					)}>
 					{isProtectedRoute && <Sidebar />}
 					<div className='flex-1 flex flex-col overflow-hidden'>
 						<main className='flex-1 overflow-auto bg-gray-50/30'>
@@ -56,8 +61,8 @@ export default async function RootLayout({
 						</main>
 					</div>
 				</div>
-				{/* Client-only effects (toasts, printer auto-connect, keyboard/tablet detection) */}
-				<ClientEffects isProtectedRoute={isProtectedRoute} />
+				{/* Client-only effects (toasts, keyboard/tablet detection) */}
+				<ClientEffects />
 			</body>
 		</html>
 	);
