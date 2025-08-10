@@ -204,6 +204,89 @@ export const updateOrder = async (
 	};
 };
 
+export const updateOrderWithItems = async (
+	id: string,
+	data: {
+		customerName?: string;
+		customMessage?: string;
+		items: OrderItemInput[];
+	}
+) => {
+	if (!Array.isArray(data.items)) {
+		throw new Error('Items payload is required');
+	}
+
+	// Validate items
+	for (const item of data.items) {
+		if (
+			!item.itemId ||
+			!item.quantity ||
+			item.quantity <= 0 ||
+			item.price === undefined ||
+			item.price <= 0
+		) {
+			throw new Error('Invalid order item payload');
+		}
+	}
+
+	const order = await prisma.order.findUnique({ where: { id } });
+	if (!order) {
+		throw new Error('Order not found');
+	}
+
+	const updated = await prisma.$transaction(async tx => {
+		// Update order fields
+		await tx.order.update({
+			where: { id },
+			data: {
+				customerName: data.customerName ?? order.customerName,
+				customMessage: data.customMessage ?? order.customMessage
+			}
+		});
+
+		// Replace items: delete existing then create provided
+		await tx.orderItem.deleteMany({ where: { orderId: id } });
+		await tx.orderItem.createMany({
+			data: data.items.map(i => ({
+				orderId: id,
+				itemId: i.itemId,
+				quantity: i.quantity,
+				// Prisma Decimal accepts number; client ensured number
+				price: i.price
+			}))
+		});
+
+		const result = await tx.order.findUnique({
+			where: { id },
+			include: {
+				orderItems: {
+					include: {
+						item: {
+							select: { id: true, name: true, price: true }
+						}
+					}
+				}
+			}
+		});
+		return result!;
+	});
+
+	// Convert Decimal objects to numbers for client components
+	return {
+		...updated,
+		orderItems: updated.orderItems.map(orderItem => ({
+			...orderItem,
+			price: Number(orderItem.price),
+			item: orderItem.item
+				? {
+						...orderItem.item,
+						price: Number(orderItem.item.price)
+				  }
+				: null
+		}))
+	} as unknown as Order;
+};
+
 export const deleteOrder = async (id: string) => {
 	const order = await prisma.order.findUnique({
 		where: { id }

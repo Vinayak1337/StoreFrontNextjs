@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/services/api';
-import { Eye, Trash, Printer, Loader2 } from 'lucide-react';
+import { Eye, Trash, Printer, Loader2, Pencil } from 'lucide-react';
+import Link from 'next/link';
+import { toast } from 'react-toastify';
 import { printDirectlyToThermalPrinter } from '@/lib/utils/direct-thermal-print';
 import {
 	scanForPrinters,
@@ -33,21 +35,23 @@ export function OrderActions({ order }: OrderActionsProps) {
 
 			const pairedPrinter = getGlobalConnectedPrinter();
 			console.log('Current paired printer:', pairedPrinter);
-			
+
 			if (!pairedPrinter) {
 				console.log('No printer found, attempting to pair...');
 				try {
 					await handleAutoPairPrinter();
 					const newPairedPrinter = getGlobalConnectedPrinter();
 					console.log('After pairing, new printer:', newPairedPrinter);
-					
+
 					if (!newPairedPrinter) {
-						alert('Printer pairing was cancelled or failed. Cannot print order.');
+						toast.error(
+							'Printer pairing was cancelled or failed. Cannot print order.'
+						);
 						return;
 					}
 				} catch (pairError) {
 					console.error('Pairing failed:', pairError);
-					alert('Failed to pair printer. Cannot print order.');
+					toast.error('Failed to pair printer. Cannot print order.');
 					return;
 				}
 			}
@@ -56,7 +60,7 @@ export function OrderActions({ order }: OrderActionsProps) {
 			const orderDetails = await api.getOrderById(orderId);
 
 			if (!orderDetails) {
-				alert('Order not found');
+				toast.error('Order not found');
 				return;
 			}
 
@@ -94,8 +98,8 @@ export function OrderActions({ order }: OrderActionsProps) {
 			if (
 				error instanceof Error &&
 				(error.message.includes('No thermal printer') ||
-				 error.message.includes('no longer in range') ||
-				 error.message.includes('Could not connect to printer'))
+					error.message.includes('no longer in range') ||
+					error.message.includes('Could not connect to printer'))
 			) {
 				console.log('Caught printer connectivity error, attempting to pair...');
 				try {
@@ -135,7 +139,9 @@ export function OrderActions({ order }: OrderActionsProps) {
 					}
 				} catch (pairError) {
 					console.error('Error pairing printer during retry:', pairError);
-					alert('Failed to pair printer. Please try the Pair Printer button first.');
+					toast.error(
+						'Failed to pair printer. Please try the Pair Printer button first.'
+					);
 					return;
 				}
 			}
@@ -143,16 +149,22 @@ export function OrderActions({ order }: OrderActionsProps) {
 			// Show specific error message based on error type
 			if (error instanceof Error) {
 				if (error.message.includes('Bluetooth not supported')) {
-					alert('Bluetooth is not supported in this browser. Please use Chrome or Edge.');
+					toast.error(
+						'Bluetooth is not supported in this browser. Please use Chrome or Edge.'
+					);
 				} else if (error.message.includes('No printer selected')) {
-					alert('No printer was selected. Please try again and select a printer.');
+					toast.error(
+						'No printer was selected. Please try again and select a printer.'
+					);
 				} else if (error.message.includes('no longer in range')) {
-					alert('Printer is out of range. Please bring the printer closer and try again.');
+					toast.error(
+						'Printer is out of range. Please bring the printer closer and try again.'
+					);
 				} else {
-					alert(`Print failed: ${error.message}`);
+					toast.error(`Print failed: ${error.message}`);
 				}
 			} else {
-				alert('Failed to print order. Please try again.');
+				toast.error('Failed to print order. Please try again.');
 			}
 		} finally {
 			setIsPrintingThermal(false);
@@ -161,7 +173,7 @@ export function OrderActions({ order }: OrderActionsProps) {
 
 	const handleAutoPairPrinter = async () => {
 		console.log('Starting auto pair process...');
-		
+
 		if (!isBluetoothSupported()) {
 			console.log('Bluetooth not supported');
 			alert(
@@ -181,7 +193,7 @@ export function OrderActions({ order }: OrderActionsProps) {
 
 		const printer = printers[0];
 		console.log('Selected printer:', printer);
-		
+
 		savePrinterForDirectUse(printer);
 		console.log('Printer saved for direct use');
 
@@ -203,10 +215,10 @@ export function OrderActions({ order }: OrderActionsProps) {
 			try {
 				await api.deleteOrder(orderId);
 				router.refresh();
-				alert('Order deleted successfully!');
+				toast.success('Order deleted successfully!');
 			} catch (error) {
 				console.error('Failed to delete order:', error);
-				alert('Failed to delete order. Please try again.');
+				toast.error('Failed to delete order. Please try again.');
 			}
 		}
 	};
@@ -216,15 +228,22 @@ export function OrderActions({ order }: OrderActionsProps) {
 	};
 
 	return (
-		<div className='flex flex-col gap-2 mt-4 pt-4 border-t'>
-			<Button
-				variant='ghost'
-				size='sm'
-				className='text-red-500 hover:text-red-700 hover:bg-red-50 self-start'
-				onClick={() => handleDeleteOrder(order.id)}>
-				<Trash className='h-4 w-4 mr-1' />
-				Delete
-			</Button>
+		<div className='mt-4 pt-4 border-t'>
+			<div className='flex items-center justify-between mb-2'>
+				<Button
+					variant='ghost'
+					size='sm'
+					className='text-red-500 hover:text-red-700 hover:bg-red-50'
+					onClick={() => handleDeleteOrder(order.id)}>
+					<Trash className='h-4 w-4 mr-1' />
+					Delete
+				</Button>
+				<Link href={`/orders/${order.id}/edit`} title='Edit order'>
+					<Button variant='ghost' size='icon' className='h-8 w-8'>
+						<Pencil className='h-4 w-4' />
+					</Button>
+				</Link>
+			</div>
 
 			<div className='flex flex-col gap-2'>
 				<Button

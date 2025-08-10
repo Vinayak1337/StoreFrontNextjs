@@ -8,32 +8,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { OrderItemCard } from './order-item-card';
-import { CategoryFilter } from './category-filter';
-import { OrderSummary } from './order-summary';
-import { createOrderAction } from '@/app/api/orders/create/actions';
+import { OrderItemCard } from '../create/order-item-card';
+import { CategoryFilter } from '../create/category-filter';
+import { OrderSummary } from '../create/order-summary';
+import { updateOrderAction } from '@/app/api/orders/update/actions';
 
-interface OrderItem {
+interface OrderItemState {
 	itemId: string;
 	quantity: number;
 	price: number;
 }
 
-interface CreateOrderClientProps {
+interface EditOrderClientProps {
+	order: Order;
 	items: Item[];
 	categories: Category[];
 }
 
-export function CreateOrderClient({
+export function EditOrderClient({
+	order,
 	items,
 	categories
-}: CreateOrderClientProps) {
+}: EditOrderClientProps) {
 	const router = useRouter();
 
-	// Form state
-	const [customerName, setCustomerName] = useState('');
-	const [customMessage, setCustomMessage] = useState('');
-	const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+	// Form state (pre-filled)
+	const [customerName, setCustomerName] = useState(order.customerName);
+	const [customMessage, setCustomMessage] = useState(order.customMessage || '');
+	const [orderItems, setOrderItems] = useState<OrderItemState[]>(
+		(order.orderItems || []).map(oi => ({
+			itemId: oi.itemId,
+			quantity: oi.quantity,
+			price: Number(oi.price)
+		}))
+	);
 
 	// UI state
 	const [searchTerm, setSearchTerm] = useState('');
@@ -49,12 +57,10 @@ export function CreateOrderClient({
 		) {
 			return false;
 		}
-
 		// Category filter
 		if (selectedCategory) {
 			return item.categories?.some(cat => cat.categoryId === selectedCategory);
 		}
-
 		return true;
 	});
 
@@ -62,18 +68,13 @@ export function CreateOrderClient({
 	const addItem = (itemId: string) => {
 		const item = items.find(i => i.id === itemId);
 		if (!item) return;
-
 		const existingItem = orderItems.find(i => i.itemId === itemId);
 		if (existingItem) {
 			updateQuantity(itemId, existingItem.quantity + 1);
 		} else {
 			setOrderItems([
 				...orderItems,
-				{
-					itemId,
-					quantity: 1,
-					price: Number(item.price)
-				}
+				{ itemId, quantity: 1, price: Number(item.price) }
 			]);
 		}
 	};
@@ -84,7 +85,6 @@ export function CreateOrderClient({
 			removeItem(itemId);
 			return;
 		}
-
 		setOrderItems(
 			orderItems.map(i => (i.itemId === itemId ? { ...i, quantity } : i))
 		);
@@ -101,61 +101,25 @@ export function CreateOrderClient({
 		0
 	);
 
-	// Handle form submission
+	// Submit update
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
-		if (!customerName.trim() || orderItems.length === 0 || isSubmitting) {
-			return;
-		}
-
+		if (!customerName.trim() || orderItems.length === 0 || isSubmitting) return;
 		setIsSubmitting(true);
-
 		try {
-			const result = await createOrderAction({
+			const result = await updateOrderAction({
+				id: order.id,
 				customerName: customerName.trim(),
-				orderItems: orderItems,
-				customMessage: customMessage.trim() || undefined
+				customMessage: customMessage.trim() || undefined,
+				orderItems
 			});
-
 			if (result.success) {
-				router.push('/orders');
+				router.push(`/orders/${order.id}`);
 			} else {
-				console.error(
-					result.error || 'Failed to create order. Please try again.'
-				);
+				console.error(result.error || 'Failed to update order.');
 			}
-		} catch (error) {
-			console.error('Error creating order:', error);
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
-
-	// Handle direct creation - creates order and redirects
-	const handleDirectCreate = async () => {
-		if (!customerName.trim() || orderItems.length === 0 || isSubmitting) {
-			return;
-		}
-
-		setIsSubmitting(true);
-
-		try {
-			const result = await createOrderAction({
-				customerName: customerName.trim(),
-				orderItems: orderItems,
-				customMessage: customMessage.trim() || undefined
-			});
-
-			if (result.success) {
-				router.push('/orders');
-			} else {
-				console.error(
-					result.error || 'Failed to create order. Please try again.'
-				);
-			}
-		} catch (error) {
-			console.error('Error creating order:', error);
+		} catch (err) {
+			console.error('Error updating order:', err);
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -196,23 +160,23 @@ export function CreateOrderClient({
 					</Button>
 					<div className='min-w-0'>
 						<h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate'>
-							Create New Order
+							Edit Order
 						</h1>
 						<p className='text-gray-600 mt-1 text-sm sm:text-base'>
-							Add items and create a new customer order
+							Update items and customer information
 						</p>
 					</div>
 				</div>
-				{/* Create Order button - only show on tablet vertical and mobile */}
+				{/* Save button - mobile/tablet */}
 				<Button
-					onClick={handleDirectCreate}
+					onClick={handleSubmit as unknown as () => void}
 					disabled={
 						!customerName.trim() || orderItems.length === 0 || isSubmitting
 					}
 					className='xl:hidden flex items-center gap-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white self-start sm:self-auto'>
 					<Save className='h-4 w-4' />
-					<span className='hidden sm:inline'>Create Order</span>
-					<span className='sm:hidden'>Order</span>
+					<span className='hidden sm:inline'>Save Changes</span>
+					<span className='sm:hidden'>Save</span>
 				</Button>
 			</div>
 
@@ -251,7 +215,7 @@ export function CreateOrderClient({
 						</div>
 					</div>
 
-					{/* Order Summary - Show in column view between customer info and items */}
+					{/* Order Summary - mobile/tablet */}
 					<div className='xl:hidden'>
 						<OrderSummary orderItems={orderItems} items={items} total={total} />
 					</div>
@@ -373,11 +337,9 @@ export function CreateOrderClient({
 					</div>
 				</div>
 
-				{/* Order Summary Sidebar - Only show on desktop */}
+				{/* Order Summary Sidebar - desktop */}
 				<div className='hidden xl:block xl:col-span-1'>
 					<OrderSummary orderItems={orderItems} items={items} total={total} />
-
-					{/* Submit Button */}
 					<form onSubmit={handleSubmit} className='mt-4 sm:mt-6'>
 						<Button
 							type='submit'
@@ -391,27 +353,7 @@ export function CreateOrderClient({
 							) : (
 								<Save className='h-3 w-3 sm:h-4 sm:w-4' />
 							)}
-							{isSubmitting ? 'Creating Order...' : 'Create Order'}
-						</Button>
-					</form>
-				</div>
-
-				{/* Submit Button for mobile/tablet - Show after all items */}
-				<div className='xl:hidden'>
-					<form onSubmit={handleSubmit} className='mt-4 sm:mt-6'>
-						<Button
-							type='submit'
-							disabled={
-								!customerName.trim() || orderItems.length === 0 || isSubmitting
-							}
-							className='w-full gap-2 h-10 sm:h-12 text-sm sm:text-base'
-							size='lg'>
-							{isSubmitting ? (
-								<div className='animate-spin h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent rounded-full' />
-							) : (
-								<Save className='h-3 w-3 sm:h-4 sm:w-4' />
-							)}
-							{isSubmitting ? 'Creating Order...' : 'Create Order'}
+							{isSubmitting ? 'Saving...' : 'Save Changes'}
 						</Button>
 					</form>
 				</div>

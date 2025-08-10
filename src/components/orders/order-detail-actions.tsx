@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { XCircle, Trash } from 'lucide-react';
+import { Pencil, Trash } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import {
-	handleDeleteOrder
-} from '@/app/api/orders/[id]/order-actions';
+import { handleDeleteOrder } from '@/app/api/orders/[id]/order-actions';
 
 interface OrderDetailActionsProps {
 	order: Order;
@@ -14,26 +13,10 @@ interface OrderDetailActionsProps {
 
 export function OrderDetailActions({ order }: OrderDetailActionsProps) {
 	const [isDeleting, setIsDeleting] = useState(false);
+	const router = useRouter();
 
-	const handleCancelOrderClick = async () => {
-		if (!order || isDeleting) return;
-
-		if (
-			confirm(
-				'Are you sure you want to cancel this order? This will delete it permanently.'
-			)
-		) {
-			setIsDeleting(true);
-			try {
-				await handleDeleteOrder(order.id);
-				toast.success('Order cancelled successfully');
-			} catch (error) {
-				toast.error('Failed to cancel order');
-				console.error(error);
-			} finally {
-				setIsDeleting(false);
-			}
-		}
+	const handleEditOrderClick = () => {
+		router.push(`/orders/${order.id}/edit`);
 	};
 
 	const handleDeleteOrderClick = async () => {
@@ -63,12 +46,11 @@ export function OrderDetailActions({ order }: OrderDetailActionsProps) {
 				<Button
 					variant='outline'
 					size='sm'
-					onClick={handleCancelOrderClick}
-					disabled={isDeleting}
+					onClick={handleEditOrderClick}
 					className='flex items-center justify-center gap-2 text-xs sm:text-sm w-full sm:w-auto'>
-					<XCircle className='h-3 w-3 sm:h-4 sm:w-4' />
-					<span className='hidden xs:inline'>Cancel Order</span>
-					<span className='xs:hidden'>Cancel</span>
+					<Pencil className='h-3 w-3 sm:h-4 sm:w-4' />
+					<span className='hidden xs:inline'>Edit Order</span>
+					<span className='xs:hidden'>Edit</span>
 				</Button>
 			</div>
 
