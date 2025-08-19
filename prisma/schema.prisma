@@ -64,6 +64,7 @@ model Order {
   id            String      @id @default(uuid())
   customerName  String      @map("customer_name")
   status        OrderStatus @default(COMPLETED)
+  archived      Boolean     @default(false)
   createdAt     DateTime    @default(now()) @map("created_at")
   customMessage String?     @map("custom_message")
   orderItems    OrderItem[]

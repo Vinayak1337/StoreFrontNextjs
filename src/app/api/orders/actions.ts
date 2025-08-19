@@ -21,6 +21,31 @@ export const getOrders = cache(async () => {
 			COALESCE(SUM(oi.price * oi.quantity), 0) as "totalAmount"
 		FROM orders o
 		LEFT JOIN order_items oi ON o.id = oi.order_id
+		WHERE o.archived = false
+		GROUP BY o.id, o.customer_name, o.custom_message, o.created_at
+		ORDER BY o.created_at DESC
+	`;
+
+	return orders.map(order => ({
+		...order,
+		itemsCount: Number(order.itemsCount),
+		totalAmount: Number(order.totalAmount)
+	}));
+});
+
+export const getArchivedOrders = cache(async () => {
+	const orders = await prisma.$queryRaw<Array<BasicOrder>>`
+		SELECT 
+			o.id,
+			o.customer_name as "customerName",
+			o.custom_message as "customMessage",
+			o.created_at as "createdAt",
+			o.created_at as "updatedAt",
+			COALESCE(COUNT(oi.id), 0) as "itemsCount",
+			COALESCE(SUM(oi.price * oi.quantity), 0) as "totalAmount"
+		FROM orders o
+		LEFT JOIN order_items oi ON o.id = oi.order_id
+		WHERE o.archived = true
 		GROUP BY o.id, o.customer_name, o.custom_message, o.created_at
 		ORDER BY o.created_at DESC
 	`;
@@ -285,6 +310,40 @@ export const updateOrderWithItems = async (
 				: null
 		}))
 	} as unknown as Order;
+};
+
+export const archiveOrder = async (id: string) => {
+	const order = await prisma.order.findUnique({
+		where: { id }
+	});
+
+	if (!order) {
+		throw new Error('Order not found');
+	}
+
+	await prisma.order.update({
+		where: { id },
+		data: { archived: true }
+	});
+
+	return { success: true, message: 'Order archived successfully' };
+};
+
+export const unarchiveOrder = async (id: string) => {
+	const order = await prisma.order.findUnique({
+		where: { id }
+	});
+
+	if (!order) {
+		throw new Error('Order not found');
+	}
+
+	await prisma.order.update({
+		where: { id },
+		data: { archived: false }
+	});
+
+	return { success: true, message: 'Order unarchived successfully' };
 };
 
 export const deleteOrder = async (id: string) => {
