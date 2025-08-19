@@ -149,6 +149,32 @@ export const ordersAPI = {
 		}
 
 		return id;
+	},
+
+	archiveOrder: async (id: string) => {
+		const response = await fetchWithCsrf(`/api/orders/${id}/archive`, {
+			method: 'POST'
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to archive order');
+		}
+
+		return id;
+	},
+
+	unarchiveOrder: async (id: string) => {
+		const response = await fetchWithCsrf(`/api/orders/${id}/unarchive`, {
+			method: 'POST'
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to unarchive order');
+		}
+
+		return id;
 	}
 };
 

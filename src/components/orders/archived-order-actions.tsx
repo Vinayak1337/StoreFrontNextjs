@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/services/api';
-import { Eye, Trash, Printer, Loader2, Pencil, Archive } from 'lucide-react';
-import Link from 'next/link';
+import { Eye, Trash, Printer, Loader2, Undo2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { printDirectlyToThermalPrinter } from '@/lib/utils/direct-thermal-print';
 import {
@@ -16,11 +15,11 @@ import {
 } from '@/lib/utils/printer-utils';
 import { getSettings } from '@/app/api/settings/actions';
 
-interface OrderActionsProps {
+interface ArchivedOrderActionsProps {
 	order: BasicOrder;
 }
 
-export function OrderActions({ order }: OrderActionsProps) {
+export function ArchivedOrderActions({ order }: ArchivedOrderActionsProps) {
 	const router = useRouter();
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const [isPrintingThermal, setIsPrintingThermal] = useState(false);
@@ -223,19 +222,19 @@ export function OrderActions({ order }: OrderActionsProps) {
 		}
 	};
 
-	const handleArchiveOrder = async (orderId: string) => {
+	const handleUnarchiveOrder = async (orderId: string) => {
 		if (
 			confirm(
-				'Are you sure you want to archive this order? It will be moved to archived orders.'
+				'Are you sure you want to unarchive this order? It will be moved back to active orders.'
 			)
 		) {
 			try {
-				await api.archiveOrder(orderId);
+				await api.unarchiveOrder(orderId);
 				router.refresh();
-				toast.success('Order archived successfully!');
+				toast.success('Order unarchived successfully!');
 			} catch (error) {
-				console.error('Failed to archive order:', error);
-				toast.error('Failed to archive order. Please try again.');
+				console.error('Failed to unarchive order:', error);
+				toast.error('Failed to unarchive order. Please try again.');
 			}
 		}
 	};
@@ -247,19 +246,13 @@ export function OrderActions({ order }: OrderActionsProps) {
 	return (
 		<div className='mt-4 pt-4 border-t'>
 			<div className='flex items-center justify-between gap-1 sm:gap-2 mb-2'>
-				<Link href={`/orders/${order.id}/edit`} title='Edit order' className='flex-1'>
-					<Button variant='ghost' size='sm' className='w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50'>
-						<Pencil className='h-3 w-3 sm:h-4 sm:w-4 mr-1' />
-						<span className='text-xs'>Edit</span>
-					</Button>
-				</Link>
 				<Button
 					variant='ghost'
 					size='sm'
-					className='flex-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50'
-					onClick={() => handleArchiveOrder(order.id)}>
-					<Archive className='h-3 w-3 sm:h-4 sm:w-4 mr-1' />
-					<span className='text-xs'>Archive</span>
+					className='flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+					onClick={() => handleUnarchiveOrder(order.id)}>
+					<Undo2 className='h-3 w-3 sm:h-4 sm:w-4 mr-1' />
+					<span className='text-xs'>Unarchive</span>
 				</Button>
 				<Button
 					variant='ghost'

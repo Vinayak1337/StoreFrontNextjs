@@ -18,6 +18,7 @@ interface BasicOrder {
 	updatedAt: Date;
 	itemsCount: number;
 	totalAmount: number;
+	archived?: boolean;
 }
 
 interface ItemCategory {
