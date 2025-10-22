@@ -4,7 +4,7 @@ A fast, modern POS and inventory app built with Next.js App Router and Prisma. I
 
 ## Demo
 
-- [![Watch the Demo](https://raw.githubusercontent.com/Vinayak1337/StoreFrontNextjs/master/public/demo-thumbnail.png)](https://youtu.be/jgo2HbYJc58)
+- [Watch the Demo](https://youtu.be/jgo2HbYJc58)
 
 
 ## Features
