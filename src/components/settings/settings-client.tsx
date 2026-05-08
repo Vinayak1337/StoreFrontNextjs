@@ -19,8 +19,10 @@ import {
 	connectToPrinter,
 	testPrinter,
 	autoConnectPrinter,
-	debugBluetoothSupport
-} from '@/lib/utils/printer-utils';
+	debugBluetoothSupport,
+	getPreferredBluetoothPrinter,
+	savePrinterForDirectUse
+} from '@/lib/utils/bluetooth';
 import {
 	Loader2,
 	Printer,
@@ -192,7 +194,11 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 
 			const discoveredPrinters = await scanForPrinters();
 			setAvailablePrinters(discoveredPrinters);
-			toast.success(`Found ${discoveredPrinters.length} available printers`);
+			if (discoveredPrinters.length === 0) {
+				toast.info('No printer selected. Please try again.');
+			} else {
+				toast.success(`Found ${discoveredPrinters.length} available printers`);
+			}
 		} catch (error) {
 			console.error('Printer scan failed:', error);
 
@@ -213,6 +219,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 			const connected = await connectToPrinter(printer);
 
 			if (connected) {
+				savePrinterForDirectUse(printer);
 				setFormState(prev => ({
 					...prev,
 					printer: {
@@ -242,12 +249,14 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 				throw new Error('Printer is not connected');
 			}
 
-			// For testing, we need to create a printer device based on available printers
-			const connectedPrinter = availablePrinters.find(
-				p => p.id === formState.printer?.deviceId
-			);
+			const connectedPrinter =
+				availablePrinters.find(p => p.id === formState.printer?.deviceId) ||
+				(await getPreferredBluetoothPrinter());
+
 			if (!connectedPrinter) {
-				throw new Error('Connected printer not found in available printers');
+				throw new Error(
+					'Connected printer is not available. Pair the printer again and retry.'
+				);
 			}
 
 			await testPrinter(connectedPrinter);
@@ -545,7 +554,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 											No Printer Connected
 										</h3>
 										<p className='text-xs sm:text-sm text-gray-600'>
-											Scan for available thermal printers on your network
+											Scan for nearby Bluetooth thermal printers
 										</p>
 									</div>
 								</div>
@@ -561,7 +570,7 @@ export function SettingsClient({ initialSettings }: SettingsClientProps) {
 								Discover Printers
 							</CardTitle>
 							<CardDescription className='text-sm'>
-								Scan your network for available thermal printers
+								Scan for nearby Bluetooth thermal printers
 							</CardDescription>
 						</CardHeader>
 						<CardContent className='p-4 lg:p-6'>

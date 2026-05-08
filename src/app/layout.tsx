@@ -15,6 +15,11 @@ export const metadata = {
 	description: 'A modern inventory management system'
 };
 
+export const viewport = {
+	width: 'device-width',
+	initialScale: 1
+};
+
 export default async function RootLayout({
 	children
 }: {
@@ -40,18 +45,18 @@ export default async function RootLayout({
 				<link rel='icon' href='/favicon.ico' />
 			</head>
 			<body
-				className={`min-h-screen bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
+				className={`min-h-screen overflow-x-hidden bg-white text-gray-900 font-sans antialiased ${fontSans.variable}`}>
 				<div
 					className={cn(
-						'flex min-h-screen overflow-hidden',
+						'flex min-h-screen w-full overflow-hidden',
 						'animate-fade-in'
 					)}>
 					{isProtectedRoute && <Sidebar />}
-					<div className='flex-1 flex flex-col overflow-hidden'>
-						<main className='flex-1 overflow-auto bg-gray-50/30'>
+					<div className='min-w-0 flex-1 flex flex-col overflow-hidden'>
+						<main className='min-w-0 flex-1 overflow-auto bg-gray-50/30'>
 							<div
 								className={cn(
-									'h-full animate-slide-in',
+									'h-full min-w-0 max-w-full overflow-x-hidden animate-slide-in',
 									isProtectedRoute
 										? 'pt-16 md:pt-4 px-4 pb-4 md:p-6 md:pb-20 lg:pb-6 lg:pl-[calc(16rem+2rem)] xl:pl-[calc(18rem+2rem)] lg:pr-8'
 										: ''

@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-toastify';
 import { Loader2, Bluetooth, BluetoothConnected } from 'lucide-react';
 import {
-	scanForPrinters,
-	isBluetoothSupported,
-	savePrinterForDirectUse
-} from '@/lib/utils/printer-utils';
+	getBluetoothPrinterErrorMessage,
+	getPreferredBluetoothPrinter,
+	pairBluetoothPrinter
+} from '@/lib/utils/bluetooth';
 
 export function PairPrinterButton() {
 	const [isPairingPrinter, setIsPairingPrinter] = useState(false);
@@ -18,27 +18,27 @@ export function PairPrinterButton() {
 		string | null
 	>(null);
 
+	useEffect(() => {
+		getPreferredBluetoothPrinter()
+			.then(printer => {
+				if (!printer) return;
+				setIsConnectedPrinter(true);
+				setConnectedPrinterName(printer.name);
+			})
+			.catch(console.error);
+	}, []);
+
 	const handlePairPrinter = async () => {
 		try {
 			setIsPairingPrinter(true);
 			setPrinterSaved(false);
 
-			if (!isBluetoothSupported()) {
-				toast.error(
-					'Bluetooth is not supported in this browser. Use Chrome or Edge.'
-				);
-				return;
-			}
-
-			const printers = await scanForPrinters();
-
-			if (printers.length === 0) {
+			const printer = await pairBluetoothPrinter({ preferSaved: false });
+			if (!printer) {
 				toast.info('No printer selected. Please try again.');
 				return;
 			}
 
-			const printer = printers[0];
-			savePrinterForDirectUse(printer);
 			setPrinterSaved(true);
 			setIsConnectedPrinter(true);
 			setConnectedPrinterName(printer.name);
@@ -49,8 +49,7 @@ export function PairPrinterButton() {
 
 			// Paired successfully
 		} catch (error) {
-			console.error('Error pairing printer:', error);
-			toast.error('Failed to pair printer. Please try again.');
+			toast.error(getBluetoothPrinterErrorMessage(error));
 		} finally {
 			setIsPairingPrinter(false);
 		}

@@ -4,6 +4,7 @@
 
 import { isBluetoothSupported } from './support';
 import { savePrinterForDirectUse } from './storage';
+import { BLUETOOTH_PRINTER_SERVICE_UUIDS } from './constants';
 
 interface Bluetooth {
 	requestDevice(options?: RequestDeviceOptions): Promise<BluetoothDevice>;
@@ -84,21 +85,7 @@ export async function scanForPrinters(): Promise<PrinterDevice[]> {
 		// Request Bluetooth device with comprehensive printer service UUIDs
 		const device = await (navigator.bluetooth as Bluetooth)?.requestDevice({
 			acceptAllDevices: true,
-			// Request all possible services to maximize chances of connecting
-			optionalServices: [
-				'00001800-0000-1000-8000-00805f9b34fb', // Generic Access
-				'00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
-				'00001812-0000-1000-8000-00805f9b34fb', // Human Interface Device
-				'03b7e958-aed3-4d18-a30e-c6313ad7d9dd', // Another printer service
-				'49535343-fe7d-4ae5-8fa9-9fafd205e455', // AT POS / ISSC service
-				'49535343-1e4d-4bd9-ba61-23c647249616', // ISSC Transparent UART
-				'0000ffe0-0000-1000-8000-00805f9b34fb', // Common BLE UART service
-				'0000fff0-0000-1000-8000-00805f9b34fb', // Common printer service
-				'0000ff00-0000-1000-8000-00805f9b34fb', // Another printer service
-				'000018f0-0000-1000-8000-00805f9b34fb', // Common printer service
-				'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // ESC/POS service
-				'00001101-0000-1000-8000-00805f9b34fb' // Serial Port Profile (SPP)
-			]
+			optionalServices: [...BLUETOOTH_PRINTER_SERVICE_UUIDS]
 		});
 
 		if (!device) {

@@ -2,6 +2,13 @@
  * Bluetooth Printer Printing Utilities
  */
 
+import {
+	PRINTER_WRITE_CHARACTERISTIC_UUIDS,
+	PRINTER_WRITE_CHUNK_DELAY_MS,
+	PRINTER_WRITE_CHUNK_SIZE,
+	PRIORITY_PRINTER_SERVICE_UUIDS
+} from './constants';
+
 /**
  * Generate specialized print data based on printer name
  */
@@ -76,23 +83,14 @@ export async function printToBluetooth(
 		const services = await server.getPrimaryServices();
 		console.log(`Found ${services.length} services`);
 
-		// Common printer service UUIDs to try first (priority order)
-		const priorityServiceUUIDs = [
-			'49535343-fe7d-4ae5-8fa9-9fafd205e455', // AT POS / ISSC service (highest priority)
-			'49535343-1e4d-4bd9-ba61-23c647249616', // ISSC Transparent UART
-			'0000ffe0-0000-1000-8000-00805f9b34fb', // Common BLE UART service
-			'000018f0-0000-1000-8000-00805f9b34fb', // Common printer service
-			'e7810a71-73ae-499d-8c15-faa9aef0c3f2', // ESC/POS service
-			'00001101-0000-1000-8000-00805f9b34fb', // Serial Port Profile (SPP)
-			'0000fff0-0000-1000-8000-00805f9b34fb', // Common printer service
-			'0000ff00-0000-1000-8000-00805f9b34fb', // Another printer service
-			'03b7e958-aed3-4d18-a30e-c6313ad7d9dd' // Another printer service
-		];
-
 		// Sort services to try priority ones first
 		const sortedServices = [...services].sort((a, b) => {
-			const aIsPriority = priorityServiceUUIDs.includes(a.uuid.toLowerCase());
-			const bIsPriority = priorityServiceUUIDs.includes(b.uuid.toLowerCase());
+			const aIsPriority = PRIORITY_PRINTER_SERVICE_UUIDS.includes(
+				a.uuid.toLowerCase() as (typeof PRIORITY_PRINTER_SERVICE_UUIDS)[number]
+			);
+			const bIsPriority = PRIORITY_PRINTER_SERVICE_UUIDS.includes(
+				b.uuid.toLowerCase() as (typeof PRIORITY_PRINTER_SERVICE_UUIDS)[number]
+			);
 			return bIsPriority ? 1 : aIsPriority ? -1 : 0;
 		});
 
@@ -108,17 +106,8 @@ export async function printToBluetooth(
 					`Found ${characteristics.length} characteristics for service ${service.uuid}`
 				);
 
-				// First try specific AT POS printer characteristic UUIDs
-				const atPosCharUUIDs = [
-					'49535343-8841-43f4-a8d4-ecbe34729bb3', // AT POS/ISSC write characteristic
-					'49535343-1e4d-4bd9-ba61-23c647249616', // ISSC UART write
-					'0000ffe1-0000-1000-8000-00805f9b34fb', // Common BLE UART characteristic
-					'0000fff1-0000-1000-8000-00805f9b34fb', // Common printer characteristic
-					'0000ff01-0000-1000-8000-00805f9b34fb' // Another printer characteristic
-				];
-
 				// Try to find specific known characteristics first
-				for (const charUUID of atPosCharUUIDs) {
+				for (const charUUID of PRINTER_WRITE_CHARACTERISTIC_UUIDS) {
 					if (success) break;
 
 					try {
@@ -140,7 +129,7 @@ export async function printToBluetooth(
 								console.log('Init sequence successfully sent');
 
 								// Send the full print data in chunks
-								const mtu = 512;
+								const mtu = PRINTER_WRITE_CHUNK_SIZE;
 								if (printData.length <= mtu) {
 									await specificChar.writeValue(printData);
 								} else {
@@ -156,7 +145,9 @@ export async function printToBluetooth(
 											} bytes)`
 										);
 										await specificChar.writeValue(chunk);
-										await new Promise(resolve => setTimeout(resolve, 100));
+										await new Promise(resolve =>
+											setTimeout(resolve, PRINTER_WRITE_CHUNK_DELAY_MS)
+										);
 									}
 								}
 
@@ -190,7 +181,7 @@ export async function printToBluetooth(
 									`Writing to characteristic: ${characteristic.uuid}`
 								);
 
-								const mtu = 512;
+								const mtu = PRINTER_WRITE_CHUNK_SIZE;
 								if (printData.length <= mtu) {
 									await characteristic.writeValue(printData);
 									console.log('Write successful!');
@@ -211,7 +202,9 @@ export async function printToBluetooth(
 											} bytes)`
 										);
 										await characteristic.writeValue(chunk);
-										await new Promise(resolve => setTimeout(resolve, 100));
+										await new Promise(resolve =>
+											setTimeout(resolve, PRINTER_WRITE_CHUNK_DELAY_MS)
+										);
 									}
 									console.log('All chunks sent successfully!');
 									success = true;

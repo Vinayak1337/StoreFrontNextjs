@@ -34,8 +34,18 @@ export {
 // Storage and state management
 export {
 	savePrinterForDirectUse,
+	clearSavedPrinterForDirectUse,
 	setGlobalConnectedPrinter,
 	getGlobalConnectedPrinter,
 	autoConnectToSavedPrinter,
 	validatePrinterConfig
 } from './storage';
+
+// High-level pairing helpers
+export {
+	getPreferredBluetoothPrinter,
+	pairBluetoothPrinter,
+	requireBluetoothPrinter,
+	isBluetoothPrinterConnectivityError,
+	getBluetoothPrinterErrorMessage
+} from './pairing';

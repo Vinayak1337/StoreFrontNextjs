@@ -33,6 +33,16 @@ interface PrinterDevice {
 // Global state for connected printer
 let globalConnectedPrinter: PrinterDevice | null = null;
 
+function safeDecodeCookieValue(value: string | undefined): string | undefined {
+	if (!value) return value;
+
+	try {
+		return decodeURIComponent(value);
+	} catch {
+		return value;
+	}
+}
+
 /**
  * Save printer selection to both localStorage and cookies for cross-page consistency
  */
@@ -44,14 +54,14 @@ export function savePrinterForDirectUse(printerDevice: PrinterDevice): void {
 
 		// Also save to cookies (for bills page compatibility)
 		if (typeof document !== 'undefined') {
-			document.cookie = `preferred_printer_id=${
+			document.cookie = `preferred_printer_id=${encodeURIComponent(
 				printerDevice.id
-			}; expires=${new Date(
+			)}; expires=${new Date(
 				Date.now() + 365 * 24 * 60 * 60 * 1000
 			).toUTCString()}; path=/`;
-			document.cookie = `preferred_printer_name=${
+			document.cookie = `preferred_printer_name=${encodeURIComponent(
 				printerDevice.name
-			}; expires=${new Date(
+			)}; expires=${new Date(
 				Date.now() + 365 * 24 * 60 * 60 * 1000
 			).toUTCString()}; path=/`;
 		}
@@ -66,6 +76,21 @@ export function savePrinterForDirectUse(printerDevice: PrinterDevice): void {
 		console.log('Saved to localStorage and cookies');
 	} catch (error) {
 		console.error('Failed to save printer:', error);
+	}
+}
+
+export function clearSavedPrinterForDirectUse(): void {
+	try {
+		localStorage.removeItem('thermal_printer_id');
+		localStorage.removeItem('thermal_printer_name');
+		setGlobalConnectedPrinter(null);
+
+		if (typeof document !== 'undefined') {
+			document.cookie = 'preferred_printer_id=; Max-Age=0; path=/';
+			document.cookie = 'preferred_printer_name=; Max-Age=0; path=/';
+		}
+	} catch (error) {
+		console.error('Failed to clear saved printer:', error);
 	}
 }
 
@@ -103,12 +128,12 @@ export async function autoConnectToSavedPrinter(): Promise<boolean> {
 		if (!savedPrinterId && typeof document !== 'undefined') {
 			const cookies = document.cookie.split(';').reduce((acc, cookie) => {
 				const [key, value] = cookie.trim().split('=');
-				acc[key] = value;
+				acc[key] = safeDecodeCookieValue(value);
 				return acc;
-			}, {} as Record<string, string>);
+			}, {} as Record<string, string | undefined>);
 
-			savedPrinterId = cookies['preferred_printer_id'];
-			savedPrinterName = cookies['preferred_printer_name'];
+			savedPrinterId = cookies['preferred_printer_id'] ?? null;
+			savedPrinterName = cookies['preferred_printer_name'] ?? null;
 
 			// If found in cookies, also save to localStorage for consistency
 			if (savedPrinterId && savedPrinterName) {
@@ -163,8 +188,7 @@ export async function autoConnectToSavedPrinter(): Promise<boolean> {
 				console.log(
 					'Saved printer not found in paired devices, clearing saved data'
 				);
-				localStorage.removeItem('thermal_printer_id');
-				localStorage.removeItem('thermal_printer_name');
+				clearSavedPrinterForDirectUse();
 				return false;
 			}
 		} catch (error) {

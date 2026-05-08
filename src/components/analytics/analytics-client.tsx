@@ -46,16 +46,41 @@ interface AnalyticsClientProps {
 	initialMetrics: AnalyticsMetrics;
 	initialSalesData: DailySalesData[];
 	todayStats: TodayStats;
+	reportingEndDate: string;
+	reportingPeriodLabel: string;
 }
 
 export function AnalyticsClient({
 	initialMetrics,
 	initialSalesData,
-	todayStats
+	todayStats,
+	reportingEndDate,
+	reportingPeriodLabel
 }: AnalyticsClientProps) {
 	const [salesData, setSalesData] = useState(initialSalesData);
 	const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
+
+	const getDateRangeForDays = useCallback(
+		(days: number) => {
+			const [year, month, day] = reportingEndDate.split('-').map(Number);
+			const endDateTime = new Date(year, month - 1, day);
+			const startDateTime = new Date(endDateTime);
+			startDateTime.setDate(startDateTime.getDate() - (days - 1));
+
+			const formatDate = (date: Date) =>
+				`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+					2,
+					'0'
+				)}-${String(date.getDate()).padStart(2, '0')}`;
+
+			return {
+				startDate: formatDate(startDateTime),
+				endDate: formatDate(endDateTime)
+			};
+		},
+		[reportingEndDate]
+	);
 
 	const handleViewModeChange = useCallback(
 		async (mode: 'daily' | 'weekly' | 'monthly') => {
@@ -65,12 +90,7 @@ export function AnalyticsClient({
 				if (mode === 'weekly') days = 84; // 12 weeks
 				if (mode === 'monthly') days = 365; // 1 year
 
-				// Use local date formatting to avoid timezone issues
-				const now = new Date();
-				const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-				
-				const startDateTime = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-				const startDate = `${startDateTime.getFullYear()}-${String(startDateTime.getMonth() + 1).padStart(2, '0')}-${String(startDateTime.getDate()).padStart(2, '0')}`;
+				const { startDate, endDate } = getDateRangeForDays(days);
 
 				const res = await fetchWithCsrf(
 					`/api/analytics?startDate=${startDate}&endDate=${endDate}`,
@@ -85,18 +105,13 @@ export function AnalyticsClient({
 				setLoading(false);
 			}
 		},
-		[]
+		[getDateRangeForDays]
 	);
 
 	const handleRefresh = async () => {
 		setRefreshing(true);
 		try {
-			// Use local date formatting to avoid timezone issues
-			const now = new Date();
-			const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-			
-			const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-			const startDate = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
+			const { startDate, endDate } = getDateRangeForDays(30);
 			
 			const res = await fetchWithCsrf(
 				`/api/analytics?startDate=${startDate}&endDate=${endDate}`,
@@ -169,7 +184,7 @@ export function AnalyticsClient({
 						Analytics Dashboard
 					</h1>
 					<p className='text-sm lg:text-base text-gray-600 mt-1'>
-						Track your business performance and insights
+						Track your business performance for {reportingPeriodLabel}
 					</p>
 				</div>
 				<div className='flex flex-wrap items-center gap-2 lg:gap-3'>
@@ -249,7 +264,7 @@ export function AnalyticsClient({
 							Top Selling Items
 						</h3>
 						<Badge variant='secondary' className='text-xs'>
-							Last 30 days
+							Latest 30 days
 						</Badge>
 					</div>
 					{initialMetrics.topSellingItems &&
@@ -293,10 +308,10 @@ export function AnalyticsClient({
 					<div className='flex items-center justify-between mb-4'>
 						<h3 className='text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2'>
 							<BarChart3 className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-600' />
-							Today&apos;s Performance
+							Latest Day Performance
 						</h3>
 						<Badge variant='secondary' className='text-xs'>
-							Today
+							{reportingEndDate}
 						</Badge>
 					</div>
 					<div className='space-y-3 lg:space-y-4'>
@@ -304,7 +319,7 @@ export function AnalyticsClient({
 							<div className='flex items-center gap-2 lg:gap-3 min-w-0 flex-1'>
 								<div className='w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0'></div>
 								<span className='text-xs lg:text-sm font-medium text-gray-700 truncate'>
-									Orders Today
+									Orders
 								</span>
 							</div>
 							<span className='font-semibold text-gray-900 text-sm lg:text-base flex-shrink-0'>
@@ -315,7 +330,7 @@ export function AnalyticsClient({
 							<div className='flex items-center gap-2 lg:gap-3 min-w-0 flex-1'>
 								<div className='w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0'></div>
 								<span className='text-xs lg:text-sm font-medium text-gray-700 truncate'>
-									Revenue Today
+									Revenue
 								</span>
 							</div>
 							<span className='font-semibold text-gray-900 text-sm lg:text-base flex-shrink-0'>

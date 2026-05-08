@@ -2,6 +2,11 @@
 
 import { cache } from 'react';
 import prisma from '@/lib/prisma';
+import {
+	endOfDay,
+	parseDateKey,
+	startOfDay
+} from '@/lib/server/reporting-window';
 
 interface AnalyticsMetrics {
 	totalOrders: number;
@@ -163,17 +168,6 @@ export const getAnalyticsMetrics = cache(async (
 	const revenueTrend = prevTotalSales > 0 ? 
 		((totalSales - prevTotalSales) / prevTotalSales) * 100 : 0;
 
-	console.log('Analytics Metrics Debug:', {
-		startDateTime: startDateTime.toISOString(),
-		endDateTime: endDateTime.toISOString(),
-		totalOrders,
-		totalSales,
-		averageOrderValue,
-		ordersTrend,
-		revenueTrend,
-		topSellingItems: topItems
-	});
-
 	return {
 		totalOrders,
 		totalSales,
@@ -259,18 +253,16 @@ export const getDailySales = cache(async (
 	return result;
 });
 
-export const getTodayStats = cache(async () => {
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-	
-	const tomorrow = new Date(today);
-	tomorrow.setDate(tomorrow.getDate() + 1);
+export const getTodayStats = cache(async (dateKey?: string) => {
+	const anchorDate = dateKey ? parseDateKey(dateKey) : new Date();
+	const today = startOfDay(anchorDate);
+	const dayEnd = endOfDay(today);
 
 	const todayOrders = await prisma.order.findMany({
 		where: {
 			createdAt: {
 				gte: today,
-				lt: tomorrow
+				lte: dayEnd
 			}
 		},
 		include: {

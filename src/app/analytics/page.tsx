@@ -5,20 +5,16 @@ import {
 	getTodayStats
 } from '@/app/api/analytics/actions';
 import { AnalyticsClient } from '@/components/analytics/analytics-client';
+import { getOrderReportingWindow } from '@/lib/server/reporting-window';
 
 export default async function AnalyticsPage() {
-	// Get current date in local timezone
-	const now = new Date();
-	const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-	
-	// Get date 30 days ago
-	const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-	const startDate = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
+	const { startDateKey, endDateKey, periodLabel } =
+		await getOrderReportingWindow(30);
 
 	const [metrics, salesData, todayStats] = await Promise.all([
-		getAnalyticsMetrics(startDate, endDate),
-		getDailySales(startDate, endDate),
-		getTodayStats()
+		getAnalyticsMetrics(startDateKey, endDateKey),
+		getDailySales(startDateKey, endDateKey),
+		getTodayStats(endDateKey)
 	]);
 
 	return (
@@ -35,6 +31,8 @@ export default async function AnalyticsPage() {
 					initialMetrics={metrics}
 					initialSalesData={salesData}
 					todayStats={todayStats}
+					reportingEndDate={endDateKey}
+					reportingPeriodLabel={periodLabel}
 				/>
 			</Suspense>
 		</div>

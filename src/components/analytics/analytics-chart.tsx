@@ -96,8 +96,7 @@ export function AnalyticsChart({
 			return [];
 		}
 
-		let data = [...initialData]; // Create a copy
-		console.log('Initial data for chart:', viewMode, data);
+		let data = [...initialData];
 
 		// Group data based on view mode
 		if (viewMode === 'weekly') {
@@ -130,7 +129,6 @@ export function AnalyticsChart({
 				}
 			});
 
-			console.log('Weekly grouped data:', weeklyData);
 			data = Object.entries(weeklyData)
 				.sort(([a], [b]) => {
 					const [yearA, monthA, dayA] = a.split('-').map(Number);
@@ -167,7 +165,6 @@ export function AnalyticsChart({
 				}
 			});
 
-			console.log('Monthly grouped data:', monthlyData);
 			data = Object.entries(monthlyData)
 				.sort(([a], [b]) => {
 					const [yearA, monthA] = a.split('-').map(Number);
@@ -188,7 +185,6 @@ export function AnalyticsChart({
 				const [yearB, monthB, dayB] = b.date.split('-').map(Number);
 				return new Date(yearA, monthA - 1, dayA).getTime() - new Date(yearB, monthB - 1, dayB).getTime();
 			});
-			console.log('Daily sorted data:', data);
 		}
 
 		// Format the data for chart display with realistic wholesale margins

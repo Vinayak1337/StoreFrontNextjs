@@ -1,10 +1,11 @@
 import React from 'react';
 import {
-	getTotalRevenue,
+	getRevenueStats,
 	getOrdersStats,
 	getItemsInStock,
 	getConversionRate,
-	getRecentOrders
+	getRecentOrders,
+	getSalesOverview
 } from '@/app/api/dashboard/actions';
 import Link from 'next/link';
 import {
@@ -17,6 +18,13 @@ import {
 	Users
 } from 'lucide-react';
 import { RefreshButton } from '@/components/dashboard/refresh-button';
+import { SalesOverviewChart } from '@/components/dashboard/sales-overview-chart';
+
+const currency = new Intl.NumberFormat('en-IN', {
+	style: 'currency',
+	currency: 'INR',
+	maximumFractionDigits: 2
+});
 
 const MetricCard = React.memo(function MetricCard({
 	title,
@@ -61,37 +69,40 @@ const MetricCard = React.memo(function MetricCard({
 					}`}>
 					{change}
 				</span>
-				<span className='text-gray-500 text-sm ml-1'>vs last period</span>
+				<span className='text-gray-500 text-sm ml-1'>prev.</span>
 			</div>
 		</div>
 	);
 });
 
 export default async function DashboardPage() {
-	const [totalRevenue, ordersStats, itemsStats, conversionStats, recentOrders] =
-		await Promise.all([
-			getTotalRevenue(),
-			getOrdersStats(),
-			getItemsInStock(),
-			getConversionRate(),
-			getRecentOrders()
-		]);
+	const [
+		revenueStats,
+		ordersStats,
+		itemsStats,
+		conversionStats,
+		recentOrders,
+		salesOverview
+	] = await Promise.all([
+		getRevenueStats(),
+		getOrdersStats(),
+		getItemsInStock(),
+		getConversionRate(),
+		getRecentOrders(),
+		getSalesOverview()
+	]);
 
 	return (
-		<div className='space-y-6'>
+		<div className='max-w-full space-y-6 overflow-x-hidden'>
 			{/* Welcome section */}
-			<div className='flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 animate-slide-up'>
+			<div className='flex min-w-0 flex-col lg:flex-row justify-between items-start lg:items-center gap-4 animate-slide-up'>
 				<div className='min-w-0 flex-1'>
 					<h1 className='text-2xl md:text-3xl font-bold text-gray-900 tracking-tight'>
 						Dashboard
 					</h1>
-					<p className='text-gray-600 mt-1.5 text-sm md:text-base'>
-						Welcome back! Here&apos;s what&apos;s happening with your store
-						today.
-					</p>
 				</div>
 
-				<div className='flex items-center gap-3'>
+				<div className='flex flex-wrap items-center gap-3'>
 					<RefreshButton />
 					<Link
 						href='/orders/create'
@@ -106,8 +117,8 @@ export default async function DashboardPage() {
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
 				<MetricCard
 					title='Total Revenue'
-					value={`₹${totalRevenue.toFixed(2)}`}
-					change='0.0%'
+					value={currency.format(revenueStats.totalRevenue)}
+					change={`${revenueStats.changePercentage.toFixed(1)}%`}
 					icon={DollarSign}
 					iconColor='text-emerald-600'
 				/>
@@ -139,38 +150,20 @@ export default async function DashboardPage() {
 			</div>
 
 			{/* Charts and Recent Activity */}
-			<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+			<div className='grid min-w-0 grid-cols-1 lg:grid-cols-3 gap-6'>
 				{/* Sales Chart */}
-				<div className='lg:col-span-2'>
-					<div className='bg-white rounded-xl border border-gray-200 p-6'>
-						<div className='flex items-center justify-between mb-6'>
-							<div>
-								<h3 className='text-lg font-semibold text-gray-900'>
-									Sales Overview
-								</h3>
-								<p className='text-sm text-gray-600 mt-1'>
-									Daily sales for the last 30 days
-								</p>
-							</div>
-							<div className='flex items-center gap-2 text-sm text-gray-600'>
-								<BarChart3 className='h-4 w-4' />
-								<span>Last 30 days</span>
-							</div>
-						</div>
-
-						{/* Simple chart placeholder */}
-						<div className='h-64 bg-gray-50 rounded-lg flex items-center justify-center'>
-							<div className='text-center'>
-								<BarChart3 className='h-12 w-12 text-gray-400 mx-auto mb-2' />
-								<p className='text-gray-600'>Sales Chart</p>
-								<p className='text-sm text-gray-500'>Chart Coming Soon</p>
-							</div>
-						</div>
-					</div>
+				<div className='min-w-0 lg:col-span-2'>
+					<SalesOverviewChart
+						data={salesOverview.points}
+						periodLabel={salesOverview.periodLabel}
+						totalRevenue={salesOverview.totalRevenue}
+						totalOrders={salesOverview.totalOrders}
+						bestDay={salesOverview.bestDay}
+					/>
 				</div>
 
 				{/* Recent Orders */}
-				<div className='lg:col-span-1'>
+				<div className='min-w-0 lg:col-span-1'>
 					<div className='bg-white rounded-xl border border-gray-200 p-6'>
 						<div className='flex items-center justify-between mb-4'>
 							<h3 className='text-lg font-semibold text-gray-900'>
@@ -231,7 +224,6 @@ export default async function DashboardPage() {
 							</div>
 							<div>
 								<h4 className='font-medium text-gray-900'>New Order</h4>
-								<p className='text-sm text-gray-600'>Create order</p>
 							</div>
 						</div>
 					</Link>
@@ -245,7 +237,6 @@ export default async function DashboardPage() {
 							</div>
 							<div>
 								<h4 className='font-medium text-gray-900'>Manage Items</h4>
-								<p className='text-sm text-gray-600'>View inventory</p>
 							</div>
 						</div>
 					</Link>
@@ -259,7 +250,6 @@ export default async function DashboardPage() {
 							</div>
 							<div>
 								<h4 className='font-medium text-gray-900'>View Orders</h4>
-								<p className='text-sm text-gray-600'>Order history</p>
 							</div>
 						</div>
 					</Link>
@@ -273,7 +263,6 @@ export default async function DashboardPage() {
 							</div>
 							<div>
 								<h4 className='font-medium text-gray-900'>Analytics</h4>
-								<p className='text-sm text-gray-600'>View reports</p>
 							</div>
 						</div>
 					</Link>

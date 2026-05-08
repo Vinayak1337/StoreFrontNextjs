@@ -1,6 +1,3 @@
-import { cookies } from 'next/headers';
-import prisma from './prisma';
-import { COOKIE_NAME } from './auth-constants';
 import 'server-only';
 
 export interface SessionData {
@@ -10,40 +7,14 @@ export interface SessionData {
 }
 
 /**
- * Verify if the current session is valid by checking the session cookie
- * against the database record.
+ * Public mode keeps the legacy auth surface available without gating pages.
  */
 export async function verifySession(): Promise<SessionData | null> {
-	try {
-		// Get the cookie
-		const cookieStore = await cookies();
-		const sessionCookie = cookieStore.get(COOKIE_NAME);
-		if (!sessionCookie?.value) {
-			return null;
-		}
-
-		// Parse session data
-		const sessionData = JSON.parse(sessionCookie.value) as SessionData;
-		if (!sessionData?.userId || !sessionData?.sessionId) {
-			return null;
-		}
-
-		// Check if the user exists
-		const user = await prisma.user.findUnique({
-			where: { id: sessionData.userId }
-		});
-
-		if (!user) {
-			return null;
-		}
-
-		// For now, just return the session data
-		// In a production app, you would check if the session is valid
-		return sessionData;
-	} catch (error) {
-		console.error('Session verification error:', error);
-		return null;
-	}
+	return {
+		userId: 'public',
+		sessionId: 'public',
+		sessionType: 'public'
+	};
 }
 
 /**

@@ -2,6 +2,8 @@
  * Bluetooth Printer Connection Utilities
  */
 
+import { autoConnectToSavedPrinter } from './storage';
+
 /**
  * Attempts to connect to a specific Bluetooth printer
  */
@@ -112,12 +114,9 @@ export async function testPrinter(
  */
 export async function autoConnectPrinter(): Promise<boolean> {
 	try {
-		// Bluetooth devices cannot be auto-connected due to browser security restrictions
-		// User must manually initiate the connection through the UI
-		console.log(
-			'Auto-connect is not supported for Bluetooth printers due to browser security restrictions'
-		);
-		return false;
+		// Web Bluetooth cannot silently grant new devices, but Chrome can restore
+		// devices the user has already paired with this origin via getDevices().
+		return await autoConnectToSavedPrinter();
 	} catch (error) {
 		console.error('Auto-connect failed:', error);
 		return false;

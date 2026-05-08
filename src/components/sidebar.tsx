@@ -140,7 +140,7 @@ export function Sidebar() {
 					<Button
 						variant='outline'
 						size='icon'
-						className='md:hidden fixed top-3 left-3 z-[60] shadow-lg bg-white/95 backdrop-blur-sm hover:bg-gray-50 border-gray-200 h-10 w-10'>
+						className='md:hidden fixed top-3 right-3 z-[60] shadow-lg bg-white/95 backdrop-blur-sm hover:bg-gray-50 border-gray-200 h-10 w-10'>
 						<Menu className='h-5 w-5' />
 						<span className='sr-only'>Toggle Menu</span>
 					</Button>

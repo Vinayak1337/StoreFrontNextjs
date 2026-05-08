@@ -2,12 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import {
-	isLoggedIn,
-	getCurrentSession,
-	verifySession,
-	logout as authLogout
-} from '@/lib/client/auth-utils';
 
 interface AuthState {
 	isAuthenticated: boolean;
@@ -19,87 +13,36 @@ interface AuthState {
 	} | null;
 }
 
+const publicUser = {
+	id: 'public',
+	sessionId: 'public',
+	sessionType: 'public'
+};
+
 export function useAuth() {
 	const router = useRouter();
 	const pathname = usePathname();
 	const [authState, setAuthState] = useState<AuthState>({
-		isAuthenticated: false,
-		isLoading: true,
-		user: null
+		isAuthenticated: true,
+		isLoading: false,
+		user: publicUser
 	});
 
 	const checkAuthStatus = useCallback(async () => {
-		try {
-			setAuthState(prev => ({ ...prev, isLoading: true }));
-
-			// Check if user is logged in according to localStorage
-			const isLocallyAuthenticated = isLoggedIn();
-			
-			if (!isLocallyAuthenticated) {
-				setAuthState({
-					isAuthenticated: false,
-					isLoading: false,
-					user: null
-				});
-				return;
-			}
-
-			// Get session data from localStorage
-			const sessionData = getCurrentSession();
-			if (!sessionData) {
-				setAuthState({
-					isAuthenticated: false,
-					isLoading: false,
-					user: null
-				});
-				return;
-			}
-
-			// Verify session with server
-			const isValidSession = await verifySession();
-			
-			if (isValidSession) {
-				setAuthState({
-					isAuthenticated: true,
-					isLoading: false,
-					user: {
-						id: sessionData.userId,
-						sessionId: sessionData.sessionId,
-						sessionType: sessionData.sessionType
-					}
-				});
-			} else {
-				// Session invalid, clear auth state
-				setAuthState({
-					isAuthenticated: false,
-					isLoading: false,
-					user: null
-				});
-			}
-		} catch (error) {
-			console.error('Auth check error:', error);
-			setAuthState({
-				isAuthenticated: false,
-				isLoading: false,
-				user: null
-			});
-		}
+		setAuthState({
+			isAuthenticated: true,
+			isLoading: false,
+			user: publicUser
+		});
 	}, []);
 
 	const logout = useCallback(async () => {
-		try {
-			await authLogout();
-		} catch (error) {
-			console.error('Logout error:', error);
-		} finally {
-			setAuthState({
-				isAuthenticated: false,
-				isLoading: false,
-				user: null
-			});
-			// Use hard navigation to ensure server-side layout updates
-			window.location.href = '/login';
-		}
+		setAuthState({
+			isAuthenticated: true,
+			isLoading: false,
+			user: publicUser
+		});
+		window.location.href = '/dashboard';
 	}, []);
 
 	const login = useCallback((userData: { id: string; sessionId: string; sessionType: string }) => {
@@ -120,16 +63,11 @@ export function useAuth() {
 		if (authState.isLoading) return; // Wait for loading to complete
 
 		const isLoginPage = pathname === '/login';
-		const isPublicPage = pathname === '/login'; // Add more public pages if needed
 
-		if (!authState.isAuthenticated && !isPublicPage) {
-			// User is not authenticated and trying to access protected page
-			router.push('/login');
-		} else if (authState.isAuthenticated && isLoginPage) {
-			// User is authenticated but on login page, redirect to dashboard
-			router.push('/dashboard');
+		if (isLoginPage) {
+			router.replace('/dashboard');
 		}
-	}, [authState.isAuthenticated, authState.isLoading, pathname, router]);
+	}, [authState.isLoading, pathname, router]);
 
 	return {
 		...authState,
